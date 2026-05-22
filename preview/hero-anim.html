@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>[DEMO] ヒーロー アニメーション プレビュー - 見積りGO!!</title>
+<style>
+:root {
+  --primary: #d97706;
+  --navy: #0d4d6b;
+  --success: #16a34a;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background: linear-gradient(180deg, #f0f7fa 0%, #fff 100%);
+  margin: 0;
+  padding: 30px 16px 60px;
+  min-height: 100vh;
+  color: var(--gray-900);
+}
+
+.preview-notice {
+  max-width: 480px;
+  margin: 0 auto 24px;
+  background: #fef3c7;
+  border-left: 4px solid #d97706;
+  padding: 14px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.preview-notice strong { display: block; margin-bottom: 4px; font-size: 15px; color: #92400e; }
+.preview-notice span { color: #78350f; }
+
+/* App Mockup */
+.app-mockup {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 30px 60px -15px rgba(13,77,107,0.35), 0 18px 36px -18px rgba(0,0,0,0.25);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+  max-width: 480px;
+  margin: 0 auto;
+  font-size: 13px;
+  transform: rotate(-1deg);
+}
+.mock-header {
+  background: linear-gradient(135deg, #f0f7fa, #e8f1f5);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mock-brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mock-brand-name { font-weight: 800; color: var(--navy); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mock-brand-sub { color: var(--gray-500); font-size: 10px; }
+.mock-badge {
+  background: var(--navy);
+  color: white;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  margin-left: 4px;
+  display: inline-block;
+}
+.mock-buttons { display: flex; gap: 3px; flex-shrink: 0; }
+.mock-btn {
+  background: white;
+  border: 1px solid var(--gray-200);
+  padding: 3px 6px;
+  font-size: 9px;
+  border-radius: 4px;
+  color: var(--gray-700);
+}
+.mock-btn.primary { background: var(--navy); color: white; border-color: var(--navy); }
+
+.mock-body { padding: 14px 16px 18px; }
+.mock-card {
+  background: #fffbeb;
+  border: 1px dashed #facc15;
+  border-radius: 10px;
+  padding: 16px 14px 14px;
+  position: relative;
+}
+.mock-card::before {
+  content: 'NEW';
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  background: #facc15;
+  color: var(--navy);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.mock-card h3 { color: var(--navy); font-size: 13px; margin: 0 0 4px; font-weight: 800; }
+.mock-card p { color: var(--gray-700); font-size: 11px; margin: 0 0 10px; line-height: 1.5; }
+
+.mock-drop {
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  padding: 22px 12px;
+  background: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 90px;
+}
+.mock-drop .icn { font-size: 24px; line-height: 1; }
+.mock-drop .lbl { font-weight: 700; color: var(--navy); margin-top: 4px; font-size: 11px; }
+.mock-drop .sub { color: var(--gray-500); font-size: 9.5px; margin-top: 2px; }
+
+/* Falling file icon */
+.flying-file {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 38px;
+  height: 48px;
+  background: white;
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(217,119,6,0.35);
+  opacity: 0;
+  z-index: 5;
+  pointer-events: none;
+  /* Corner fold */
+}
+.flying-file::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background: var(--primary);
+  clip-path: polygon(0 0, 100% 100%, 100% 0);
+}
+
+/* Loading overlay */
+.mock-loading {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+  border-radius: 8px;
+}
+.mock-loading::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--gray-200);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.mock-loading-text {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 11px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.mock-summary {
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  opacity: 0;
+  transform: translateY(12px);
+}
+.sum-title { color: var(--success); font-weight: 800; font-size: 11px; margin-bottom: 8px; }
+.sum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 10px; }
+.sum-grid .row { display: flex; justify-content: space-between; }
+.sum-grid .lbl { color: var(--gray-500); }
+.sum-grid .val { font-weight: 700; color: var(--gray-900); }
+.sum-note { color: var(--gray-500); font-size: 9.5px; margin-top: 6px; line-height: 1.4; }
+
+/* ============================================
+   Animation orchestration — 8s loop
+   0-15%  : file appears above the drop zone (fade-in)
+   15-25% : file falls down to the drop zone
+   25-28% : file bounces lightly
+   28-32% : file fades out into the drop zone
+   28-35% : drop zone highlights (orange dashed)
+   30-55% : "AI 読み取り中" loading spinner shows
+   55-62% : summary card slides up and fades in
+   62-92% : summary stays visible
+   92-100%: gentle reset (fade out)
+   ============================================ */
+
+.flying-file { animation: file-drop 8s ease-in-out infinite; }
+.mock-drop   { animation: drop-highlight 8s infinite; }
+.mock-loading{ animation: loading-show 8s infinite; }
+.mock-summary{ animation: summary-show 8s infinite; }
+
+@keyframes file-drop {
+  0%   { transform: translateX(-50%) translateY(-70px) rotate(-6deg); opacity: 0; }
+  10%  { transform: translateX(-50%) translateY(-70px) rotate(-6deg); opacity: 0; }
+  15%  { transform: translateX(-50%) translateY(-60px) rotate(-4deg); opacity: 1; }
+  25%  { transform: translateX(-50%) translateY(20px)  rotate(2deg);  opacity: 1; }
+  28%  { transform: translateX(-50%) translateY(10px)  rotate(0deg);  opacity: 1; }
+  31%  { transform: translateX(-50%) translateY(22px)  rotate(2deg);  opacity: 0.5; }
+  33%  { transform: translateX(-50%) translateY(22px)  rotate(2deg) scale(0.9); opacity: 0; }
+  100% { transform: translateX(-50%) translateY(22px)  rotate(2deg) scale(0.9); opacity: 0; }
+}
+
+@keyframes drop-highlight {
+  0%, 24%   { border-color: #d1d5db; background: white; }
+  28%, 50%  { border-color: var(--primary); background: rgba(217,119,6,0.06); }
+  92%, 100% { border-color: #d1d5db; background: white; }
+}
+
+@keyframes loading-show {
+  0%, 30%   { opacity: 0; }
+  35%, 52%  { opacity: 1; }
+  58%, 100% { opacity: 0; }
+}
+
+@keyframes summary-show {
+  0%, 53%   { opacity: 0; transform: translateY(12px); }
+  62%, 90%  { opacity: 1; transform: translateY(0); }
+  96%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flying-file, .mock-drop, .mock-loading, .mock-summary { animation: none; }
+  .flying-file { display: none; }
+  .mock-loading { display: none; }
+  .mock-summary { opacity: 1; transform: none; }
+}
+
+.footer-note {
+  max-width: 480px;
+  margin: 30px auto 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--gray-500);
+  line-height: 1.6;
+}
+.footer-note .ok-btn {
+  display: inline-block;
+  margin-top: 12px;
+  background: var(--primary);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<div class="preview-notice">
+  <strong>[DEMO] ヒーロー アニメーション プレビュー</strong>
+  <span>本番ヒーローのモックアップに「図面ドロップ → AI抽出 → 結果表示」アニメを足した時のイメージです (8秒ループ・CSSのみで実装・追加ファイル0)。<br>イメージが合っていれば本番LP (mitsumori-go.com) に同じCSSを移植します。</span>
+</div>
+
+<div class="app-mockup">
+  <div class="mock-header">
+    <div class="mock-brand">
+      <div>
+        <div class="mock-brand-name">グッドホーム不動産株式会社 <span class="mock-badge">v4</span></div>
+        <div class="mock-brand-sub">入居費用見積書 / 募集図面 自動読込システム</div>
+      </div>
+    </div>
+    <div class="mock-buttons">
+      <span class="mock-btn">👤</span>
+      <span class="mock-btn">📁</span>
+      <span class="mock-btn">🖨️</span>
+      <span class="mock-btn primary">💾</span>
+    </div>
+  </div>
+  <div class="mock-body">
+    <div class="mock-card">
+      <h3>📄 募集図面から自動入力</h3>
+      <p>募集図面のPDF・写真をドロップするだけで、賃料・初期費用・保証料%・備考まで AI が自動で読み取ってフォームに反映します</p>
+      <div class="mock-drop">
+        <div class="flying-file">📄</div>
+        <div class="icn">📄</div>
+        <div class="lbl">PDFをドロップ または クリックして選択</div>
+        <div class="sub">対応: PDF / JPEG / PNG (最大 50MB ／ 大きい画像は自動圧縮)</div>
+        <div class="mock-loading">
+          <div class="mock-loading-text">AI 読み取り中...</div>
+        </div>
+      </div>
+      <div class="mock-summary">
+        <div class="sum-title">✓ 抽出された項目</div>
+        <div class="sum-grid">
+          <div class="row"><span class="lbl">物件名</span><span class="val">グレースコート品川 502</span></div>
+          <div class="row"><span class="lbl">賃料</span><span class="val">¥125,000</span></div>
+          <div class="row"><span class="lbl">管理費</span><span class="val">¥8,000</span></div>
+          <div class="row"><span class="lbl">礼金</span><span class="val">1ヶ月</span></div>
+          <div class="row"><span class="lbl">敷金</span><span class="val">0ヶ月</span></div>
+          <div class="row"><span class="lbl">鍵交換代</span><span class="val">¥22,000</span></div>
+          <div class="row"><span class="lbl">事務手数料</span><span class="val">¥22,000</span></div>
+          <div class="row"><span class="lbl">保証料</span><span class="val">総賃料の100%</span></div>
+        </div>
+        <div class="sum-note">その他月次: 安心サポート¥1,100/月、保険料¥800/月、引落料¥330/月</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">
+  検索エンジンには登録されません (noindex指定)。<br>
+  iPhone / Android / PC、いずれでも同じ動きで再生されます。
+</div>
+
+</body>
+</html>

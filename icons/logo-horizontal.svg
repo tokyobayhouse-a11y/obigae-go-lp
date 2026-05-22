@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 460" width="1400" height="460">
+  <style>
+    .navy { fill: #0d4d6b; }
+    .orange { fill: #d97706; }
+    .main { font-family: "Hiragino Sans", "Yu Gothic", -apple-system, sans-serif; font-weight: 900; font-size: 130px; }
+    .sub { font-family: "Hiragino Sans", "Yu Gothic", -apple-system, sans-serif; font-weight: 600; font-size: 50px; }
+  </style>
+  <!-- Mark on left -->
+  <rect x="60" y="50" width="220" height="220" rx="52" class="navy"/>
+  <text x="170" y="200" text-anchor="middle" font-family="Hiragino Sans" font-weight="900" font-size="120" font-style="normal" transform="translate(0 0) skewX(12)" fill="white">GO</text>
+  <!-- Main text (LEFT-leaning slant via positive skewX) -->
+  <g transform="translate(330 180) skewX(12)">
+    <text x="0" y="0" class="main navy">見積りGO</text>
+    <text x="558" y="0" class="main orange">!!</text>
+  </g>
+  <!-- Subtitle (horizontal) -->
+  <text x="330" y="320" class="sub orange">完全AUTOで見積作成時代へ</text>
+</svg>

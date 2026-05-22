@@ -1,0 +1,8 @@
+.DS_Store
+.netlify/
+node_modules/
+*.zip
+.env
+.env.local
+*.log
+screenshots/
