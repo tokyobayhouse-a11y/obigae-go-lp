@@ -6,3 +6,15 @@ node_modules/
 .env.local
 *.log
 screenshots/
+icons.backup-*/
+*.upscaled-old.png
+icon-master-*.png
+icon-300-source.png
+illust/*.no-sparkle
+illust/*.scissors-version
+illust/*.previous-version-*
+illust/*.same-as-scene1
+illust/*.placeholder
+illust/*.v1
+illust/*.old-*
+.claude/launch.json
