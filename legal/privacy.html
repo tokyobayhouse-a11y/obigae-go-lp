@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>プライバシーポリシー | 見積りGO!!</title>
+<title>プライバシーポリシー | 帯替えGO‼︎</title>
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <style>
   :root { --navy:#0d4d6b; --navy-light:#1a6b8f; --navy-bg:#e8f1f5; --accent:#d97706; --accent-bg:#fef3c7; --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-500:#6b7280; --gray-700:#374151; --gray-900:#111827; }
@@ -42,34 +42,48 @@
 
 <header class="topbar">
   <div class="inner">
-    <a href="/" class="brand"><img src="/icons/icon-192.png" alt="">見積りGO!!</a>
+    <a href="/" class="brand"><img src="/icons/icon-192.png" alt="">帯替えGO‼︎</a>
     <a href="/" class="back">← トップへ戻る</a>
   </div>
 </header>
 
 <main class="container">
   <h1 class="doc-title">プライバシーポリシー</h1>
-  <p class="doc-meta">最終更新日: 2026年5月12日 / 適用開始日: 2026年5月12日</p>
+  <p class="doc-meta">最終更新日: 2026年5月22日 / 適用開始日: 2026年5月22日</p>
 
-  <p>東京ベイハウス株式会社（以下「当社」といいます）は、当社が提供するクラウドサービス「見積りGO!!」（以下「本サービス」といいます）における、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」といいます）を定めます。</p>
+  <p>東京ベイハウス株式会社（以下「当社」といいます）は、当社が提供する Chrome 拡張機能サービス「帯替えGO‼︎」（以下「本サービス」といいます）における、ユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」といいます）を定めます。</p>
 
-  <h2>1. 収集する個人情報</h2>
-  <p>当社は、本サービスの提供にあたり、以下の情報を収集します。</p>
+  <h2>1. データ取扱いの基本方針 (重要)</h2>
+  <p>本サービスの中核機能（業者間流通サイト上の募集図面の取得・自社帯画像の焼き込み・PDF 生成）は、<strong>ユーザーの Chrome ブラウザ内（ローカル環境）で完結する設計</strong>となっています。具体的に：</p>
+  <ul>
+    <li>業者間流通サイト（ATBB / REINS / イタンジBB 等）の<strong>ログイン情報・セッション情報を当社サーバーに送信することはありません</strong>。</li>
+    <li>業者間流通サイトから取得した<strong>募集図面の PDF / 画像データを当社サーバーに送信することはありません</strong>。</li>
+    <li>ユーザーが登録した自社帯画像は、Chrome 拡張機能のローカルストレージ内にのみ保存されます。</li>
+    <li>AI / 機械学習による画像解析処理は<strong>一切行わず</strong>、外部の AI サービス（OpenAI / Anthropic / Google 等）に対するデータ送信もありません。</li>
+  </ul>
+
+  <h2>2. 収集する個人情報</h2>
+  <p>当社サーバーが取得する情報は、アカウント認証・課金管理・お問い合わせ対応に必要な最小限の項目に限定されます。</p>
   <table>
     <tr><th>項目</th><th>取得方法</th><th>利用目的</th></tr>
     <tr><td>メールアドレス</td><td>会員登録時</td><td>アカウント識別・連絡</td></tr>
     <tr><td>パスワード</td><td>会員登録時</td><td>認証（ハッシュ化して保存）</td></tr>
     <tr><td>クレジットカード情報</td><td>決済時</td><td>料金決済（<strong>当社サーバーには保存せず、Stripe社で処理</strong>）</td></tr>
+    <tr><td>帯替え処理の件数（カウントのみ）</td><td>拡張機能から自動送信</td><td>無料件数・超過課金の算定（処理内容や対象物件情報は送信されません）</td></tr>
     <tr><td>お問い合わせフォーム入力情報<br>（氏名・メール・会社名・内容）</td><td>お問い合わせフォーム送信時</td><td>お問い合わせへの返信・対応履歴</td></tr>
-    <tr><td>利用ログ</td><td>自動収集</td><td>サービス品質改善・不正検知</td></tr>
+    <tr><td>利用ログ（拡張機能の起動・エラー情報）</td><td>自動収集</td><td>サービス品質改善・不正検知</td></tr>
     <tr><td>IPアドレス・デバイス情報</td><td>自動収集</td><td>不正利用検知・セキュリティ確保</td></tr>
   </table>
 
-  <h2>2. アップロードファイルの扱い</h2>
-  <p>ユーザーが本サービスにアップロードした募集図面（PDF/画像）は、AI処理直後に削除し、当社のサーバーには永続保存しません。AI処理（Anthropic Claude API）に必要な範囲で一時的に Anthropic 社のサーバーに送信されますが、Anthropic 社のポリシーに従い、API経由のデータは学習に使用されません。</p>
-
-  <h2>3. 抽出結果（見積データ）の扱い</h2>
-  <p>ユーザーが保存した見積データは、ユーザー本人のみが閲覧可能で、他のユーザーや当社が業務上必要な場合を除き閲覧することはありません。データはSupabase（米国/シンガポールリージョン）のセキュアなデータベースに保存されます。</p>
+  <h2>3. 取得しない情報 (重要)</h2>
+  <p>本サービスは、以下の情報を<strong>一切取得しません</strong>。</p>
+  <ul>
+    <li>業者間流通サイトのログインID・パスワード・セッショントークン</li>
+    <li>業者間流通サイトから取得した募集図面の PDF / 画像データ</li>
+    <li>募集図面に記載された物件情報（賃料・所在地・物件名・オーナー情報等）</li>
+    <li>ユーザーが Chrome 拡張機能内で登録した自社帯画像（ローカルストレージ内のみで管理）</li>
+    <li>業者間流通サイト以外の Web 閲覧履歴・タブ情報</li>
+  </ul>
 
   <h2>4. 利用目的</h2>
   <p>当社は、収集した個人情報を以下の目的で利用します。</p>
@@ -92,22 +106,22 @@
   </ol>
 
   <h2>6. 業務委託先</h2>
-  <p>本サービスの運営にあたり、以下の事業者にデータ処理を委託しています。</p>
+  <p>本サービスの運営にあたり、以下の事業者にデータ処理を委託しています。<strong>AI処理・募集図面データの送信はないため、AI関連事業者への委託はありません。</strong></p>
   <table>
     <tr><th>委託先</th><th>用途</th><th>データ保管地域</th></tr>
-    <tr><td>Cloudflare, Inc.</td><td>ホスティング（Pages・Workers）・DNS・メール受信ルーティング</td><td>米国（CDNはグローバル）</td></tr>
-    <tr><td>Supabase, Inc.</td><td>認証・データベース</td><td>シンガポール（ap-southeast-1）</td></tr>
-    <tr><td>Anthropic, PBC</td><td>AI抽出処理</td><td>米国（API経由・学習に使用されない）</td></tr>
+    <tr><td>Cloudflare, Inc.</td><td>LPサイトのホスティング（Pages）・拡張機能の認証バックエンド (Workers)・DNS</td><td>米国（CDNはグローバル）</td></tr>
+    <tr><td>Supabase, Inc.</td><td>ユーザー認証・課金管理データベース</td><td>シンガポール（ap-southeast-1）</td></tr>
     <tr><td>Stripe, Inc.</td><td>決済処理</td><td>米国（PCI DSS準拠）</td></tr>
     <tr><td>Resend, Inc.</td><td>システムメール送信（お問い合わせ通知・パスワードリセット等）</td><td>米国</td></tr>
+    <tr><td>Google LLC</td><td>Chrome Web Store による拡張機能配信</td><td>米国</td></tr>
   </table>
-  <p>これらの事業者はいずれも、相応のデータ保護水準を備えた事業者であり、当社は適切な契約・監督を行っています。お問い合わせフォームから送信された内容は Resend を経由して info@mitsumori-go.com に届けられ、対応履歴として当社内で管理されます。</p>
+  <p>これらの事業者はいずれも、相応のデータ保護水準を備えた事業者であり、当社は適切な契約・監督を行っています。お問い合わせフォームから送信された内容は Resend を経由して info@obigae-go.com に届けられ、対応履歴として当社内で管理されます。</p>
 
   <h2>7. データの保管期間</h2>
   <table>
     <tr><th>データ種別</th><th>保管期間</th></tr>
     <tr><td>アカウント情報</td><td>解約後30日で削除</td></tr>
-    <tr><td>見積データ</td><td>解約後30日で削除</td></tr>
+    <tr><td>帯替え処理件数の集計データ</td><td>請求終了後12ヶ月（請求・税務管理のため）</td></tr>
     <tr><td>お問い合わせ履歴</td><td>対応完了後12ヶ月（再発防止・トレーサビリティのため）</td></tr>
     <tr><td>利用ログ</td><td>36ヶ月（不正検知のため）</td></tr>
     <tr><td>決済情報</td><td>Stripeの規定に従う（最大7年）</td></tr>
@@ -135,7 +149,7 @@
   <h2>10. 個人情報の管理責任者・お問い合わせ窓口</h2>
   <table>
     <tr><th>管理責任者</th><td>寺島 考一郎（東京ベイハウス株式会社 代表取締役）</td></tr>
-    <tr><th>連絡先</th><td><a href="mailto:info@mitsumori-go.com">info@mitsumori-go.com</a></td></tr>
+    <tr><th>連絡先</th><td><a href="mailto:info@obigae-go.com">info@obigae-go.com</a></td></tr>
     <tr><th>住所</th><td>〒141-0022 東京都品川区東五反田1-11-12 大力ビル3階</td></tr>
   </table>
 
@@ -151,7 +165,7 @@
   <a href="/legal/terms.html">利用規約</a>
   <a href="/legal/tokushoho.html">特商法表記</a>
   <a href="/legal/privacy.html">プライバシーポリシー</a>
-  <a href="mailto:info@mitsumori-go.com">お問い合わせ</a>
+  <a href="mailto:info@obigae-go.com">お問い合わせ</a>
   <div style="margin-top:14px">© 2026 東京ベイハウス株式会社</div>
 </footer>
 
