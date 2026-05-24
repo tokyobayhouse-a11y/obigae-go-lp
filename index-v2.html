@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="業者間流通サイトの募集図面を、1クリックで自社の帯付きPDFへ。帯替えGO‼︎ は不動産営業マン向けのChrome拡張機能。ATBB・REINS・イタンジBB 対応。" />
+  <meta name="robots" content="index,follow" />
+  <title>帯替えGO‼︎ ｜ 業者間サイトの帯を1クリックで自社へ</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="帯替えGO‼︎ ｜ 業者間サイトの帯を1クリックで自社へ" />
+  <meta property="og:description" content="ATBB・REINS・イタンジBBの物件カードに「📥帯付き」ボタン。1クリックで自社帯付き募集図面PDFを生成。" />
+  <meta property="og:image" content="https://obigae-go.com/icons/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://obigae-go.com/" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="shortcut icon" href="/icons/favicon.ico" />
+  <style>
+    :root {
+      --navy: #0d4d6b;
+      --navy-dark: #08344a;
+      --navy-light: #1a6b8f;
+      --navy-bg: #e8f1f5;
+      --orange: #d97706;
+      --orange-light: #fbbf24;
+      --orange-bg: #fff7ed;
+      --cream: #fff8ec;
+      --teal: #14b8a6;
+      --text: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --shadow: 0 24px 70px rgba(13, 77, 107, 0.12);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.75;
+      letter-spacing: 0.02em;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    /* 上部の限定特典バナー */
+    .top-strip {
+      background: linear-gradient(135deg, #fff8ec 0%, #fef3c7 50%, #fde68a 100%);
+      color: var(--navy);
+      padding: 12px 0;
+      border-bottom: 1px solid #fcd34d;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .top-strip .tag {
+      display: inline-block;
+      background: var(--navy);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      margin-right: 10px;
+    }
+    .top-strip strong { color: var(--orange); }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(226,232,240,0.8);
+    }
+
+    .header-inner {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      color: var(--navy);
+      letter-spacing: 0.02em;
+    }
+    .logo img { width: 38px; height: 38px; border-radius: 9px; }
+    .logo span.brand { font-size: 18px; }
+    .logo small {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1;
+      letter-spacing: 0.18em;
+      margin-top: 3px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .nav a:hover { color: var(--navy); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 0 22px;
+      border-radius: 12px;
+      font-weight: 800;
+      border: 1px solid transparent;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      color: white;
+      background: linear-gradient(135deg, var(--orange), #b45309);
+      box-shadow: 0 16px 34px rgba(217,119,6,0.30);
+    }
+    .btn-navy {
+      color: white;
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      box-shadow: 0 16px 34px rgba(13,77,107,0.28);
+    }
+    .btn-secondary {
+      background: white;
+      color: var(--navy);
+      border-color: #bfdbfe;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.06);
+    }
+    .btn-ghost {
+      background: white;
+      color: var(--navy);
+      border-color: var(--line);
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 78% 12%, rgba(217,119,6,0.10), transparent 38%),
+        radial-gradient(circle at 18% 18%, rgba(13,77,107,0.10), transparent 40%),
+        linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+      padding: 70px 0 56px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      align-items: center;
+      gap: 48px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: var(--orange-bg);
+      color: #92400e;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid #fde68a;
+    }
+
+    h1 {
+      margin: 22px 0 18px;
+      font-size: clamp(36px, 5.4vw, 60px);
+      line-height: 1.12;
+      letter-spacing: -0.04em;
+      color: var(--navy);
+      font-weight: 900;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .lead {
+      font-size: 17px;
+      color: #334155;
+      margin: 0 0 28px;
+      line-height: 1.85;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .trust-row span::before {
+      content: "✓";
+      color: var(--teal);
+      font-weight: 900;
+      margin-right: 6px;
+    }
+
+    /* Hero demo card (Before/After) */
+    .demo-card {
+      position: relative;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(226,232,240,0.9);
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .demo-window {
+      border-radius: 22px;
+      background: white;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .window-bar {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+    .window-bar .url {
+      margin-left: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; }
+
+    .demo-body {
+      display: grid;
+      grid-template-columns: 1fr 66px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 22px;
+    }
+    .paper {
+      min-height: 260px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 12px 26px rgba(15,23,42,0.08);
+      padding: 12px;
+      position: relative;
+    }
+    .paper::before {
+      content: attr(data-label);
+      position: absolute;
+      top: -30px;
+      left: 0;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      background: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .paper-header {
+      height: 30px;
+      background: var(--navy);
+      color: white;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 9px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .paper.before .paper-header { background: #cbd5e1; color: #475569; }
+    .price {
+      text-align: right;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--navy);
+      margin: 12px 0;
+    }
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      height: 110px;
+    }
+    .room { border: 1px solid #94a3b8; border-radius: 5px; background: #f8fafc; display: grid; place-items: center; font-size: 9px; color: #475569; }
+    .info-lines { margin-top: 12px; display: grid; gap: 6px; }
+    .info-lines span { height: 7px; background: #e2e8f0; border-radius: 999px; }
+    .info-lines span:nth-child(2) { width: 78%; }
+    .info-lines span:nth-child(3) { width: 62%; }
+
+    .arrow-badge {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      color: white;
+      font-weight: 900;
+      font-size: 11px;
+      text-align: center;
+      line-height: 1.2;
+      box-shadow: 0 18px 34px rgba(217,119,6,0.4);
+      animation: pulse 2.5s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.07); }
+    }
+
+    /* Stats */
+    .stats {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      background: white;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .stat {
+      padding: 18px;
+      border-right: 1px solid var(--line);
+    }
+    .stat:last-child { border-right: 0; }
+    .stat strong { display: block; font-size: 24px; color: var(--navy); line-height: 1.2; font-weight: 900; }
+    .stat strong span { color: var(--orange); font-size: 34px; }
+    .stat p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+
+    section { padding: 78px 0; }
+
+    .section-head {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 38px;
+    }
+    .section-head h2 {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 3.6vw, 40px);
+      line-height: 1.3;
+      letter-spacing: -0.03em;
+      color: var(--navy);
+      font-weight: 900;
+    }
+    .section-head p { color: var(--muted); margin: 0; }
+
+    /* Compatibility (supported sites) */
+    .sites { background: var(--navy-bg); }
+    .site-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 28px;
+    }
+    .site-tag {
+      background: white;
+      padding: 14px 22px;
+      border-radius: 14px;
+      border: 1px solid #bae6fd;
+      box-shadow: 0 4px 14px rgba(13,77,107,0.06);
+      font-weight: 900;
+      color: var(--navy);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .site-tag .badge-ok {
+      background: #10b981;
+      color: white;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.08em;
+    }
+    .site-tag .badge-coming {
+      background: #94a3b8;
+      color: white;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.08em;
+    }
+
+    /* Features */
+    .features { background: var(--bg); }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+    .card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 18px 46px rgba(15,23,42,0.06);
+    }
+    .icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: var(--orange-bg);
+      color: var(--orange);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+    .card h3 { margin: 0 0 8px; color: var(--navy); font-size: 17px; font-weight: 900; }
+    .card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+    /* Steps */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .step-number {
+      display: inline-flex;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      background: var(--orange);
+      font-weight: 900;
+      margin-bottom: 14px;
+      font-size: 18px;
+    }
+
+    /* 正直不動産アピール */
+    .honest-section {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      padding: 56px 0;
+      border-top: 1px solid #fde68a;
+      border-bottom: 1px solid #fde68a;
+    }
+    .honest-inner {
+      max-width: 880px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .honest-tag {
+      display: inline-block;
+      background: var(--orange);
+      color: white;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      margin-bottom: 16px;
+    }
+    .honest-section h2 {
+      font-size: clamp(26px, 3vw, 36px);
+      color: var(--navy);
+      margin: 0 0 16px;
+      font-weight: 900;
+      line-height: 1.4;
+    }
+    .honest-section h2 strong { color: var(--orange); }
+    .honest-section p { color: #475569; margin: 0; font-size: 16px; }
+
+    /* Pricing */
+    .pricing { background: var(--bg); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+      align-items: stretch;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .price-card {
+      position: relative;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 54px rgba(15,23,42,0.06);
+    }
+    .price-card.recommended {
+      border: 3px solid var(--orange);
+      transform: translateY(-12px);
+      box-shadow: 0 30px 70px rgba(217,119,6,0.16);
+    }
+    .badge {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--orange);
+      color: white;
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+    .price-card h3 { margin: 0 0 10px; font-size: 22px; color: var(--navy); font-weight: 900; }
+    .monthly { font-size: 44px; font-weight: 950; color: var(--navy); margin: 12px 0; letter-spacing: -0.03em; }
+    .monthly small { font-size: 14px; color: var(--muted); font-weight: 700; }
+    .check-list { padding: 0; margin: 18px 0 24px; list-style: none; display: grid; gap: 10px; color: #475569; font-size: 14px; }
+    .check-list li::before { content: "✓"; color: var(--teal); font-weight: 900; margin-right: 8px; }
+
+    /* FAQ */
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    details {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px 22px;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 900;
+      color: var(--navy);
+      line-height: 1.5;
+    }
+    details p { color: var(--muted); margin: 12px 0 0; font-size: 14px; }
+
+    /* CTA */
+    .cta {
+      padding: 68px 0;
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      color: white;
+    }
+    .cta-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 30px;
+    }
+    .cta h2 {
+      font-size: clamp(26px, 3.4vw, 40px);
+      line-height: 1.25;
+      margin: 0 0 12px;
+      letter-spacing: -0.03em;
+      font-weight: 900;
+    }
+    .cta p { margin: 0; opacity: .92; }
+    .cta .btn { background: var(--orange); color: white; box-shadow: 0 20px 48px rgba(217,119,6,0.36); }
+
+    /* Contact */
+    .contact-layout {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    .contact-note {
+      background: linear-gradient(180deg, var(--navy-bg), #ffffff);
+      border: 1px solid #bae6fd;
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 18px 46px rgba(13,77,107,0.08);
+    }
+    .contact-note h2 {
+      font-size: 24px;
+      color: var(--navy);
+      margin: 16px 0 12px;
+      line-height: 1.4;
+      font-weight: 900;
+    }
+    .contact-note ul {
+      padding: 0;
+      list-style: none;
+      margin: 22px 0 0;
+      display: grid;
+      gap: 10px;
+      color: #334155;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .contact-note li::before {
+      content: "✓";
+      color: var(--teal);
+      font-weight: 900;
+      margin-right: 8px;
+    }
+    .form-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 24px 70px rgba(15,23,42,0.08);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .field { display: grid; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    label {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--navy);
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border .2s ease, box-shadow .2s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 4px rgba(217,119,6,0.12);
+    }
+    textarea { min-height: 130px; resize: vertical; }
+    .required { color: #ef4444; margin-left: 4px; }
+    .form-help { margin: 14px 0 0; color: var(--muted); font-size: 12px; }
+    .contact-status {
+      margin: 14px 0 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .contact-status.success { color: #059669; }
+    .contact-status.error { color: #dc2626; }
+
+    /* Sister */
+    .sister-section{background:#f9fafb;padding:60px 0;border-top:1px solid var(--line)}
+    .sister-eyebrow-line{text-align:center;margin-bottom:24px}
+    .sister-eyebrow-line .eyebrow{display:inline-block;background:var(--navy);color:#fff;padding:5px 14px;border-radius:999px;font-size:11px;letter-spacing:.25em;font-weight:900;border:0}
+    .sister-banner{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:28px;padding:30px 36px;background:linear-gradient(135deg,#0d4d6b 0%,#1a6b8f 60%,#2d8b9c 100%);border-radius:22px;color:#fff;text-decoration:none;box-shadow:0 14px 40px rgba(13,77,107,.25);transition:transform .25s ease,box-shadow .25s ease;position:relative;overflow:hidden}
+    .sister-banner::before{content:"";position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:#fbbf24;opacity:.16;border-radius:50%}
+    .sister-banner:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(13,77,107,.35)}
+    .sister-icon img{width:90px;height:90px;border-radius:20px;box-shadow:0 6px 20px rgba(0,0,0,.3);display:block;background:#fff;position:relative;z-index:2}
+    .sister-text{position:relative;z-index:2}
+    .sister-text .sister-eyebrow{font-size:11px;letter-spacing:.3em;color:#fbbf24;font-weight:900;margin-bottom:6px}
+    .sister-title{font-size:24px;font-weight:900;margin-bottom:6px;line-height:1.25}
+    .sister-title strong{color:#fbbf24;font-size:30px;letter-spacing:-.01em}
+    .sister-desc{font-size:14px;color:#e0e7ed;line-height:1.6}
+    .sister-cta{background:#fbbf24;color:#0d4d6b;padding:14px 26px;border-radius:999px;font-weight:900;font-size:15px;white-space:nowrap;position:relative;z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+
+    /* Footer */
+    .footer {
+      padding: 38px 0;
+      background: #0f172a;
+      color: #cbd5e1;
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .footer a { color: #cbd5e1; }
+    .footer a:hover { color: white; }
+    .footer .links a { margin-right: 14px; }
+
+    .mobile-menu { display: none; }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .nav, .header-actions .btn-ghost { display: none; }
+      .mobile-menu { display: inline-flex; }
+      .hero-grid, .demo-body, .cta-inner, .contact-layout { grid-template-columns: 1fr; }
+      .demo-body { gap: 48px; }
+      .arrow-badge { margin: 0 auto; transform: rotate(90deg); }
+      .stats-grid, .feature-grid, .pricing-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr 1fr; }
+      .price-card.recommended { transform: none; }
+      .sister-banner { grid-template-columns: 1fr; text-align: center; padding: 24px; gap: 16px; }
+      .sister-icon img { margin: 0 auto; }
+    }
+    @media (max-width: 640px) {
+      .container { width: min(100% - 28px, 1120px); }
+      .header-inner { height: 62px; }
+      .top-strip { font-size: 12px; padding: 10px 0; }
+      .hero { padding: 50px 0 38px; }
+      .hero-actions .btn { width: 100%; }
+      .stats-grid, .feature-grid, .pricing-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr; }
+      .stat { border-right: 0; border-bottom: 1px solid var(--line); }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .paper { min-height: 220px; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 上部特典バナー -->
+  <div class="top-strip">
+    <span class="tag">🎁 ベータ公開記念</span>
+    新規 14 日間無料体験で<strong>特製オリジナル帯を無料デザインプレゼント</strong>
+  </div>
+
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="#" class="logo" aria-label="帯替えGO ホーム">
+        <img src="/icons/icon-128.png" alt="帯替えGO‼︎">
+        <span><span class="brand">帯替えGO‼︎</span><small>OBIGAE GO</small></span>
+      </a>
+
+      <nav class="nav" aria-label="メインナビゲーション">
+        <a href="#sites">対応サイト</a>
+        <a href="#features">機能</a>
+        <a href="#flow">使い方</a>
+        <a href="#pricing">料金</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="btn btn-primary" href="#contact">Chromeに追加 →</a>
+        <button class="btn btn-secondary mobile-menu" type="button" aria-label="メニューを開く">MENU</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ヒーロー -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">不動産営業マン専用 Chrome 拡張機能</span>
+          <h1>業者間サイトの帯を、<br><span class="gradient-text">1クリック</span>で自社へ。</h1>
+          <p class="lead">ATBB・REINS・イタンジBB の物件カードに「📥 帯付き」ボタンが自動表示。Chrome 拡張機能なので、サイトを離れず帯入り PDF をすぐに作成できます。</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#contact">14日間 無料ではじめる →</a>
+            <a class="btn btn-secondary" href="#flow">使い方を見る</a>
+          </div>
+          <div class="trust-row">
+            <span>クレジットカード不要</span>
+            <span>14日間 完全無料</span>
+            <span>いつでも解約可</span>
+          </div>
+        </div>
+
+        <div class="demo-card" aria-label="帯替えデモ画面">
+          <div class="demo-window">
+            <div class="window-bar">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <span class="url">system.reins.jp/main/BK/GBK002200</span>
+            </div>
+            <div class="demo-body">
+              <div class="paper before" data-label="Before：他社帯のまま">
+                <div class="paper-header">他社不動産</div>
+                <div class="price">85,000円</div>
+                <div class="plan-grid">
+                  <div class="room">LDK</div><div class="room">洋室</div><div class="room">浴室</div>
+                  <div class="room">玄関</div><div class="room">WC</div><div class="room">収納</div>
+                  <div class="room">廊下</div><div class="room">洗面</div><div class="room">B</div>
+                </div>
+                <div class="info-lines"><span></span><span></span><span></span></div>
+              </div>
+
+              <div class="arrow-badge">1<br>クリック</div>
+
+              <div class="paper" data-label="After：自社帯付き">
+                <div class="paper-header"><span>YOUR LOGO</span><span>自社帯</span></div>
+                <div class="price">85,000円</div>
+                <div class="plan-grid">
+                  <div class="room">LDK</div><div class="room">洋室</div><div class="room">浴室</div>
+                  <div class="room">玄関</div><div class="room">WC</div><div class="room">収納</div>
+                  <div class="room">廊下</div><div class="room">洗面</div><div class="room">B</div>
+                </div>
+                <div class="info-lines"><span></span><span></span><span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="container stats-grid">
+        <div class="stat"><strong><span>1</span>クリック</strong><p>新タブも開かず即変換</p></div>
+        <div class="stat"><strong>対応 <span>3</span>サイト</strong><p>ATBB・REINS・イタンジBB</p></div>
+        <div class="stat"><strong>賃貸・売買 <span>両対応</span></strong><p>業務全般をカバー</p></div>
+        <div class="stat"><strong><span>14</span>日間 無料</strong><p>クレカ登録不要</p></div>
+      </div>
+    </div>
+
+    <!-- Compatibility / Sites -->
+    <section id="sites" class="sites">
+      <div class="container">
+        <div class="section-head">
+          <h2>主要な業者間流通サイトに自動対応。</h2>
+          <p>普段使っている画面のまま、物件カードに「📥 帯付き」ボタンが追加されます。</p>
+        </div>
+        <div class="site-tags">
+          <span class="site-tag">ATBB <span class="badge-ok">対応中</span></span>
+          <span class="site-tag">REINS <span class="badge-ok">対応中</span></span>
+          <span class="site-tag">イタンジBB <span class="badge-ok">対応中</span></span>
+          <span class="site-tag">いえらぶBB <span class="badge-coming">準備中</span></span>
+          <span class="site-tag">いい生活スクエア <span class="badge-coming">準備中</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 正直不動産アピール -->
+    <section class="honest-section">
+      <div class="container honest-inner">
+        <span class="honest-tag">HONEST POLICY</span>
+        <h2>当社は<strong>正直不動産</strong>です。<br>セカンドオピニオンとしても、お気軽にご相談ください。</h2>
+        <p>不動産仲介業 20 年以上の現場知見から生まれた拡張機能です。<br>業界の "面倒くさい" を、誠実な道具で解決していきます。</p>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-head">
+          <h2>営業マンが本当に欲しかった機能、全部入り。</h2>
+          <p>業者間サイトに常駐、1クリックで自社帯。複数物件の結合PDFや目隠しシールまで。</p>
+        </div>
+        <div class="feature-grid">
+          <article class="card"><div class="icon">🌐</div><h3>業者サイト直結</h3><p>検索画面に「📥 帯付き」ボタンが自動表示。普段の業務フローを止めません。</p></article>
+          <article class="card"><div class="icon">⚡</div><h3>1クリック・新タブなし</h3><p>裏で帯付き図面を生成してエディタへ。お客様を待たせる時間が消えます。</p></article>
+          <article class="card"><div class="icon">🎯</div><h3>元の帯を自動マスク</h3><p>他社帯を白塗りし、自社帯を正確に焼き込み。透けて見える事故を防止。</p></article>
+          <article class="card"><div class="icon">🖼️</div><h3>PDFも画像も対応</h3><p>JPEG・PNG・PDF を自動判定して 1 ページ PDF にまとめます。</p></article>
+          <article class="card"><div class="icon">📚</div><h3>複数物件を結合PDFに</h3><p>カート式に貯めて、まとめて 1 ファイルへ。お客様への "1通" にも最適。</p></article>
+          <article class="card"><div class="icon">✂️</div><h3>目隠しシール機能</h3><p>オーナー情報など、お客様の目に触れさせたくない部分を白塗りで隠せます。</p></article>
+          <article class="card"><div class="icon">🏷️</div><h3>担当者別の帯を切替</h3><p>担当者ごとの帯画像を登録可能。店舗全体で同じ品質を保てます。</p></article>
+          <article class="card"><div class="icon">🗂️</div><h3>物件名で自動命名</h3><p>「無題.pdf」事故を防ぎ、保存ファイルが整理しやすくなります。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flow / Steps -->
+    <section id="flow">
+      <div class="container">
+        <div class="section-head">
+          <h2>使い方は、たった 3 ステップ。</h2>
+          <p>業者間サイトから離れない設計。新人スタッフでも迷いません。</p>
+        </div>
+        <div class="steps-grid">
+          <article class="card"><span class="step-number">1</span><h3>業者サイトを開く</h3><p>ATBB・REINS・イタンジBB の検索結果画面。普段通りに物件を探すだけ。</p></article>
+          <article class="card"><span class="step-number">2</span><h3>「📥 帯付き」をクリック</h3><p>物件カードにボタンが自動追加。新タブも開かず、サイトを離れません。</p></article>
+          <article class="card"><span class="step-number">3</span><h3>エディタで確認 → 保存</h3><p>自社帯付き PDF がエディタに。複数物件をまとめて結合 PDF にもできます。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="pricing">
+      <div class="container">
+        <div class="section-head">
+          <h2>シンプルでわかりやすい料金プラン</h2>
+          <p>まずは 14 日間の無料体験で、実際の業務にハマるかご確認ください。</p>
+        </div>
+        <div class="pricing-grid">
+          <article class="price-card">
+            <h3>個人プラン</h3>
+            <p>一人営業マン・個人事業主向け</p>
+            <div class="monthly">¥990<small>/ 月</small></div>
+            <ul class="check-list">
+              <li>50 件まで / 月</li>
+              <li>超過 ¥10 / 件</li>
+              <li>全機能フル開放</li>
+              <li>クレカ不要の 14 日間無料</li>
+            </ul>
+            <a class="btn btn-secondary" href="#contact" style="width:100%">14日間 無料ではじめる</a>
+          </article>
+          <article class="price-card recommended">
+            <div class="badge">店舗 おすすめ</div>
+            <h3>店舗プラン</h3>
+            <p>複数営業マン・店舗利用向け</p>
+            <div class="monthly">¥2,970<small>/ 月</small></div>
+            <ul class="check-list">
+              <li>300 件まで / 月</li>
+              <li>超過 ¥10 / 件</li>
+              <li>担当者別の帯を切替可</li>
+              <li>店舗全体で品質統一</li>
+            </ul>
+            <a class="btn btn-primary" href="#contact" style="width:100%">14日間 無料ではじめる</a>
+          </article>
+        </div>
+        <p style="text-align:center; margin-top:24px; color:var(--muted); font-size:13px">
+          複数店舗・エンタープライズ契約のご相談は <a href="mailto:info@obigae-go.com" style="color:var(--navy); font-weight:700">info@obigae-go.com</a> まで。
+        </p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="container">
+        <div class="section-head">
+          <h2>よくある質問</h2>
+        </div>
+        <div class="faq-grid">
+          <details open>
+            <summary>無料トライアルにカード登録は必要ですか？</summary>
+            <p>不要です。14 日間 完全無料で全機能をお試しいただけます。期間中いつでもキャンセル可能です。</p>
+          </details>
+          <details>
+            <summary>業者間サイトのIDやパスワードは送信されますか？</summary>
+            <p>送信されません。ログイン情報・セッション情報は弊社サーバーを一切経由せず、Chrome ブラウザ内 (ローカル) でのみ完結します。</p>
+          </details>
+          <details>
+            <summary>どの業者間流通サイトに対応していますか？</summary>
+            <p>現在 ATBB / REINS / イタンジBB に対応中。いえらぶBB・いい生活スクエア は順次対応予定です。</p>
+          </details>
+          <details>
+            <summary>自社の帯デザインは登録できますか？</summary>
+            <p>はい。自社ロゴ・店舗情報・QRコード入りの帯画像 (PNG/JPG) を登録して、すべての募集図面に自動合成できます。</p>
+          </details>
+          <details>
+            <summary>新人スタッフでも使えますか？</summary>
+            <p>はい。普段使っている業者間サイトに「📥 帯付き」ボタンが追加されるだけ。研修なしで使えるシンプル設計です。</p>
+          </details>
+          <details>
+            <summary>店舗で複数人 (複数アカウント) でも使えますか？</summary>
+            <p>店舗プランで担当者別の帯切替に対応。複数アカウントでの共有運用については個別ご相談ください。</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- 姉妹サービス -->
+    <section class="sister-section">
+      <div class="container">
+        <div class="sister-eyebrow-line"><span class="eyebrow">SISTER SERVICE / 姉妹サービス</span></div>
+        <a class="sister-banner" href="https://mitsumori-go.com/" target="_blank" rel="noopener">
+          <div class="sister-icon"><img src="/icons/mitsumori-go-icon.png" alt="見積りGO!!" loading="lazy"></div>
+          <div class="sister-text">
+            <div class="sister-eyebrow">FROM 東京ベイハウス株式会社</div>
+            <div class="sister-title">見積書作成、最短 <strong>5秒</strong> で完成。</div>
+            <div class="sister-desc">募集図面の写真1枚で AI が見積書を自動作成。賃貸営業マン専用ツール「見積りGO!!」を、ぜひ合わせてご利用ください。</div>
+          </div>
+          <div class="sister-cta">見積りGO!! を見る →</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 最後の CTA -->
+    <section class="cta">
+      <div class="container cta-inner">
+        <div>
+          <h2>営業をやっていて、<br>本当にほしかったもの。</h2>
+          <p>毎日の帯替え作業を消して、お客様の本質と向き合う時間を取り戻しましょう。</p>
+        </div>
+        <a class="btn" href="#contact">14日間 無料ではじめる →</a>
+      </div>
+    </section>
+
+    <!-- お問い合わせ -->
+    <section id="contact">
+      <div class="container contact-layout">
+        <div class="contact-note">
+          <span class="eyebrow">お問い合わせ / 無料体験のお申込み</span>
+          <h2>ご相談・無料体験の<br>お申込みフォーム</h2>
+          <p style="color:#475569; margin:0;">フォーム送信後、担当者より導入方法・料金・対応形式について 1〜2 営業日以内にご返信します。</p>
+          <ul>
+            <li>クレジットカード登録不要</li>
+            <li>14 日間 完全無料体験</li>
+            <li>店舗・法人ご利用 相談歓迎</li>
+            <li>特製オリジナル帯デザインも無料プレゼント中</li>
+          </ul>
+        </div>
+
+        <form id="contact-form" class="form-card">
+          <div class="form-grid">
+            <div class="field">
+              <label for="name">お名前 (任意)</label>
+              <input id="name" name="name" type="text" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="email">メールアドレス<span class="required">*</span></label>
+              <input id="email" name="email" type="email" required autocomplete="email">
+            </div>
+            <div class="field">
+              <label for="company">会社名 (任意)</label>
+              <input id="company" name="company" type="text" autocomplete="organization">
+            </div>
+            <div class="field">
+              <label for="type">お問い合わせ種別</label>
+              <select id="type" name="type">
+                <option>サービス全般</option>
+                <option>14日間 無料体験を試したい</option>
+                <option>プラン・料金相談</option>
+                <option>店舗プラン・法人契約</option>
+                <option>新サイト対応リクエスト</option>
+                <option>特製オリジナル帯デザイン希望</option>
+                <option>不具合報告</option>
+                <option>取材・PR</option>
+                <option>その他</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="message">お問い合わせ内容<span class="required">*</span></label>
+              <textarea id="message" name="message" required placeholder="例：個人プランを 14 日間無料で試したいです。"></textarea>
+            </div>
+            <div style="position:absolute;left:-9999px" aria-hidden="true">
+              <label>Website (do not fill)<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
+          </div>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:14px; font-weight:600">
+            <input type="checkbox" name="consent" required style="width:auto">
+            <a href="/legal/privacy.html" target="_blank" style="color:var(--navy); text-decoration:underline">プライバシーポリシー</a> に同意します
+          </label>
+          <button id="contact-submit-btn" class="btn btn-navy" type="submit" style="width:100%; margin-top:16px;">送信する →</button>
+          <p id="contact-status" class="contact-status"></p>
+          <p class="form-help">うまく送信できない場合は <a href="mailto:info@obigae-go.com" style="color:var(--navy); font-weight:700">info@obigae-go.com</a> まで直接ご連絡ください。</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="logo"><img src="/icons/icon-128.png" alt="" style="width:32px;height:32px;border-radius:8px"><span style="color:white"><span class="brand">帯替えGO‼︎ (Beta)</span><small style="color:#94a3b8">OBIGAE GO</small></span></div>
+      <div class="links">
+        <a href="/legal/terms.html">利用規約</a>
+        <a href="/legal/privacy.html">プライバシーポリシー</a>
+        <a href="/legal/tokushoho.html">特商法表記</a>
+        <a href="#contact">お問い合わせ</a>
+      </div>
+      <div>© 2026 東京ベイハウス株式会社<br>帯替えGO‼︎ 運営事務局</div>
+    </div>
+  </footer>
+
+  <script>
+    // モバイルメニュー
+    const menuButton = document.querySelector('.mobile-menu');
+    const nav = document.querySelector('.nav');
+    menuButton?.addEventListener('click', () => {
+      const isOpen = nav.style.display === 'flex';
+      if (isOpen) {
+        nav.style.display = '';
+        return;
+      }
+      nav.style.display = 'flex';
+      nav.style.position = 'absolute';
+      nav.style.top = '62px';
+      nav.style.left = '14px';
+      nav.style.right = '14px';
+      nav.style.flexDirection = 'column';
+      nav.style.alignItems = 'flex-start';
+      nav.style.padding = '20px';
+      nav.style.background = 'white';
+      nav.style.border = '1px solid #e2e8f0';
+      nav.style.borderRadius = '14px';
+      nav.style.boxShadow = '0 20px 50px rgba(15,23,42,0.12)';
+      nav.style.gap = '14px';
+    });
+
+    // お問い合わせフォーム送信
+    (function(){
+      const form = document.getElementById('contact-form');
+      if (!form) return;
+      const btn = document.getElementById('contact-submit-btn');
+      const status = document.getElementById('contact-status');
+      const API = '/api/contact';
+
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        status.textContent = '';
+        status.className = 'contact-status';
+
+        const email = (form.email.value || '').trim();
+        const message = (form.message.value || '').trim();
+        if (!email || !email.includes('@')) {
+          status.className = 'contact-status error';
+          status.textContent = 'メールアドレスをご確認ください。';
+          return;
+        }
+        if (!message || message.length < 5) {
+          status.className = 'contact-status error';
+          status.textContent = 'お問い合わせ内容を 5 文字以上ご入力ください。';
+          return;
+        }
+
+        const data = {
+          name: form.name.value || '',
+          email: email,
+          company: form.company.value || '',
+          type: form.type.value || '',
+          message: message,
+          source: 'lp-v2',
+          website: form.website?.value || '',
+        };
+
+        btn.disabled = true;
+        btn.textContent = '送信中...';
+        try {
+          const res = await fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          const json = await res.json().catch(() => ({}));
+          if (res.ok && json.ok) {
+            status.className = 'contact-status success';
+            status.textContent = '✅ お問い合わせを受け付けました。1〜2 営業日以内にご返信いたします。';
+            form.reset();
+          } else {
+            status.className = 'contact-status error';
+            status.textContent = (json && json.error && json.error.message) || '送信に失敗しました。お手数ですが再度お試しください。';
+          }
+        } catch (err) {
+          status.className = 'contact-status error';
+          status.textContent = 'ネットワークエラー: ' + (err.message || String(err));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '送信する →';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
