@@ -1340,15 +1340,19 @@
   </footer>
 
   <script>
-    // 料金プランカードのスクロール出現アニメ (1回だけ発火)
+    // 料金プランカードのスクロール出現アニメ (1回だけ発火、終了後にクラス削除)
     (function(){
       const cards = document.querySelectorAll('.price-card');
       if (!cards.length || !('IntersectionObserver' in window)) return;
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('in-view');
-            observer.unobserve(entry.target);
+            const el = entry.target;
+            el.classList.add('in-view');
+            el.addEventListener('animationend', () => {
+              el.classList.remove('in-view');
+            }, { once: true });
+            observer.unobserve(el);
           }
         });
       }, { threshold: 0.3 });
