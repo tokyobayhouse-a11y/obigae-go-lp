@@ -676,10 +676,16 @@
       color: white;
     }
     .cta-inner {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr auto;
       align-items: center;
-      justify-content: space-between;
       gap: 30px;
+    }
+    @media (max-width: 760px) {
+      .cta-inner { grid-template-columns: 1fr; gap: 22px; text-align: center; }
+      .cta h2 br { display: none; }
+      .cta h2, .cta p { text-align: center; }
+      .cta .btn { width: 100%; }
     }
     .cta h2 {
       font-size: clamp(24px, 3.4vw, 40px);
