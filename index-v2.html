@@ -606,22 +606,50 @@
     /* FAQ */
     .faq-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      max-width: 920px;
+      margin: 0 auto;
     }
     details {
       background: white;
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 14px;
       padding: 18px 22px;
+      transition: box-shadow .2s ease;
+    }
+    details[open] {
+      box-shadow: 0 8px 24px rgba(15,23,42,0.06);
     }
     summary {
       cursor: pointer;
       font-weight: 900;
       color: var(--navy);
       line-height: 1.5;
+      font-size: 16px;
+      list-style: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
     }
-    details p { color: var(--muted); margin: 12px 0 0; font-size: 14px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::before {
+      content: "Q";
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      background: var(--orange);
+      color: white;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    details p {
+      color: #475569;
+      margin: 14px 0 0 36px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
 
     /* CTA */
     .cta {
@@ -1012,32 +1040,53 @@
     <section id="faq">
       <div class="container">
         <div class="section-head">
-          <h2>よくある質問</h2>
+          <span class="eyebrow">よくあるご質問</span>
+          <h2>FAQ</h2>
         </div>
         <div class="faq-grid">
-          <details open>
-            <summary>無料トライアルにカード登録は必要ですか？</summary>
-            <p>不要です。14 日間 完全無料で全機能をお試しいただけます。期間中いつでもキャンセル可能です。</p>
+          <details>
+            <summary>どんなサイトに対応していますか？</summary>
+            <p>ATBB / REINS / イタンジBB に対応済み。いえらぶBB / いい生活スクエア も順次対応予定です。</p>
           </details>
           <details>
-            <summary>業者間サイトのIDやパスワードは送信されますか？</summary>
-            <p>送信されません。ログイン情報・セッション情報は弊社サーバーを一切経由せず、Chrome ブラウザ内 (ローカル) でのみ完結します。</p>
+            <summary>アプリのインストールが必要ですか？</summary>
+            <p>Chrome に拡張機能をインストールするだけ。業者サイトを開けば自動で「📥 帯付き」ボタンが表示されます。</p>
           </details>
           <details>
-            <summary>どの業者間流通サイトに対応していますか？</summary>
-            <p>現在 ATBB / REINS / イタンジBB に対応中。いえらぶBB・いい生活スクエア は順次対応予定です。</p>
+            <summary>自社の帯はどう登録するんですか？</summary>
+            <p>拡張機能アイコンから設定画面を開き、帯画像を 1 回アップロードするだけ。担当者ごとの複数登録も可能です。</p>
           </details>
           <details>
-            <summary>自社の帯デザインは登録できますか？</summary>
-            <p>はい。自社ロゴ・店舗情報・QRコード入りの帯画像 (PNG/JPG) を登録して、すべての募集図面に自動合成できます。</p>
+            <summary>業者サイトのログイン情報は送信されますか？</summary>
+            <p>いいえ、一切送信されません。拡張機能はお使いの Chrome 上で完結する設計で、ID・パスワード・セッション情報は弊社サーバーを経由しません。</p>
           </details>
           <details>
-            <summary>新人スタッフでも使えますか？</summary>
-            <p>はい。普段使っている業者間サイトに「📥 帯付き」ボタンが追加されるだけ。研修なしで使えるシンプル設計です。</p>
+            <summary>個人で契約できますか？</summary>
+            <p>個人クレカで契約 OK、会社契約は不要です。店舗導入の場合は店舗プランがおトクです。</p>
           </details>
           <details>
-            <summary>店舗で複数人 (複数アカウント) でも使えますか？</summary>
-            <p>店舗プランで担当者別の帯切替に対応。複数アカウントでの共有運用については個別ご相談ください。</p>
+            <summary>50 件を超えたらどうなりますか？</summary>
+            <p>引き続き利用可。51 件目以降は 1 件あたり ¥10 が翌月初旬に加算請求されます。</p>
+          </details>
+          <details>
+            <summary>個人プランと店舗プランの違いは？</summary>
+            <p>機能は完全に同じ。違いは件数と料金です。個人は 50 件、店舗は 300 件まで込みです。</p>
+          </details>
+          <details>
+            <summary>解約はいつでもできますか？</summary>
+            <p>いつでもキャンセル可能。月の途中で解約しても月末まで利用可。日割り返金はありません。</p>
+          </details>
+          <details>
+            <summary>Chrome 以外でも使えますか？</summary>
+            <p>現時点では Chrome および Chromium ベースの Brave、Edge 等のみ対応。Safari / Firefox は未対応です。</p>
+          </details>
+          <details>
+            <summary>業者サイトの仕様変更で動かなくなることは？</summary>
+            <p>あります。発生時は速やかにアップデート対応し、Chrome Web Store 経由で自動配信します。</p>
+          </details>
+          <details>
+            <summary>複数店舗・FC 運営です。エンタープライズ契約は？</summary>
+            <p>info@obigae-go.com までご相談ください。</p>
           </details>
         </div>
       </div>
