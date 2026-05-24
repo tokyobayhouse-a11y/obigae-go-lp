@@ -205,9 +205,9 @@
 
     h1 {
       margin: 22px 0 18px;
-      font-size: clamp(36px, 5.4vw, 60px);
-      line-height: 1.12;
-      letter-spacing: -0.04em;
+      font-size: clamp(28px, 5.4vw, 60px);
+      line-height: 1.18;
+      letter-spacing: -0.03em;
       color: var(--navy);
       font-weight: 900;
     }
@@ -683,7 +683,6 @@
     }
     @media (max-width: 760px) {
       .cta-inner { grid-template-columns: 1fr; gap: 22px; text-align: center; }
-      .cta h2 br { display: none; }
       .cta h2, .cta p { text-align: center; }
       .cta .btn { width: 100%; }
     }
@@ -696,7 +695,6 @@
     }
     @media (max-width: 640px) {
       .cta h2 { font-size: 22px; line-height: 1.45; letter-spacing: 0; }
-      .cta h2 br { display: none; }
     }
     .cta p { margin: 0; opacity: .92; }
     .cta .btn { background: var(--orange); color: white; box-shadow: 0 20px 48px rgba(217,119,6,0.36); }
@@ -1049,38 +1047,70 @@
     <section id="pricing" class="pricing">
       <div class="container">
         <div class="section-head">
-          <h2>シンプルでわかりやすい料金プラン</h2>
-          <p>まずは 14 日間の無料体験で、実際の業務にハマるかご確認ください。</p>
+          <h2>料金プラン</h2>
+          <p>営業マンの人数で選ぶだけ。まずは 14 日間 無料でお試しください。</p>
         </div>
+
+        <!-- どっちを選ぶか・選択ガイド -->
+        <div class="plan-guide">
+          <div class="plan-guide-item">
+            <div class="plan-guide-emoji">👤</div>
+            <div class="plan-guide-text"><strong>1 人</strong> で営業<br>→ 個人プラン</div>
+          </div>
+          <div class="plan-guide-arrow">or</div>
+          <div class="plan-guide-item">
+            <div class="plan-guide-emoji">👥</div>
+            <div class="plan-guide-text"><strong>2 人以上</strong> の店舗<br>→ 店舗プラン</div>
+          </div>
+        </div>
+
         <div class="pricing-grid">
           <article class="price-card">
+            <div class="plan-target">👤 ひとり営業マン向け</div>
             <h3>個人プラン</h3>
-            <p>一人営業マン・個人事業主向け</p>
             <div class="monthly">¥990<small>/ 月</small></div>
+            <div class="plan-perday">1 日 ¥33 円ほど。コーヒー 1 杯より安く。</div>
+
+            <div class="plan-count">
+              <div class="plan-count-label">月 <strong>50</strong> 件まで含む</div>
+              <div class="plan-count-bar"><span style="width:16.6%"></span></div>
+              <div class="plan-count-help">1 日 2 件 × 月 25 営業日 = ちょうど 50 件</div>
+            </div>
+
             <ul class="check-list">
-              <li>50 件まで / 月</li>
-              <li>超過 ¥10 / 件</li>
-              <li>全機能フル開放</li>
-              <li>クレカ不要の 14 日間無料</li>
+              <li>全機能フル開放 (制限なし)</li>
+              <li>超過分も 1 件 ¥10 で続けて使える</li>
+              <li>クレカ不要の 14 日間 無料体験</li>
+              <li>いつでも解約・日割り無し</li>
             </ul>
-            <a class="btn btn-secondary" href="#contact" style="width:100%">14日間 無料ではじめる</a>
+            <a class="btn btn-secondary" href="#contact" style="width:100%">個人プランで試す →</a>
           </article>
+
           <article class="price-card recommended">
-            <div class="badge">店舗 おすすめ</div>
+            <div class="badge">店舗・チームに最適</div>
+            <div class="plan-target">👥 2〜10 人の店舗・チーム向け</div>
             <h3>店舗プラン</h3>
-            <p>複数営業マン・店舗利用向け</p>
             <div class="monthly">¥2,970<small>/ 月</small></div>
+            <div class="plan-perday">1 日 ¥99 円。スタッフ 1 人あたり ¥495 / 月。</div>
+
+            <div class="plan-count">
+              <div class="plan-count-label">月 <strong>300</strong> 件まで含む</div>
+              <div class="plan-count-bar"><span style="width:100%"></span></div>
+              <div class="plan-count-help">個人プランの 6 倍。3〜5 人体制で楽々こなせる量</div>
+            </div>
+
             <ul class="check-list">
-              <li>300 件まで / 月</li>
-              <li>超過 ¥10 / 件</li>
-              <li>担当者別の帯を切替可</li>
-              <li>店舗全体で品質統一</li>
+              <li>担当者別の帯を切替えて使える</li>
+              <li>店舗全体で帯デザインの品質を統一</li>
+              <li>超過分も 1 件 ¥10 で続けて使える</li>
+              <li>新人スタッフへの帯替え研修が不要に</li>
             </ul>
-            <a class="btn btn-primary" href="#contact" style="width:100%">14日間 無料ではじめる</a>
+            <a class="btn btn-primary" href="#contact" style="width:100%">店舗プランで試す →</a>
           </article>
         </div>
+
         <p style="text-align:center; margin-top:24px; color:var(--muted); font-size:13px">
-          複数店舗・エンタープライズ契約のご相談は <a href="mailto:info@obigae-go.com" style="color:var(--navy); font-weight:700">info@obigae-go.com</a> まで。
+          11 名以上の店舗・FC 運営・エンタープライズ契約のご相談は <a href="mailto:info@obigae-go.com" style="color:var(--navy); font-weight:700">info@obigae-go.com</a> まで。
         </p>
       </div>
     </section>
@@ -1165,7 +1195,7 @@
     <section class="cta">
       <div class="container cta-inner">
         <div>
-          <h2>営業をやっていて、<br>本当にほしかったもの。</h2>
+          <h2>営業をやっていて、本当に<br>ほしかったもの。</h2>
           <p>毎日の帯替え作業を消して、お客様の本質と向き合う時間を取り戻しましょう。</p>
         </div>
         <a class="btn" href="#contact">14日間 無料ではじめる →</a>
