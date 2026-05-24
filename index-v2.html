@@ -624,6 +624,55 @@
     .check-list { padding: 0; margin: 18px 0 24px; list-style: none; display: grid; gap: 10px; color: #475569; font-size: 14px; }
     .check-list li::before { content: "✓"; color: var(--teal); font-weight: 900; margin-right: 8px; }
 
+    /* プラン補助情報 */
+    .plan-target {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .plan-perday {
+      font-size: 13px;
+      color: var(--muted);
+      margin: -8px 0 14px;
+      line-height: 1.5;
+    }
+    .plan-count {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 14px 0 0;
+    }
+    .plan-count-label {
+      font-size: 13px;
+      color: var(--navy);
+      font-weight: 800;
+    }
+    .plan-count-label strong {
+      font-size: 20px;
+      color: var(--orange);
+      margin: 0 2px;
+    }
+    .plan-count-bar {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    .plan-count-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange), var(--orange-light));
+      border-radius: 999px;
+    }
+    .plan-count-help {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
     /* FAQ */
     .faq-grid {
       display: grid;
@@ -1052,19 +1101,6 @@
         <div class="section-head">
           <h2>料金プラン</h2>
           <p>営業マンの人数で選ぶだけ。まずは 14 日間 無料でお試しください。</p>
-        </div>
-
-        <!-- どっちを選ぶか・選択ガイド -->
-        <div class="plan-guide">
-          <div class="plan-guide-item">
-            <div class="plan-guide-emoji">👤</div>
-            <div class="plan-guide-text"><strong>1 人</strong> で営業<br>→ 個人プラン</div>
-          </div>
-          <div class="plan-guide-arrow">or</div>
-          <div class="plan-guide-item">
-            <div class="plan-guide-emoji">👥</div>
-            <div class="plan-guide-text"><strong>2 人以上</strong> の店舗<br>→ 店舗プラン</div>
-          </div>
         </div>
 
         <div class="pricing-grid">
