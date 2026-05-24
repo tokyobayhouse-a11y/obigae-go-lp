@@ -245,116 +245,238 @@
       margin-right: 6px;
     }
 
-    /* Hero demo card (Before/After) */
-    .demo-card {
+    /* Hero — Laptop & Phone mockup style */
+    .device-stage {
       position: relative;
-      background: rgba(255,255,255,0.86);
-      border: 1px solid rgba(226,232,240,0.9);
-      border-radius: 28px;
-      padding: 20px;
-      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
     }
-    .demo-window {
-      border-radius: 22px;
+
+    /* Laptop */
+    .laptop {
+      position: relative;
+      width: 100%;
+      filter: drop-shadow(0 30px 50px rgba(15,23,42,0.18));
+    }
+    .laptop-screen {
+      background: linear-gradient(135deg, #1f2937, #0f172a);
+      padding: 16px;
+      border-radius: 14px 14px 4px 4px;
+      border: 2px solid #2d3748;
+      position: relative;
+    }
+    .laptop-camera {
+      position: absolute;
+      top: 5px; left: 50%; transform: translateX(-50%);
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #4a5568;
+    }
+    .laptop-screen-inner {
       background: white;
-      border: 1px solid var(--line);
+      border-radius: 6px;
       overflow: hidden;
+      aspect-ratio: 16 / 10;
+    }
+    .laptop-base {
+      height: 16px;
+      background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+      border-radius: 0 0 14px 14px;
+      margin: 0 -22px;
+      position: relative;
+    }
+    .laptop-base::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 80px; height: 5px;
+      background: #64748b;
+      border-radius: 0 0 8px 8px;
+    }
+
+    /* Inside the laptop screen — Before/After demo */
+    .demo-window {
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
     }
     .window-bar {
-      height: 42px;
+      height: 28px;
       display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 0 14px;
+      gap: 6px;
+      padding: 0 10px;
       border-bottom: 1px solid var(--line);
       background: #f8fafc;
+      flex-shrink: 0;
     }
     .window-bar .url {
-      margin-left: 12px;
-      font-size: 11px;
+      margin-left: 10px;
+      font-size: 10px;
       color: var(--muted);
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+    .dot.r { background: #ef4444; }
+    .dot.y { background: #f59e0b; }
+    .dot.g { background: #10b981; }
 
     .demo-body {
+      flex: 1;
       display: grid;
-      grid-template-columns: 1fr 66px 1fr;
-      gap: 14px;
+      grid-template-columns: 1fr 60px 1fr;
+      gap: 12px;
       align-items: center;
-      padding: 22px;
+      padding: 18px 16px;
     }
     .paper {
-      min-height: 260px;
       border: 1px solid #cbd5e1;
-      border-radius: 12px;
+      border-radius: 8px;
       background: #fff;
-      box-shadow: 0 12px 26px rgba(15,23,42,0.08);
-      padding: 12px;
+      box-shadow: 0 6px 14px rgba(15,23,42,0.08);
+      padding: 10px;
       position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
     .paper::before {
       content: attr(data-label);
       position: absolute;
-      top: -30px;
-      left: 0;
-      font-size: 11px;
+      top: -8px;
+      left: 8px;
+      font-size: 9px;
       font-weight: 800;
       color: var(--muted);
-      background: #f1f5f9;
-      padding: 4px 10px;
+      background: white;
+      padding: 2px 8px;
       border-radius: 999px;
+      border: 1px solid var(--line);
     }
     .paper-header {
-      height: 30px;
+      height: 22px;
       background: var(--navy);
       color: white;
-      border-radius: 6px;
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 9px;
-      font-size: 10px;
+      padding: 0 7px;
+      font-size: 8px;
       font-weight: 800;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
     }
     .paper.before .paper-header { background: #cbd5e1; color: #475569; }
     .price {
       text-align: right;
-      font-size: 22px;
+      font-size: 16px;
       font-weight: 900;
       color: var(--navy);
-      margin: 12px 0;
+      margin: 8px 0;
+      letter-spacing: -0.02em;
     }
     .plan-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      height: 110px;
+      gap: 4px;
+      flex: 1;
     }
-    .room { border: 1px solid #94a3b8; border-radius: 5px; background: #f8fafc; display: grid; place-items: center; font-size: 9px; color: #475569; }
-    .info-lines { margin-top: 12px; display: grid; gap: 6px; }
-    .info-lines span { height: 7px; background: #e2e8f0; border-radius: 999px; }
+    .room {
+      border: 1px solid #94a3b8;
+      border-radius: 3px;
+      background: #f8fafc;
+      display: grid; place-items: center;
+      font-size: 8px;
+      color: #475569;
+      font-weight: 700;
+    }
+    .info-lines { margin-top: 8px; display: grid; gap: 4px; }
+    .info-lines span { height: 5px; background: #e2e8f0; border-radius: 999px; }
     .info-lines span:nth-child(2) { width: 78%; }
     .info-lines span:nth-child(3) { width: 62%; }
 
     .arrow-badge {
-      width: 66px;
-      height: 66px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       display: grid;
       place-items: center;
       background: linear-gradient(135deg, var(--orange), var(--orange-light));
       color: white;
       font-weight: 900;
-      font-size: 11px;
+      font-size: 10px;
       text-align: center;
       line-height: 1.2;
-      box-shadow: 0 18px 34px rgba(217,119,6,0.4);
+      box-shadow: 0 12px 24px rgba(217,119,6,0.4);
       animation: pulse 2.5s infinite ease-in-out;
     }
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.07); }
+      50% { transform: scale(1.08); }
+    }
+
+    /* Phone mockup (overlapping right side of laptop) */
+    .phone {
+      position: absolute;
+      bottom: -10px;
+      right: -10px;
+      width: 130px;
+      filter: drop-shadow(0 20px 36px rgba(15,23,42,0.25));
+      z-index: 2;
+    }
+    .phone-frame {
+      background: #0f172a;
+      border-radius: 22px;
+      padding: 7px 4px;
+      border: 1.5px solid #1f2937;
+    }
+    .phone-screen {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 9 / 16;
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-screen .mini-bar {
+      height: 16px;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--line);
+    }
+    .phone-screen .mini-content {
+      flex: 1;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .phone-screen .mini-price {
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--navy);
+      text-align: right;
+    }
+    .phone-screen .mini-header {
+      height: 12px;
+      background: var(--navy);
+      color: white;
+      border-radius: 3px;
+      font-size: 6px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+    }
+    .phone-screen .mini-rooms {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      flex: 1;
+    }
+    .phone-screen .mini-rooms div {
+      background: #f8fafc;
+      border: 0.5px solid #cbd5e1;
+      border-radius: 2px;
     }
 
     /* Stats */
@@ -792,35 +914,60 @@
           </div>
         </div>
 
-        <div class="demo-card" aria-label="帯替えデモ画面">
-          <div class="demo-window">
-            <div class="window-bar">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-              <span class="url">system.reins.jp/main/BK/GBK002200</span>
-            </div>
-            <div class="demo-body">
-              <div class="paper before" data-label="Before：他社帯のまま">
-                <div class="paper-header">他社不動産</div>
-                <div class="price">85,000円</div>
-                <div class="plan-grid">
-                  <div class="room">LDK</div><div class="room">洋室</div><div class="room">浴室</div>
-                  <div class="room">玄関</div><div class="room">WC</div><div class="room">収納</div>
-                  <div class="room">廊下</div><div class="room">洗面</div><div class="room">B</div>
+        <div class="device-stage" aria-label="帯替えGOのデモ画面">
+          <div class="laptop">
+            <div class="laptop-screen">
+              <div class="laptop-camera"></div>
+              <div class="laptop-screen-inner">
+                <div class="demo-window">
+                  <div class="window-bar">
+                    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+                    <span class="url">system.reins.jp/main/BK/GBK002200</span>
+                  </div>
+                  <div class="demo-body">
+                    <div class="paper before" data-label="Before：他社帯">
+                      <div class="paper-header">他社不動産</div>
+                      <div class="price">85,000円</div>
+                      <div class="plan-grid">
+                        <div class="room">LDK</div><div class="room">洋室</div><div class="room">浴室</div>
+                        <div class="room">玄関</div><div class="room">WC</div><div class="room">収納</div>
+                        <div class="room">廊下</div><div class="room">洗面</div><div class="room">B</div>
+                      </div>
+                      <div class="info-lines"><span></span><span></span><span></span></div>
+                    </div>
+
+                    <div class="arrow-badge">1<br>クリック</div>
+
+                    <div class="paper" data-label="After：自社帯">
+                      <div class="paper-header"><span>YOUR LOGO</span><span>自社帯</span></div>
+                      <div class="price">85,000円</div>
+                      <div class="plan-grid">
+                        <div class="room">LDK</div><div class="room">洋室</div><div class="room">浴室</div>
+                        <div class="room">玄関</div><div class="room">WC</div><div class="room">収納</div>
+                        <div class="room">廊下</div><div class="room">洗面</div><div class="room">B</div>
+                      </div>
+                      <div class="info-lines"><span></span><span></span><span></span></div>
+                    </div>
+                  </div>
                 </div>
-                <div class="info-lines"><span></span><span></span><span></span></div>
               </div>
+            </div>
+            <div class="laptop-base"></div>
+          </div>
 
-              <div class="arrow-badge">1<br>クリック</div>
-
-              <div class="paper" data-label="After：自社帯付き">
-                <div class="paper-header"><span>YOUR LOGO</span><span>自社帯</span></div>
-                <div class="price">85,000円</div>
-                <div class="plan-grid">
-                  <div class="room">LDK</div><div class="room">洋室</div><div class="room">浴室</div>
-                  <div class="room">玄関</div><div class="room">WC</div><div class="room">収納</div>
-                  <div class="room">廊下</div><div class="room">洗面</div><div class="room">B</div>
+          <!-- スマホ (右下に重なる) -->
+          <div class="phone" aria-hidden="true">
+            <div class="phone-frame">
+              <div class="phone-screen">
+                <div class="mini-bar"></div>
+                <div class="mini-content">
+                  <div class="mini-header">YOUR LOGO</div>
+                  <div class="mini-price">85,000円</div>
+                  <div class="mini-rooms">
+                    <div></div><div></div><div></div>
+                    <div></div><div></div><div></div>
+                  </div>
                 </div>
-                <div class="info-lines"><span></span><span></span><span></span></div>
               </div>
             </div>
           </div>
