@@ -479,39 +479,47 @@
     /* Compatibility (supported sites) */
     .sites { background: var(--navy-bg); }
     .site-tags {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
       gap: 12px;
-      justify-content: center;
       margin-top: 28px;
+      max-width: 1080px;
+      margin-left: auto;
+      margin-right: auto;
     }
     .site-tag {
       background: white;
-      padding: 14px 22px;
+      padding: 16px 18px;
       border-radius: 14px;
       border: 1px solid #bae6fd;
       box-shadow: 0 4px 14px rgba(13,77,107,0.06);
       font-weight: 900;
       color: var(--navy);
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
+      font-size: 15px;
+      min-height: 84px;
     }
-    .site-tag .badge-ok {
-      background: #10b981;
-      color: white;
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      letter-spacing: 0.08em;
-    }
+    .site-tag .badge-ok,
     .site-tag .badge-coming {
-      background: #94a3b8;
       color: white;
       font-size: 11px;
-      padding: 3px 8px;
+      padding: 3px 10px;
       border-radius: 999px;
       letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+    .site-tag .badge-ok { background: #10b981; }
+    .site-tag .badge-coming { background: #94a3b8; }
+    @media (max-width: 960px) {
+      .site-tags { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .site-tags { grid-template-columns: repeat(2, 1fr); }
     }
 
     /* Features */
