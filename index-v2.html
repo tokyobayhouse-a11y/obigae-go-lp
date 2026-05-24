@@ -299,13 +299,14 @@
     .hb-bar { height:24px; background:linear-gradient(180deg,#fafbfc,#eceef1); display:flex; align-items:center; gap:5px; padding:0 10px; border-bottom:1px solid var(--line); flex-shrink:0; }
     .hb-dot { width:8px; height:8px; border-radius:50%; }
     .hb-url { flex:1; margin-left:6px; background:#fff; border-radius:4px; padding:2px 8px; font-size:9px; color:var(--muted); font-family:ui-monospace,monospace; border:1px solid var(--line); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .hb-stage { position:relative; background:#fff; flex:1; overflow:hidden; }
+    .hb-stage { position:absolute; top:24px; left:0; right:0; bottom:0; background:#fff; overflow:hidden; }
+    .laptop-screen-inner { position:relative; }
     .hb-reins { width:100%; height:100%; display:block; object-fit:cover; }
     .hb-cursor { position:absolute; left:9%; top:61%; font-size:20px; line-height:1; color:var(--navy); text-shadow:0 2px 4px rgba(0,0,0,.4); pointer-events:none; opacity:0; transform-origin:50% 0%; animation:hbc 6s ease-in-out infinite; z-index:6; }
     .hb-tooltip { position:absolute; left:13%; top:51%; background:var(--navy); color:#fff; font-weight:900; font-size:10px; padding:5px 10px; border-radius:6px; box-shadow:0 6px 16px rgba(13,77,107,.4); white-space:nowrap; opacity:0; transform:translateY(8px); animation:hbt 6s ease-in-out infinite; z-index:5; }
     .hb-tooltip::after { content:""; position:absolute; left:16px; bottom:-4px; width:8px; height:8px; background:var(--navy); transform:rotate(45deg); }
     .hb-flash { position:absolute; left:2%; top:64%; width:12%; height:5%; border-radius:8px; background:radial-gradient(circle,rgba(217,119,6,.7),transparent 70%); opacity:0; pointer-events:none; animation:hbf 6s ease-in-out infinite; }
-    .hb-pdf-card { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(.7); width:62%; max-width:340px; background:#fff; border-radius:8px; box-shadow:0 20px 50px rgba(0,0,0,.35); opacity:0; animation:hbpdf 6s ease-in-out infinite; z-index:10; }
+    .hb-pdf-card { position:absolute; left:12%; right:12%; top:50%; transform:translateY(-50%) scale(.7); background:#fff; border-radius:8px; box-shadow:0 20px 50px rgba(0,0,0,.35); opacity:0; animation:hbpdf 6s ease-in-out infinite; z-index:10; }
     .hb-pdf-header { background:linear-gradient(180deg,#fff,#f3f4f6); border-bottom:1px solid var(--line); padding:5px 8px; display:flex; align-items:center; gap:5px; font-size:9px; border-top-left-radius:8px; border-top-right-radius:8px; }
     .hb-pdf-icon { font-size:12px; }
     .hb-pdf-title { flex:1; font-weight:700; color:#374151; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:ui-monospace,monospace; font-size:9px; }
@@ -318,8 +319,8 @@
     @keyframes hbt { 0%,18% {opacity:0; transform:translateY(8px);} 25%,38% {opacity:1; transform:translateY(0);} 45%,100% {opacity:0; transform:translateY(0);} }
     @keyframes hbc { 0%,18% {opacity:0; transform:translate(28px,18px) scale(1);} 25%,32% {opacity:1; transform:translate(0,0) scale(1);} 36% {opacity:1; transform:translate(0,-2px) scale(.78);} 43%,100% {opacity:0; transform:translate(0,0) scale(1);} }
     @keyframes hbf { 0%,33% {opacity:0; transform:scale(.5);} 38%,44% {opacity:1; transform:scale(1.2);} 50%,100% {opacity:0; transform:scale(1);} }
-    @keyframes hbpdf { 0%,42% {opacity:0; transform:translate(-50%,-30%) scale(.6);} 52%,88% {opacity:1; transform:translate(-50%,-50%) scale(1);} 96%,100% {opacity:0; transform:translate(-50%,-50%) scale(1);} }
-    @media (prefers-reduced-motion:reduce){ .hb-cursor,.hb-tooltip,.hb-flash,.hb-pdf-card { animation:none; } .hb-pdf-card { opacity:1; transform:translate(-50%,-50%) scale(1); } }
+    @keyframes hbpdf { 0%,42% {opacity:0; transform:translateY(-40%) scale(.7);} 52%,88% {opacity:1; transform:translateY(-50%) scale(1);} 96%,100% {opacity:0; transform:translateY(-50%) scale(1);} }
+    @media (prefers-reduced-motion:reduce){ .hb-cursor,.hb-tooltip,.hb-flash,.hb-pdf-card { animation:none; } .hb-pdf-card { opacity:1; transform:translateY(-50%) scale(1); } }
 
     /* Phone mockup (overlapping right side of laptop) */
     .phone {
