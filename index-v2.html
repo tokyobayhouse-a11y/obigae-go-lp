@@ -584,6 +584,11 @@
       border: 3px solid var(--orange);
       transform: translateY(-12px);
       box-shadow: 0 30px 70px rgba(217,119,6,0.16);
+      animation: reco-float 3.4s ease-in-out infinite;
+    }
+    @keyframes reco-float {
+      0%, 100% { transform: translateY(-12px); box-shadow: 0 30px 70px rgba(217,119,6,0.16); }
+      50%      { transform: translateY(-18px); box-shadow: 0 38px 84px rgba(217,119,6,0.30); }
     }
     /* デスクトップでのホバーエフェクト (タッチデバイスでは適用しない) */
     @media (hover: hover) {
@@ -677,11 +682,15 @@
       gap: 30px;
     }
     .cta h2 {
-      font-size: clamp(26px, 3.4vw, 40px);
-      line-height: 1.25;
+      font-size: clamp(24px, 3.4vw, 40px);
+      line-height: 1.3;
       margin: 0 0 12px;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
       font-weight: 900;
+    }
+    @media (max-width: 640px) {
+      .cta h2 { font-size: 22px; line-height: 1.45; letter-spacing: 0; }
+      .cta h2 br { display: none; }
     }
     .cta p { margin: 0; opacity: .92; }
     .cta .btn { background: var(--orange); color: white; box-shadow: 0 20px 48px rgba(217,119,6,0.36); }
