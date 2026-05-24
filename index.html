@@ -165,23 +165,31 @@
 
   <!-- 特製オリジナル帯プレゼント (ヒーロー直下 細バナー) -->
   <style>
-    .gift-strip{background:linear-gradient(90deg,var(--accent) 0%,#f59e0b 50%,var(--accent) 100%);color:#fff;text-decoration:none;display:block;padding:14px 0;box-shadow:0 4px 16px rgba(217,119,6,.25);position:relative;overflow:hidden}
-    .gift-strip:hover{filter:brightness(1.05)}
-    .gift-strip .inner{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;font-weight:800}
-    .gift-strip .tag{background:#fff;color:var(--accent);padding:4px 12px;border-radius:999px;font-size:12px;font-weight:900;letter-spacing:.08em;white-space:nowrap}
-    .gift-strip .msg{font-size:16px;letter-spacing:.02em}
-    .gift-strip .msg strong{font-size:18px}
-    .gift-strip .strike{opacity:.7;font-size:13px;text-decoration:line-through;margin-right:4px}
-    .gift-strip .arrow{font-weight:900;font-size:18px;background:rgba(255,255,255,.18);padding:4px 12px;border-radius:999px}
-    @media(max-width:640px){.gift-strip .msg{font-size:14px}.gift-strip .msg strong{font-size:15px}}
+    .gift-strip{background:linear-gradient(135deg,#fff8ec 0%,#fef3c7 50%,#fde68a 100%);color:var(--navy);display:block;padding:18px 0;border-top:1px solid #fcd34d;border-bottom:1px solid #fcd34d;position:relative;overflow:hidden}
+    .gift-strip .inner{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center}
+    .gift-strip .left{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+    .gift-strip .tag{display:inline-flex;align-items:center;gap:6px;background:var(--navy);color:#fff;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:900;letter-spacing:.08em;white-space:nowrap}
+    .gift-strip .msg{font-size:18px;font-weight:900;line-height:1.35;color:var(--navy);letter-spacing:.01em}
+    .gift-strip .msg strong{color:var(--accent);font-size:21px}
+    .gift-strip .strike{opacity:.55;font-size:13px;text-decoration:line-through;font-weight:700;margin-left:8px}
+    .gift-strip .sample{display:flex;align-items:center;gap:14px}
+    .gift-strip .sample-label{font-size:10px;font-weight:900;letter-spacing:.25em;color:var(--gray-500);writing-mode:vertical-rl}
+    .gift-strip .sample img{width:380px;height:auto;display:block;border-radius:6px;box-shadow:0 4px 14px rgba(13,77,107,.18);border:1px solid rgba(13,77,107,.1)}
+    @media(max-width:880px){.gift-strip .inner{grid-template-columns:1fr;gap:14px;text-align:center}.gift-strip .left{align-items:center}.gift-strip .sample img{width:100%;max-width:380px;margin:0 auto}.gift-strip .msg{font-size:16px}.gift-strip .msg strong{font-size:18px}}
   </style>
-  <a class="gift-strip" href="#contact">
+  <div class="gift-strip">
     <div class="inner">
-      <span class="tag">🎁 ベータ公開記念</span>
-      <span class="msg">新規 14 日間無料体験で <strong>特製オリジナル帯を無料デザインプレゼント</strong> <span class="strike">通常 ¥10,000 相当</span></span>
-      <span class="arrow">詳細 →</span>
+      <div class="left">
+        <span class="tag">🎁 ベータ公開記念</span>
+        <span class="msg">新規 14 日間無料体験で<br><strong>特製オリジナル帯</strong> を無料デザインプレゼント<span class="strike">通常 ¥10,000 相当</span></span>
+      </div>
+      <div></div>
+      <div class="sample">
+        <span class="sample-label">SAMPLE</span>
+        <img src="/illust/gift-band.jpg" srcset="/illust/gift-band.jpg 1x, /illust/gift-band@2x.jpg 2x" alt="特製オリジナル帯のサンプル">
+      </div>
     </div>
-  </a>
+  </div>
 
   <section class="section" id="pain"><div class="container"><span class="eyebrow">こんなことありませんか？</span><h2 class="section-title">“帯替えあるある”、業界の本音。</h2><p class="lead">不動産営業 20年以上やってきた当社の現場感覚。きれいごとじゃなく、毎日の小さい面倒が契約の取りこぼしにつながります。</p><div class="cards">
     <article class="card"><div class="tag">＼ 抜かれた瞬間 ／</div><h3>「あの夫婦のこそこそ話。あれが、他決の合図だった」</h3><p>急いでた日に限って帯替え忘れる。渡したマイソクには他社の連絡先がバッチリ。そのまま他社で契約。“抜かれた”。</p></article>
