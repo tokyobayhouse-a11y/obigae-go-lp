@@ -205,12 +205,15 @@
 
     h1 {
       margin: 22px 0 18px;
-      font-size: clamp(28px, 5.4vw, 60px);
-      line-height: 1.18;
-      letter-spacing: -0.03em;
+      font-size: clamp(26px, 4.2vw, 48px);
+      line-height: 1.22;
+      letter-spacing: -0.02em;
       color: var(--navy);
       font-weight: 900;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
     }
+    h1 .nowrap { display: inline-block; }
 
     .gradient-text {
       background: linear-gradient(135deg, var(--orange), var(--orange-light));
@@ -901,7 +904,7 @@
       <div class="container hero-grid">
         <div>
           <span class="eyebrow">不動産営業マン専用 Chrome 拡張機能</span>
-          <h1>業者間サイトの帯を、<br><span class="gradient-text">1クリック</span>で自社へ。</h1>
+          <h1><span class="nowrap">業者間サイトの帯を、</span><br><span class="nowrap"><span class="gradient-text">1クリック</span>で自社へ。</span></h1>
           <p class="lead">ATBB・REINS・イタンジBB の物件カードに「📥 帯付き」ボタンが自動表示。Chrome 拡張機能なので、サイトを離れず帯入り PDF をすぐに作成できます。</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#contact">14日間 無料ではじめる →</a>
