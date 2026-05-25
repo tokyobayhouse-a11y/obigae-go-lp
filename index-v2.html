@@ -178,30 +178,271 @@
       overflow: hidden;
       background:
         radial-gradient(circle at 78% 12%, rgba(217,119,6,0.10), transparent 38%),
-        radial-gradient(circle at 18% 18%, rgba(13,77,107,0.10), transparent 40%),
-        linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-      padding: 70px 0 56px;
+        radial-gradient(circle at 18% 18%, rgba(13,77,107,0.08), transparent 40%),
+        linear-gradient(180deg, #eaf3fb 0%, #f8fbff 60%, #ffffff 100%);
+      padding: 60px 0 40px;
+    }
+
+    /* 右上の金色リボン: サービス公開記念 */
+    .hero-ribbon {
+      position: absolute;
+      top: 22px;
+      right: 28px;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 14px 22px;
+      background: linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #d97706 100%);
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(217,119,6,0.28), inset 0 0 0 2px rgba(255,255,255,0.4);
+      color: #5b2c00;
+      text-align: center;
+      transform: rotate(-2deg);
+    }
+    .hero-ribbon::before, .hero-ribbon::after {
+      content: "🏆";
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      filter: grayscale(0.2) sepia(0.5) hue-rotate(-15deg);
+    }
+    .hero-ribbon::before { left: -10px; }
+    .hero-ribbon::after { right: -10px; }
+    .hero-ribbon .ribbon-top {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+    }
+    .hero-ribbon .ribbon-main {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+    .hero-ribbon .ribbon-main strong {
+      font-size: 26px;
+      color: #7c2d12;
     }
 
     .hero-grid {
       display: grid;
       grid-template-columns: 0.95fr 1.05fr;
       align-items: center;
-      gap: 48px;
+      gap: 40px;
+      position: relative;
     }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 7px 14px;
+      padding: 8px 16px;
       border-radius: 999px;
-      background: var(--orange-bg);
-      color: #92400e;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      color: #1e3a8a;
       font-size: 13px;
       font-weight: 800;
-      border: 1px solid #fde68a;
+      border: 1px solid #93c5fd;
+      box-shadow: 0 2px 6px rgba(30,58,138,0.08);
     }
+    .eyebrow::before {
+      content: "🏢";
+      font-size: 14px;
+    }
+
+    /* 価格カード (ヒーロー内) */
+    .price-hero-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 20px;
+      align-items: center;
+      margin: 0 0 22px;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, #ffffff 0%, #fff8ec 100%);
+      border: 2px solid #fde68a;
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(217,119,6,0.10);
+    }
+    .price-hero-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding-right: 20px;
+      border-right: 1px dashed #fcd34d;
+    }
+    .price-hero-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--navy);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+    .price-hero-num {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+      font-weight: 900;
+      color: var(--orange-deep);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .price-hero-num .num {
+      font-size: 54px;
+      font-family: "Helvetica Neue", -apple-system, sans-serif;
+    }
+    .price-hero-num .yen { font-size: 22px; padding-bottom: 4px; }
+    .price-hero-num .tilde { font-size: 22px; padding-bottom: 4px; color: var(--orange-deep); }
+    .price-hero-num .tax { font-size: 11px; color: var(--muted); padding-bottom: 8px; margin-left: 2px; }
+    .price-hero-foot {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-align: center;
+    }
+    .price-hero-foot strong { color: var(--navy); }
+    .price-hero-right {
+      display: grid;
+      gap: 8px;
+    }
+    .price-hero-right li {
+      list-style: none;
+      font-size: 14px;
+      color: #334155;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .price-hero-right li::before {
+      content: "✓";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background: var(--teal);
+      color: #fff;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    /* 価値訴求 4バリュー（ヒーロー下部） */
+    .value-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    }
+    .value-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .value-item .v-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      color: #fff;
+      border-radius: 8px;
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+    .value-item strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--navy);
+      letter-spacing: -0.01em;
+    }
+    .value-item strong em {
+      font-style: normal;
+      color: var(--orange-deep);
+      font-size: 19px;
+    }
+
+    /* セキュリティバナー (ヒーロー最下部) */
+    .security-strip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 18px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #0d4d6b 0%, #2d8b9c 100%);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 13px;
+      box-shadow: 0 6px 18px rgba(13,77,107,0.22);
+    }
+    .security-strip .sec-lock {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 50%;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .security-strip strong {
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      margin-right: 8px;
+    }
+    .security-strip span {
+      font-weight: 600;
+      opacity: 0.92;
+    }
+
+    /* Before / After ラベル（ラップトップ画像上に被せる） */
+    .ba-label {
+      position: absolute;
+      z-index: 4;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 10px rgba(15,23,42,0.18);
+    }
+    .ba-label.before {
+      top: 8px;
+      left: 12%;
+      background: #fff;
+      color: #475569;
+      border: 1px solid var(--line);
+    }
+    .ba-label.before small { color: var(--muted); font-size: 10px; font-weight: 700; margin-left: 4px; }
+    .ba-label.after {
+      top: 8px;
+      right: 18%;
+      background: var(--navy);
+      color: #fff;
+    }
+    .ba-label.after small { color: #fbbf24; font-size: 10px; font-weight: 700; margin-left: 4px; }
 
     h1 {
       margin: 22px 0 18px;
@@ -947,6 +1188,15 @@
       .demo-body { gap: 48px; }
       .arrow-badge { margin: 0 auto; transform: rotate(90deg); }
       .stats-grid, .feature-grid, .pricing-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr 1fr; }
+      /* ヒーロー: バリュー 4→2 列に */
+      .value-strip { grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 16px; }
+      .hero-ribbon { top: 14px; right: 14px; padding: 10px 14px; }
+      .hero-ribbon .ribbon-top { font-size: 9px; letter-spacing: 0.1em; }
+      .hero-ribbon .ribbon-main { font-size: 14px; }
+      .hero-ribbon .ribbon-main strong { font-size: 20px; }
+      .ba-label { font-size: 11px; padding: 3px 9px; }
+      .ba-label.before { left: 4%; }
+      .ba-label.after { right: 6%; }
       /* モバイルでは推奨カードも通常カードと同じ高さで浮遊（パルス発光は維持） */
       .price-card.recommended {
         animation: float-card 4s ease-in-out infinite, glow-pulse 2.4s ease-in-out infinite;
@@ -981,6 +1231,26 @@
       .top-strip .tag { font-size: 10px; padding: 2px 8px; margin-right: 6px; }
       .hero { padding: 50px 0 38px; }
       .hero-actions .btn { width: 100%; }
+      /* ヒーロー: 価格カードを縦組みに */
+      .price-hero-card {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 18px;
+      }
+      .price-hero-left {
+        border-right: 0;
+        border-bottom: 1px dashed #fcd34d;
+        padding: 0 0 14px;
+      }
+      .price-hero-num .num { font-size: 48px; }
+      /* セキュリティバナー: 縦組み */
+      .security-strip {
+        font-size: 12px;
+        padding: 10px 14px;
+        gap: 10px;
+        line-height: 1.4;
+      }
+      .security-strip strong { display: block; margin-bottom: 2px; }
       .stats-grid, .feature-grid, .pricing-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr; }
       .stat { border-right: 0; border-bottom: 1px solid var(--line); }
       .footer-inner { flex-direction: column; align-items: flex-start; }
@@ -1027,23 +1297,74 @@
 
     <!-- ヒーロー -->
     <section class="hero">
+      <!-- 右上の金リボン -->
+      <div class="hero-ribbon" aria-label="サービス公開記念キャンペーン">
+        <span class="ribbon-top">サービス公開記念</span>
+        <span class="ribbon-main"><strong>14</strong>日間無料</span>
+      </div>
+
       <div class="container hero-grid">
         <div>
-          <span class="eyebrow">不動産営業マン専用 Chrome 拡張機能</span>
-          <h1><span class="nowrap">業者間サイトの帯を、</span><br><span class="nowrap"><span class="gradient-text">1クリック</span>で自社へ。</span></h1>
-          <p class="lead">ATBB・REINS・イタンジBB の物件カードに「📥 帯付き」ボタンが自動表示。Chrome 拡張機能なので、サイトを離れず帯入り PDF をすぐに作成できます。</p>
+          <span class="eyebrow">不動産会社様向けクラウドサービス</span>
+          <h1><span class="nowrap">他社図面を、</span><br><span class="nowrap"><span class="gradient-text">3秒</span>で自社図面へ。</span></h1>
+          <p class="lead">ATBB・REINS・イタンジBB の物件カードに「📥 帯付き」ボタンが自動表示。<br>サイトを離れず、自社帯入り PDF が1クリックで完成します。</p>
+
+          <!-- 価格カード -->
+          <div class="price-hero-card">
+            <div class="price-hero-left">
+              <span class="price-hero-pill">月額</span>
+              <span class="price-hero-num">
+                <span class="num">990</span>
+                <span class="yen">円</span>
+                <span class="tilde">〜</span>
+                <span class="tax">(税抜)</span>
+              </span>
+              <span class="price-hero-foot"><strong>50件</strong>まで込み・<strong>初期費用0円</strong></span>
+            </div>
+            <ul class="price-hero-right">
+              <li>インストール不要</li>
+              <li>PCが苦手でも安心</li>
+              <li>すぐに使えてカンタン</li>
+            </ul>
+          </div>
+
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#contact">14日間 無料ではじめる →</a>
+            <a class="btn btn-primary" href="#contact">14日間 無料で試してみる →</a>
             <a class="btn btn-secondary" href="#flow">使い方を見る</a>
           </div>
-          <div class="trust-row">
-            <span>クレジットカード不要</span>
-            <span>14日間 完全無料</span>
-            <span>いつでも解約可</span>
+
+          <!-- 4バリューバッジ -->
+          <div class="value-strip">
+            <div class="value-item">
+              <span class="v-icon">⏱</span>
+              <div><strong>作業時間<em>90%</em>削減</strong>※当社比</div>
+            </div>
+            <div class="value-item">
+              <span class="v-icon">⚡</span>
+              <div><strong>最短<em>3秒</em>で変換</strong></div>
+            </div>
+            <div class="value-item">
+              <span class="v-icon">☁</span>
+              <div><strong>インストール<em>不要</em></strong></div>
+            </div>
+            <div class="value-item">
+              <span class="v-icon">👤</span>
+              <div><strong>PCが苦手でも<em>OK</em></strong></div>
+            </div>
+          </div>
+
+          <!-- セキュリティバナー -->
+          <div class="security-strip">
+            <span class="sec-lock">🔒</span>
+            <strong>安心のセキュリティ</strong>
+            <span>通信はすべてSSL暗号化 / データは安全に管理されます</span>
           </div>
         </div>
 
         <div class="device-stage" aria-label="帯替えGOのデモ画面">
+          <!-- Before / After ラベル -->
+          <div class="ba-label before">Before<small>（他社図面）</small></div>
+          <div class="ba-label after">After<small>（自社図面）</small></div>
           <div class="laptop">
             <div class="laptop-screen">
               <div class="laptop-camera"></div>
