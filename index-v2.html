@@ -172,15 +172,67 @@
       border-color: var(--line);
     }
 
-    /* Hero */
+    /* Hero (1枚画像版) */
     .hero {
       position: relative;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 78% 12%, rgba(217,119,6,0.10), transparent 38%),
-        radial-gradient(circle at 18% 18%, rgba(13,77,107,0.08), transparent 40%),
-        linear-gradient(180deg, #eaf3fb 0%, #f8fbff 60%, #ffffff 100%);
-      padding: 44px 0 36px;
+      padding: 28px 0 24px;
+      background: linear-gradient(180deg, #eaf3fb 0%, #ffffff 100%);
+    }
+    .hero-image-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .hero-image-wrap picture,
+    .hero-image-wrap img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+    }
+    /* 画像内CTAボタン位置に重ねる透明リンク (% 単位で画像と一緒に縮小) */
+    .hero-cta-hit {
+      position: absolute;
+      display: block;
+      background: transparent;
+      border-radius: 999px;
+      cursor: pointer;
+      z-index: 2;
+      transition: background 0.2s ease;
+    }
+    .hero-cta-hit:hover {
+      background: rgba(217,119,6,0.10);
+    }
+    /* PC版画像 (1672×941) のCTA位置 */
+    @media (min-width: 761px) {
+      .hero-cta-hit.primary {
+        left: 2.2%;
+        top: 73%;
+        width: 21%;
+        height: 8.5%;
+      }
+      .hero-cta-hit.secondary {
+        left: 25%;
+        top: 73%;
+        width: 18%;
+        height: 8.5%;
+      }
+    }
+    /* スマホ版画像 (1035×1520) のCTA位置 */
+    @media (max-width: 760px) {
+      .hero-cta-hit.primary {
+        left: 7%;
+        top: 58.5%;
+        width: 86%;
+        height: 4.6%;
+      }
+      .hero-cta-hit.secondary {
+        left: 7%;
+        top: 64.2%;
+        width: 86%;
+        height: 4%;
+      }
     }
 
     /* 右上の金色リボン: サービス公開記念（月桂冠スタイル） */
@@ -1316,138 +1368,19 @@
 
   <main>
 
-    <!-- ヒーロー -->
+    <!-- ヒーロー (1枚画像版) -->
     <section class="hero">
-      <!-- 右上の金リボン -->
-      <div class="hero-ribbon" aria-label="サービス公開記念キャンペーン">
-        <span class="ribbon-icon">🏆</span>
-        <span class="ribbon-body">
-          <span class="ribbon-top">サービス公開記念</span>
-          <span class="ribbon-main"><strong>14日間</strong>無料体験</span>
-        </span>
-      </div>
-
-      <div class="container hero-grid">
-        <div>
-          <span class="eyebrow">不動産会社様向けクラウドサービス</span>
-          <h1><span class="nowrap">他社図面を、</span><br><span class="nowrap"><span class="gradient-text">3秒</span>で自社図面へ。</span></h1>
-          <p class="lead">ATBB・REINS・イタンジBB の物件カードに「📥 帯付き」ボタンが自動表示。<br>サイトを離れず、自社帯入り PDF が1クリックで完成します。</p>
-
-          <!-- 価格カード -->
-          <div class="price-hero-card">
-            <div class="price-hero-left">
-              <span class="price-hero-pill">月額</span>
-              <span class="price-hero-num">
-                <span class="num">990</span>
-                <span class="yen">円</span>
-                <span class="tilde">〜</span>
-                <span class="tax">(税抜)</span>
-              </span>
-              <span class="price-hero-foot"><strong>50件</strong>まで込み・<strong>初期費用0円</strong></span>
-            </div>
-            <ul class="price-hero-right">
-              <li>インストール不要</li>
-              <li>PCが苦手でも安心</li>
-              <li>すぐに使えてカンタン</li>
-            </ul>
-          </div>
-
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="#contact">14日間 無料で試してみる →</a>
-            <a class="btn btn-secondary" href="#flow">使い方を見る</a>
-          </div>
-
-          <!-- 4バリューバッジ -->
-          <div class="value-strip">
-            <div class="value-item">
-              <span class="v-icon">⏱</span>
-              <div><strong>作業時間<em>90%</em>削減</strong>※当社比</div>
-            </div>
-            <div class="value-item">
-              <span class="v-icon">⚡</span>
-              <div><strong>最短<em>3秒</em>で変換</strong></div>
-            </div>
-            <div class="value-item">
-              <span class="v-icon">☁</span>
-              <div><strong>インストール<em>不要</em></strong></div>
-            </div>
-            <div class="value-item">
-              <span class="v-icon">👤</span>
-              <div><strong>PCが苦手でも<em>OK</em></strong></div>
-            </div>
-          </div>
-
-          <!-- セキュリティバナー -->
-          <div class="security-strip">
-            <span class="sec-lock">🔒</span>
-            <strong>安心のセキュリティ</strong>
-            <span>通信はすべてSSL暗号化 / データは安全に管理されます</span>
-          </div>
-        </div>
-
-        <div class="device-stage" aria-label="帯替えGOのデモ画面">
-          <div class="laptop">
-            <div class="laptop-screen">
-              <div class="laptop-camera"></div>
-              <div class="laptop-screen-inner">
-                <!-- v1 旧版ヒーローアニメーション (REINS → クリック → PDF → Before/After swap) -->
-                <div class="hb-frame">
-                  <div class="hb-bar">
-                    <span class="hb-dot" style="background:#ff5f57"></span>
-                    <span class="hb-dot" style="background:#febc2e"></span>
-                    <span class="hb-dot" style="background:#28c840"></span>
-                    <span class="hb-url">system.reins.jp/main/BK/GBK002200</span>
-                  </div>
-                  <div class="hb-stage">
-                    <img class="hb-reins" src="/illust/reins-list.jpg" srcset="/illust/reins-list.jpg 1x, /illust/reins-list@2x.jpg 2x" alt="REINS 賃貸検索結果一覧">
-                    <span class="hb-cursor" aria-hidden="true">▲</span>
-                    <div class="hb-tooltip">📥 帯付き ← 1クリック！</div>
-                    <div class="hb-flash" aria-hidden="true"></div>
-                    <div class="hb-pdf-card">
-                      <div class="hb-pdf-header">
-                        <span class="hb-pdf-icon">📄</span>
-                        <span class="hb-pdf-title">サンプルマンション_帯付き.pdf</span>
-                        <span class="hb-pdf-status">✅ 完了</span>
-                      </div>
-                      <div class="hb-pdf-body">
-                        <img class="hb-mai-before" src="/illust/maisoku-before.jpg" alt="元付不動産帯の募集図面 (BEFORE)">
-                        <img class="hb-mai-after" src="/illust/maisoku-after.jpg" alt="サンプル不動産帯に貼替 (AFTER)">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="laptop-base"></div>
-          </div>
-
-          <!-- スマホ (右下に重なる・物件詳細画面風) -->
-          <div class="phone" aria-hidden="true">
-            <div class="phone-frame">
-              <div class="phone-screen">
-                <div class="phone-statusbar">
-                  <span>9:41</span>
-                  <span>📶 100%</span>
-                </div>
-                <div class="phone-content">
-                  <div class="property-title">サンプルマンション</div>
-                  <img class="property-img" src="/illust/maisoku-after.jpg" alt="">
-                  <div class="property-info">
-                    <div class="property-price">¥85,000<span style="font-size:7px;color:#94a3b8;font-weight:600">/ 月</span></div>
-                    <div class="property-meta">
-                      <span>1K</span>
-                      <span>25.20㎡</span>
-                      <span>3F</span>
-                    </div>
-                  </div>
-                  <div class="phone-band">
-                    <div class="phone-band-logo">帯</div>
-                    <div class="phone-band-text">サンプル不動産<br>03-XXXX-XXXX</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div class="container">
+        <div class="hero-image-wrap">
+          <picture>
+            <source media="(max-width: 760px)" srcset="/illust/hero-v2-mobile.png">
+            <img src="/illust/hero-v2-pc.png"
+                 alt="帯替えGO‼︎ - 他社図面を、3秒で自社図面へ。月額990円〜（税抜）/ サービス公開記念14日間無料体験"
+                 loading="eager" fetchpriority="high">
+          </picture>
+          <!-- 画像内CTAボタンの位置に透明リンクを重ねる (クリック可能化) -->
+          <a class="hero-cta-hit primary" href="#contact" aria-label="14日間 無料で試してみる"></a>
+          <a class="hero-cta-hit secondary" href="#flow" aria-label="使い方を見る"></a>
         </div>
       </div>
     </section>
