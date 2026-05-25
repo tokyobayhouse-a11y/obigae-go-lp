@@ -1302,7 +1302,20 @@
       }
       .top-strip { font-size: 11px; padding: 9px 0; line-height: 1.4; }
       .top-strip .tag { font-size: 10px; padding: 2px 8px; margin-right: 6px; }
-      .hero { padding: 50px 0 38px; }
+      /* スマホ: ヒーロー画像を画面端まで広げて一体感を出す */
+      .hero {
+        padding: 0;
+        background: none;
+      }
+      .hero > .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+      }
+      .hero-image-wrap img,
+      .hero-image-wrap picture {
+        border-radius: 0;
+      }
       .hero-actions .btn { width: 100%; }
       /* ヒーロー: 価格カードを縦組みに */
       .price-hero-card {
