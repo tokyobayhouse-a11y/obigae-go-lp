@@ -883,6 +883,48 @@
       margin-bottom: 14px;
       font-size: 18px;
     }
+    /* 絵コンテ入りステップカード */
+    .step-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(15,23,42,0.06);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .step-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(15,23,42,0.10);
+    }
+    .step-card .step-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--line);
+    }
+    .step-card .step-body {
+      padding: 20px 22px 22px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-card .step-body h3 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+    .step-card .step-body p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
 
     /* (正直不動産アピールセクションは帯に既に書いてあるので削除) */
 
@@ -1447,9 +1489,27 @@
           <p>業者間サイトから離れない設計。新人スタッフでも迷いません。</p>
         </div>
         <div class="steps-grid">
-          <article class="card"><span class="step-number">1</span><h3>業者サイトを開く</h3><p>ATBB・REINS・イタンジBB の検索結果画面。普段通りに物件を探すだけ。</p></article>
-          <article class="card"><span class="step-number">2</span><h3>「📥 帯付き」をクリック</h3><p>物件カードにボタンが自動追加。新タブも開かず、サイトを離れません。</p></article>
-          <article class="card"><span class="step-number">3</span><h3>エディタで確認 → 保存</h3><p>自社帯付き PDF がエディタに。複数物件をまとめて結合 PDF にもできます。</p></article>
+          <article class="step-card">
+            <img class="step-image" src="/illust/flow-step-1.png" alt="STEP 1: 業者間サイトの物件カードに表示される『帯付き』ボタンをワンクリック" loading="lazy">
+            <div class="step-body">
+              <h3>業者間サイトで「帯付き」をクリック</h3>
+              <p>ATBB・REINS・イタンジBB の物件カードに「📥 帯付き」ボタンが自動表示。サイトを離れず、ワンクリックで処理スタート！</p>
+            </div>
+          </article>
+          <article class="step-card">
+            <img class="step-image" src="/illust/flow-step-2.png" alt="STEP 2: 帯替え君エディタが自動で起動し、自社帯入りPDFに変換された図面を表示" loading="lazy">
+            <div class="step-body">
+              <h3>帯替え君エディタで自動表示・内容確認</h3>
+              <p>エディタが自動で起動し、自社帯に貼り替えられた図面を即プレビュー。白塗りや目隠しシール、担当者帯の切替も自由自在。</p>
+            </div>
+          </article>
+          <article class="step-card">
+            <img class="step-image" src="/illust/flow-step-3.png" alt="STEP 3: わずか3秒で変換完了。PDFでダウンロード or 保存" loading="lazy">
+            <div class="step-body">
+              <h3>保存 or PDFダウンロード（完成！）</h3>
+              <p>「保存」ボタンを押すだけで、自社帯入りPDFがダウンロード完了。わずか3秒で完成！すぐにお客様へお渡しいただけます。</p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
