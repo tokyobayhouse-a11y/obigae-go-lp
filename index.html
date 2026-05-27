@@ -133,6 +133,24 @@
       gap: 10px;
     }
 
+    .btn-login {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 14px;
+      height: 36px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      text-decoration: none;
+      border: 1px solid var(--gray-300, #cbd5e1);
+      border-radius: 8px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-login:hover {
+      background: #f8fafc;
+      border-color: var(--navy);
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -1387,6 +1405,7 @@
         min-height: 38px;
         border-radius: 8px;
       }
+      .btn-login { font-size: 11px; padding: 0 8px; height: 34px; }
       .mobile-menu {
         padding: 0 10px;
         min-height: 38px;
@@ -1459,6 +1478,7 @@
       </nav>
 
       <div class="header-actions">
+        <a class="btn-login" href="https://app.obigae-go.com/" target="_blank" rel="noopener">ログイン</a>
         <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener">Chromeに追加 →</a>
         <button class="btn btn-secondary mobile-menu" type="button" aria-label="メニューを開く">MENU</button>
       </div>
