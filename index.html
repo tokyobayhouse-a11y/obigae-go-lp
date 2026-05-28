@@ -1395,13 +1395,14 @@
     }
     @media (max-width: 640px) {
       .container { width: min(100% - 28px, 1120px); }
-      .header-inner { height: 60px; gap: 8px; }
-      /* スマホ: ロゴをコンパクトに */
-      .logo img { width: 30px; height: 30px; }
-      .logo span.brand { font-size: 15px; }
+      .header-inner { height: 60px; gap: 6px; }
+      /* スマホ: ロゴをコンパクトに (被り防止) */
+      .logo { min-width: 0; flex-shrink: 1; }
+      .logo img { width: 28px; height: 28px; }
+      .logo span.brand { font-size: 13px; letter-spacing: 0; }
       .logo small { display: none; }
       /* スマホ: CTA ボタンをコンパクトに */
-      .header-actions { gap: 6px; }
+      .header-actions { gap: 6px; flex-shrink: 0; }
       .header-actions .btn-primary {
         font-size: 12px;
         padding: 0 12px;
@@ -1457,8 +1458,11 @@
       .form-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 380px) {
+      /* 極小スマホ: ロゴ文字非表示 (アイコンのみ)、ボタンも更にコンパクト */
+      .logo span.brand { display: none; }
       .header-actions .btn-primary { font-size: 11px; padding: 0 10px; }
       .header-actions .btn-primary::after { content: ""; }
+      .btn-login { font-size: 10px; padding: 0 7px; height: 32px; }
     }
   </style>
 </head>
