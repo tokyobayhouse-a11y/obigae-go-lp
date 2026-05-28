@@ -59,6 +59,70 @@
       margin: 0 auto;
     }
 
+    /* モバイル専用案内バナー */
+    .mobile-notice {
+      background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+      border-bottom: 2px solid #d97706;
+      padding: 14px 0;
+    }
+    .mn-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .mn-text strong {
+      display: block;
+      color: #0d4d6b;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .mn-text small {
+      display: block;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .mn-form {
+      display: flex;
+      gap: 6px;
+    }
+    .mn-form input[type="email"] {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .mn-form input[type="email"]:focus {
+      outline: none;
+      border-color: #0d4d6b;
+    }
+    .mn-form button {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .mn-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .mn-msg {
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .mn-msg.show { display: block; }
+    .mn-msg.success { background: #dcfce7; color: #166534; }
+    .mn-msg.error { background: #fee2e2; color: #991b1b; }
+
     /* 上部の限定特典バナー */
     .top-strip {
       background: linear-gradient(135deg, #fff8ec 0%, #fef3c7 50%, #fde68a 100%);
@@ -1468,6 +1532,22 @@
 </head>
 <body>
 
+  <!-- モバイル専用案内バナー (PC専用通知 + リマインダー登録) -->
+  <section id="mobileNotice" class="mobile-notice" hidden>
+    <div class="container mn-inner">
+      <div class="mn-text">
+        <strong>帯替えGO‼︎ は PC の Chrome 専用です</strong><br>
+        <small>スマホでは動作しないため、PC でご利用ください。下記にメールアドレスをご登録いただくと「あとで PC で続ける」リンクをお送りします。</small>
+      </div>
+      <form id="remindForm" class="mn-form" autocomplete="on">
+        <input type="email" name="email" id="remindEmail" placeholder="you@example.com" required autocomplete="email">
+        <input type="text" name="website" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true">
+        <button type="submit" id="remindBtn">PC で続けるリンクを送る</button>
+      </form>
+      <div id="remindMsg" class="mn-msg" aria-live="polite"></div>
+    </div>
+  </section>
+
   <!-- ヘッダー -->
   <header class="header">
     <div class="container header-inner">
@@ -1813,6 +1893,51 @@
   </footer>
 
   <script>
+    // モバイル検知 → 「PC専用」案内バナー表示 + メールリマインダー送信
+    (function(){
+      const banner = document.getElementById('mobileNotice');
+      if (!banner) return;
+      // モバイル判定: タッチデバイス & 画面幅 ≤ 800px
+      const isMobile = (
+        ('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
+        window.matchMedia('(max-width: 800px)').matches
+      );
+      if (!isMobile) return;
+      banner.hidden = false;
+
+      const form = document.getElementById('remindForm');
+      const emailEl = document.getElementById('remindEmail');
+      const btn = document.getElementById('remindBtn');
+      const msg = document.getElementById('remindMsg');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = (emailEl.value || '').trim();
+        if (!email) return;
+        btn.disabled = true;
+        btn.textContent = '送信中...';
+        msg.className = 'mn-msg show';
+        msg.textContent = '送信中...';
+        try {
+          const res = await fetch('https://app.obigae-go.com/api/obigae/remind-me-later', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, website: form.website.value || '' }),
+          });
+          const body = await res.json();
+          if (!res.ok) throw new Error(body?.error?.message || 'http ' + res.status);
+          msg.className = 'mn-msg show success';
+          msg.innerHTML = '送信完了。受信箱をご確認ください（迷惑メールフォルダもチェック推奨）。PC の Chrome で開いてご導入ください。';
+          btn.textContent = '送信済み';
+          emailEl.disabled = true;
+        } catch (err) {
+          msg.className = 'mn-msg show error';
+          msg.textContent = 'エラー: ' + (err.message || err) + ' / info@obigae-go.com まで直接ご連絡ください。';
+          btn.disabled = false;
+          btn.textContent = 'PC で続けるリンクを送る';
+        }
+      });
+    })();
+
     // 料金プランカードのスクロール出現アニメ (1回だけ発火、終了後にクラス削除)
     (function(){
       const cards = document.querySelectorAll('.price-card');
