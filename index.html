@@ -305,7 +305,18 @@
     .hero-cta-hit:hover {
       background: rgba(217,119,6,0.10);
     }
-    /* PC版画像 (1672×941) のCTA位置 */
+    /* 画像全体をインストールへの入口にする (ボタン位置のズレ解消のため) */
+    .hero-cta-hit.backdrop {
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+    }
+    .hero-cta-hit.backdrop:hover {
+      background: transparent;
+    }
+    /* PC版画像 (1672×941) のCTA位置 (旧hotspot方式・現在は未使用) */
     @media (min-width: 761px) {
       .hero-cta-hit.primary {
         left: 2.2%;
@@ -1601,9 +1612,8 @@
                  alt="帯替えGO‼︎ - 他社図面を、3秒で自社図面へ。月額990円〜（税込）/ サービス公開記念14日間無料体験"
                  loading="eager" fetchpriority="high">
           </picture>
-          <!-- 画像内CTAボタンの位置に透明リンクを重ねる (クリック可能化) -->
-          <a class="hero-cta-hit primary" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" aria-label="14日間 無料で試してみる (Chromeに追加)"></a>
-          <a class="hero-cta-hit secondary" href="#flow" aria-label="使い方を見る"></a>
+          <!-- 画像全体をインストールへの入口に (ボタン位置のズレ解消のため個別リンクは廃止) -->
+          <a class="hero-cta-hit backdrop" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" aria-label="14日間 無料で試してみる (Chromeに追加)"></a>
         </div>
       </div>
     </section>
