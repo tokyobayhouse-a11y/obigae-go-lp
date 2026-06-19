@@ -1421,19 +1421,10 @@
     .sister-section{background:#f9fafb;padding:60px 0;border-top:1px solid var(--line)}
     .sister-eyebrow-line{text-align:center;margin-bottom:24px}
     .sister-eyebrow-line .eyebrow{display:inline-block;background:var(--navy);color:#fff;padding:5px 14px;border-radius:999px;font-size:11px;letter-spacing:.25em;font-weight:900;border:0}
-    .sister-banner{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:28px;padding:30px 36px;background:linear-gradient(135deg,#0d4d6b 0%,#1a6b8f 60%,#2d8b9c 100%);border-radius:22px;color:#fff;text-decoration:none;box-shadow:0 14px 40px rgba(13,77,107,.25);transition:transform .25s ease,box-shadow .25s ease;position:relative;overflow:hidden}
-    .sister-banner::before{content:"";position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:#fbbf24;opacity:.16;border-radius:50%}
-    .sister-banner:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(13,77,107,.35)}
-    .sister-icon img{width:90px;height:90px;border-radius:20px;box-shadow:0 6px 20px rgba(0,0,0,.3);display:block;background:#fff;position:relative;z-index:2}
-    .sister-text{position:relative;z-index:2}
-    .sister-text .sister-eyebrow{font-size:11px;letter-spacing:.3em;color:#fbbf24;font-weight:900;margin-bottom:6px}
-    .sister-title{font-size:24px;font-weight:900;margin-bottom:6px;line-height:1.25}
-    .sister-title strong{color:#fbbf24;font-size:30px;letter-spacing:-.01em}
-    .sister-desc{font-size:14px;color:#e0e7ed;line-height:1.6}
-    .sister-cta{background:#fbbf24;color:#0d4d6b;padding:14px 26px;border-radius:999px;font-weight:900;font-size:15px;white-space:nowrap;position:relative;z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.15)}
-    .sister-img-link{display:block;margin:18px auto 0;border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(13,77,107,.18);transition:transform .25s ease,box-shadow .25s ease}
-    .sister-img-link:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(13,77,107,.28)}
-    .sister-img-link img{display:block;width:100%;height:auto}
+    .sister-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center;margin:0 auto}
+    .sister-tile{display:block;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(13,77,107,.16);transition:transform .25s ease,box-shadow .25s ease}
+    .sister-tile:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(13,77,107,.26)}
+    .sister-tile img{display:block;width:100%;height:auto}
 
     /* Footer */
     .footer {
@@ -1479,8 +1470,7 @@
       .price-card.recommended.in-view {
         animation: pop-in 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
-      .sister-banner { grid-template-columns: 1fr; text-align: center; padding: 24px; gap: 16px; }
-      .sister-icon img { margin: 0 auto; }
+      .sister-grid { grid-template-columns: 1fr; gap: 16px; }
     }
     @media (max-width: 640px) {
       .container { width: min(100% - 28px, 1120px); }
@@ -1817,18 +1807,14 @@
     <section class="sister-section">
       <div class="container">
         <div class="sister-eyebrow-line"><span class="eyebrow">SISTER SERVICE / 姉妹サービス</span></div>
-        <a class="sister-banner" href="https://mitsumori-go.com/" target="_blank" rel="noopener">
-          <div class="sister-icon"><img src="/icons/mitsumori-go-icon.png" alt="見積りGO!!" loading="lazy"></div>
-          <div class="sister-text">
-            <div class="sister-eyebrow">FROM 東京ベイハウス株式会社</div>
-            <div class="sister-title">見積書作成、最短 <strong>5秒</strong> で完成。</div>
-            <div class="sister-desc">募集図面の写真1枚で AI が見積書を自動作成。賃貸営業マン専用ツール「見積りGO!!」を、ぜひ合わせてご利用ください。</div>
-          </div>
-          <div class="sister-cta">見積りGO!! を見る →</div>
-        </a>
-        <a class="sister-img-link" href="https://mogo-dx.com/kensaku-go/" target="_blank" rel="noopener" aria-label="検索GO!! — 物件名かURLで5サイトを横断検索。元付業者をワンクリックで特定">
-          <img src="/icons/kensaku-go-banner.png" alt="検索GO!! — 不動産仲介会社専用の検索システム。レインズ・ATBB・イタンジBB・いい生活Square・いえらぶBBを横断し、元付業者をワンクリックで1発検索。" loading="lazy">
-        </a>
+        <div class="sister-grid">
+          <a class="sister-tile" href="https://mitsumori-go.com/" target="_blank" rel="noopener" aria-label="見積りGO!! — 募集図面を撮るだけでAIが入居費用見積書を自動作成">
+            <img src="/icons/sister-mitsumori-banner.png" alt="見積りGO!! — 写真から5秒、AIが入居費用見積書を自動作成。賃貸営業マン専用。" loading="lazy">
+          </a>
+          <a class="sister-tile" href="https://mogo-dx.com/kensaku-go/" target="_blank" rel="noopener" aria-label="検索GO!! — 物件名かURLで5サイトを横断検索。元付業者をワンクリックで特定">
+            <img src="/icons/kensaku-go-banner.png" alt="検索GO!! — 不動産仲介会社専用の検索システム。レインズ・ATBB・イタンジBB・いい生活Square・いえらぶBBを横断し元付業者をワンクリックで検索。" loading="lazy">
+          </a>
+        </div>
       </div>
     </section>
 
