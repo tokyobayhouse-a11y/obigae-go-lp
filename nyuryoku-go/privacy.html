@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プライバシーポリシー | 入力GO!!</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --navy:#0C4A68; --navy-light:#1a6b8f; --navy-bg:#e8f1f5; --accent:#FFA704; --accent-bg:#fff5e0; --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-500:#6b7280; --gray-700:#374151; --gray-900:#111827; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif; color:var(--gray-900); line-height:1.85; -webkit-font-smoothing:antialiased; background:var(--gray-50); }
+  .topbar { background:white; border-bottom:1px solid var(--gray-200); padding:14px 0; }
+  .topbar .inner { max-width:880px; margin:0 auto; padding:0 24px; display:flex; justify-content:space-between; align-items:center; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:900; color:var(--navy); font-size:18px; letter-spacing:-0.01em; }
+  .brand .go { color:var(--navy); } .brand .bang { color:var(--accent); }
+  .container { max-width:780px; margin:0 auto; padding:50px 24px 80px; }
+  .doc-title { font-size:30px; color:var(--navy); font-weight:900; margin-bottom:8px; letter-spacing:-0.01em; }
+  .doc-meta { color:var(--gray-500); font-size:13px; margin-bottom:32px; }
+  .highlight { background:var(--accent-bg); border:1px solid #ffe1a8; color:#7a4a00; padding:16px 18px; border-radius:10px; font-size:14.5px; margin-bottom:36px; line-height:1.7; }
+  .highlight strong { color:#5c3800; }
+  h2 { font-size:18px; color:var(--navy); font-weight:800; margin:36px 0 12px; padding-bottom:8px; border-bottom:2px solid var(--navy-bg); }
+  p { margin-bottom:14px; color:var(--gray-700); font-size:14.5px; }
+  ul { margin:8px 0 16px 22px; }
+  ul li { margin-bottom:8px; color:var(--gray-700); font-size:14.5px; }
+  .addr { background:white; border:1px solid var(--gray-200); border-radius:10px; padding:18px 20px; font-size:14.5px; color:var(--gray-700); }
+  a { color:var(--navy-light); }
+  footer { border-top:1px solid var(--gray-200); margin-top:50px; padding:24px; text-align:center; color:var(--gray-500); font-size:12.5px; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <span class="brand">入力<span class="go">GO</span><span class="bang">!!</span></span>
+      <span style="color:var(--gray-500);font-size:13px;">物件情報をアドマスターへ自動入力</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1 class="doc-title">プライバシーポリシー</h1>
+    <p class="doc-meta">最終更新日：2026年6月22日</p>
+
+    <p>東京ベイハウス株式会社（以下「当社」）は、Chrome拡張機能「入力GO!!」（以下「本拡張機能」）における情報の取り扱いについて、以下のとおり定めます。本拡張機能は、当社の不動産業務のために利用する社内業務専用ツールです。</p>
+
+    <div class="highlight">
+      <strong>本拡張機能が扱うのは「不動産の物件情報」です。本拡張機能の利用者個人を特定する情報（氏名・メールアドレス・閲覧履歴・位置情報等）は収集しません。</strong><br>
+      物件情報の処理のため、当社が管理するGoogleサービス（スプレッドシート／ドライブ／Apps Script）と、図面・写真のAI判定（OpenAI）へデータを送信します。広告・トラッキング・第三者への販売は一切行いません。
+    </div>
+
+    <h2>1. 取得・処理する情報</h2>
+    <p>本拡張機能は、業者間サイト（ATBB／イタンジBB／レインズ）に表示されている不動産の物件情報を読み取ります。具体例：建物名・所在地・賃料・間取り・設備・募集図面・物件写真・元付業者の連絡先など、業務に必要な物件データです。本拡張機能の利用者個人に関する情報（氏名・メール・パスワード・閲覧履歴等）は取得しません。</p>
+
+    <h2>2. 外部に送信する情報と送信先</h2>
+    <p>本拡張機能は、業務処理のために以下のデータを外部へ送信します。いずれも当社の業務目的のためにのみ利用します。</p>
+    <ul>
+      <li><strong>物件データ</strong>：当社が管理するGoogleスプレッドシート（物出管理表）および当社のGoogle Apps Script（受け口）へ送信し、物件の登録・管理に利用します。</li>
+      <li><strong>募集図面（PDF）</strong>：当社が管理するGoogleドライブへ保存します。</li>
+      <li><strong>募集図面・物件写真</strong>：設備・各部屋の畳数・写真種別を判定するため、当社のGoogle Apps Scriptを経由してOpenAIのAPIへ送信し、判定結果のみを利用します（APIに送信したデータはAIの学習には利用されません）。</li>
+    </ul>
+
+    <h2>3. ブラウザ内に保存する情報</h2>
+    <p>機能の提供のため、読み取った物件データと各種設定を、ブラウザのローカル領域（chrome.storage）に一時保存します。これらは拡張機能の削除時に消去されます。</p>
+
+    <h2>4. 権限の利用目的</h2>
+    <ul>
+      <li><strong>タブ／スクリプト実行（tabs／scripting）</strong>：物件サイトとアドマスターの画面を開き、物件情報の読み取りと自動入力を行うため。</li>
+      <li><strong>ストレージ（storage）</strong>：上記3の物件データ・設定の保存のため。</li>
+      <li><strong>オフスクリーン（offscreen）</strong>：募集図面PDFの画像変換（補助機能）のため。</li>
+      <li><strong>サイトへのアクセス（ホスト権限）</strong>：物件情報の読み取り、ならびに変換ルール表・物出管理表・図面保存・AI判定の各サービス（Google／当社Apps Script／OpenAI）との通信のため。</li>
+    </ul>
+
+    <h2>5. 第三者提供</h2>
+    <p>当社は、本拡張機能で取り扱うデータを、業務目的以外で第三者に提供・販売しません。また、信用力の判断や融資の目的には利用しません。前記2のOpenAIへの送信は、AI判定機能を提供するための処理委託であり、データの販売ではありません。</p>
+
+    <h2>6. 改定</h2>
+    <p>本ポリシーは、必要に応じて改定することがあります。重要な変更がある場合は本ページに掲載します。</p>
+
+    <h2>7. お問い合わせ</h2>
+    <div class="addr">
+      東京ベイハウス株式会社<br>
+      東京都品川区東五反田<br>
+      お問い合わせ：<a href="mailto:tbh@bayhouse.co.jp">tbh@bayhouse.co.jp</a>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 東京ベイハウス株式会社 / 入力GO!!
+  </footer>
+</body>
+</html>
