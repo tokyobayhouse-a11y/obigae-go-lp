@@ -79,6 +79,11 @@
   tbody tr.status-ready td:first-child{box-shadow:inset 4px 0 0 var(--ok);}
   tbody tr.status-pending td:first-child{box-shadow:inset 4px 0 0 var(--accent);}
   tbody tr.status-locked td:first-child{box-shadow:inset 4px 0 0 var(--danger);}
+  /* 申込ON=取引中→行をグレーアウト(チェックや削除など操作自体は可能) */
+  tbody tr.row-applied td{background:#eef1f3;color:#9aa7b3;}
+  tbody tr.row-applied .c-name a{color:#8a96a3;text-decoration:line-through;}
+  tbody tr.row-applied .c-name .addr,tbody tr.row-applied .rent,tbody tr.row-applied .rent .man,tbody tr.row-applied .agent,tbody tr.row-applied .agent .tel,tbody tr.row-applied .date{color:#9aa7b3;}
+  tbody tr.row-applied .src{opacity:.5;}
   .c-name{padding-left:11px!important;}
   .c-name a{display:block;color:var(--navy);font-weight:900;text-decoration:none;font-size:12.5px;line-height:1.35;overflow-wrap:anywhere;}
   .c-name a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
@@ -103,6 +108,9 @@
   .admas a{color:var(--navy);font-weight:900;text-decoration:none;font-size:12px;}
   .admas a:hover{color:var(--accent);text-decoration:underline;text-underline-offset:3px;}
   .admas .none{color:var(--gray-400);font-size:11.5px;font-weight:800;}
+  /* アドマス反映後=詳細ページへのボタン(目立たせる) */
+  .admas a.admas-link{display:inline-block;background:var(--navy);color:#fff;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap;}
+  .admas a.admas-link:hover{background:var(--accent);color:#fff;text-decoration:none;}
   .date{color:var(--gray-500);font-size:10.5px;font-weight:750;line-height:1.25;white-space:normal;}
   .del{width:25px;height:25px;color:var(--gray-400);background:none;border:0;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;}
   .del:hover{color:var(--danger);background:var(--danger-bg);}
@@ -352,6 +360,7 @@
   function applyRowStatus(tr, p){
     tr.classList.remove("status-ready","status-pending","status-locked");
     tr.classList.add(rowStatus(p));
+    tr.classList.toggle("row-applied", !!p.application); // 申込ON=行をグレーアウト
   }
   function resizeMemo(el){
     if(!el) return;
@@ -416,7 +425,7 @@
         '<td class="portals"><div class="pt-wrap">'+ptHtml+'</div></td>'+
         '<td class="hides"><div class="hd-wrap">'+hdHtml+'</div></td>'+
         '<td class="chk"><input type="checkbox" data-f="reflect_flag"'+(p.reflect_flag?" checked":"")+'></td>'+
-        '<td class="admas">'+(p.admas_url?'<a href="'+esc(p.admas_url)+'" target="_blank" rel="noopener">開く</a>':'<span class="none">—</span>')+'</td>'+
+        '<td class="admas">'+(p.admas_url?'<a class="admas-link" href="'+esc(p.admas_url)+'" target="_blank" rel="noopener">開く</a>':'<span class="none">未反映</span>')+'</td>'+
         '<td class="memo"><textarea data-f="memo" rows="1" placeholder="メモ">'+esc(p.memo||"")+'</textarea></td>'+
         '<td class="vnote"><textarea data-f="verify_note" rows="1" placeholder="気づき・ズレ">'+esc(p.verify_note||"")+'</textarea></td>'+
         '<td class="date">'+fmtDate(p.imported_at)+'</td>'+
