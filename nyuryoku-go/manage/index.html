@@ -54,22 +54,26 @@
   .wrap{max-width:none;margin:12px auto 60px;padding:0 18px;}
   .card{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:none;}
   table{width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0;}
-  th:nth-child(1),td:nth-child(1){width:15%;}
-  th:nth-child(2),td:nth-child(2){width:6%;}
+  th:nth-child(1),td:nth-child(1){width:14%;}
+  th:nth-child(2),td:nth-child(2){width:5.5%;}
   th:nth-child(3),td:nth-child(3){width:5%;}
-  th:nth-child(4),td:nth-child(4){width:4.5%;}
-  th:nth-child(5),td:nth-child(5){width:8.5%;}
-  th:nth-child(6),td:nth-child(6){width:5.2%;}
-  th:nth-child(7),td:nth-child(7){width:4%;}
-  th:nth-child(8),td:nth-child(8){width:4%;}
-  th:nth-child(9),td:nth-child(9){width:11.5%;}
-  th:nth-child(10),td:nth-child(10){width:6.5%;}
-  th:nth-child(11),td:nth-child(11){width:4%;}
-  th:nth-child(12),td:nth-child(12){width:4.5%;}
-  th:nth-child(13),td:nth-child(13){width:7%;}
-  th:nth-child(14),td:nth-child(14){width:7%;}
-  th:nth-child(15),td:nth-child(15){width:6%;}
-  th:nth-child(16),td:nth-child(16){width:3.2%;}
+  th:nth-child(4),td:nth-child(4){width:4%;}
+  th:nth-child(5),td:nth-child(5){width:8%;}
+  th:nth-child(6),td:nth-child(6){width:6%;}
+  th:nth-child(7),td:nth-child(7){width:5%;}
+  th:nth-child(8),td:nth-child(8){width:3.5%;}
+  th:nth-child(9),td:nth-child(9){width:3.5%;}
+  th:nth-child(10),td:nth-child(10){width:11%;}
+  th:nth-child(11),td:nth-child(11){width:6%;}
+  th:nth-child(12),td:nth-child(12){width:3.5%;}
+  th:nth-child(13),td:nth-child(13){width:4.5%;}
+  th:nth-child(14),td:nth-child(14){width:6.5%;}
+  th:nth-child(15),td:nth-child(15){width:6.5%;}
+  th:nth-child(16),td:nth-child(16){width:5.5%;}
+  th:nth-child(17),td:nth-child(17){width:3%;}
+  /* 担当者プルダウン */
+  .assignee select{width:100%;border:1px solid var(--line);border-radius:6px;padding:5px 4px;font-size:11.5px;background:var(--gray-50);color:#243240;font-weight:700;cursor:pointer;}
+  .assignee select:focus{border-color:var(--accent);background:#fff;outline:none;}
   thead th{background:#f4f6f8;color:#263a4a;font-size:10.5px;line-height:1.25;font-weight:900;text-align:left;padding:8px 6px;border-bottom:1px solid var(--line-strong);border-right:1px solid #e7ecf0;white-space:normal;overflow-wrap:anywhere;vertical-align:middle;}
   tbody td{position:relative;padding:8px 6px;border-bottom:1px solid var(--line);border-right:1px solid #eef2f5;vertical-align:middle;background:#fff;color:#253241;overflow-wrap:anywhere;}
   thead th:last-child,tbody td:last-child{border-right:0;}
@@ -259,6 +263,7 @@
               <th class="sortable" data-sort="rent">賃料<span class="ar"></span></th>
               <th>間取り</th>
               <th class="sortable" data-sort="agent_company">元付業者<span class="ar"></span></th>
+              <th class="sortable" data-sort="assignee">担当者<span class="ar"></span></th>
               <th class="sortable" data-sort="suumo_score">SUUMO<br>点数<span class="ar"></span></th>
               <th class="chk">空き<br>確認</th>
               <th class="chk">申込</th>
@@ -310,7 +315,9 @@
   var filter = "";             // 検索語
   var sortKey = "imported_at"; // 並べ替えの基準列
   var sortDir = "desc";        // "asc"(昇順) | "desc"(降順)
-  var STR_SORT = {name:1, source:1, agent_company:1}; // 文字列で並べ替える列(他は数値/日付)
+  var STR_SORT = {name:1, source:1, agent_company:1, assignee:1}; // 文字列で並べ替える列(他は数値/日付)
+  // 担当者プルダウンの選択肢(アドマスの担当者プルダウンと一致・transform §16bが名前→user_idに変換)
+  var STAFF = ["寺島考一郎","古東進一","小堀恵理","鈴木麻優子","渡辺由佳","川嶋結希"];
   // 掲載5媒体(リブロ＝自社ホームページ)。スキーマの listings.portal と一致。
   var PORTALS = [["suumo","SUUMO"],["homes","HOME'S"],["athome","at home"],["reblo","リブロ"],["reins","レインズ"]];
   // 非掲載フラグ(物件名・住所・号室)
@@ -432,7 +439,7 @@
       var collapsed=isCollapsed(g.key);
       var htr=document.createElement("tr");
       htr.className="grp"+(g.key==="未反映"?" grp-unrefl":"");
-      htr.innerHTML='<td colspan="16"><span class="caret">'+(collapsed?"▶":"▼")+'</span>'+esc(g.label)+'<span class="grp-n">'+g.items.length+'件</span></td>';
+      htr.innerHTML='<td colspan="17"><span class="caret">'+(collapsed?"▶":"▼")+'</span>'+esc(g.label)+'<span class="grp-n">'+g.items.length+'件</span></td>';
       htr.addEventListener("click", function(){ collapsedState[g.key]=!isCollapsed(g.key); render(); });
       tb.appendChild(htr);
       if(collapsed) return;
@@ -458,6 +465,7 @@
       '<td class="rent">'+yen(p.rent)+'</td>'+
       '<td>'+esc(p.layout||"—")+'</td>'+
       '<td class="agent">'+esc(p.agent_company||"—")+(p.agent_contact?'<div class="tel">'+esc(p.agent_contact)+'</div>':'')+'</td>'+
+      '<td class="assignee"><select data-f="assignee"><option value="">—</option>'+STAFF.map(function(s){return '<option'+(p.assignee===s?" selected":"")+'>'+esc(s)+'</option>';}).join('')+'</select></td>'+
       '<td class="score"><input type="number" data-f="suumo_score" value="'+(p.suumo_score==null?"":p.suumo_score)+'" placeholder="—" min="0" max="100"></td>'+
       '<td class="chk"><input type="checkbox" data-f="vacancy_check"'+(p.vacancy_check?" checked":"")+'></td>'+
       '<td class="chk"><input type="checkbox" data-f="application"'+(p.application?" checked":"")+'></td>'+
@@ -488,6 +496,13 @@
       if(val!==null && (isNaN(val)||val<0)){ si.value=(p.suumo_score==null?"":p.suumo_score); toast("点数は0以上の数字で", true); return; }
       api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; toast("SUUMO点数を保存"); })
         .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
+    });
+    // 担当者(プルダウン)→assignee保存。一括反映時にtransform §16bがアドマスのroom[user_id]に変換。
+    var asg=tr.querySelector('select[data-f=assignee]');
+    asg.addEventListener("change", function(){
+      var val=asg.value||null;
+      api("update",{ id:p.id, patch:{ assignee: val } }).then(function(){ p.assignee=val; toast("担当者を保存"); })
+        .catch(function(e){ asg.value=p.assignee||""; toast(e.message||"保存に失敗", true); });
     });
     // 掲載5媒体トグル(set_listing)
     Array.prototype.forEach.call(tr.querySelectorAll('.pt'), function(btn){
