@@ -84,6 +84,13 @@
   tbody tr.row-applied .c-name a{color:#8a96a3;text-decoration:line-through;}
   tbody tr.row-applied .c-name .addr,tbody tr.row-applied .rent,tbody tr.row-applied .rent .man,tbody tr.row-applied .agent,tbody tr.row-applied .agent .tel,tbody tr.row-applied .date{color:#9aa7b3;}
   tbody tr.row-applied .src{opacity:.5;}
+  /* 反映日グループ見出し(クリックで折りたたみ) */
+  tbody tr.grp td{background:#e8eef3;color:var(--navy);font-weight:900;font-size:12.5px;padding:9px 11px;cursor:pointer;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);}
+  tbody tr.grp:hover td{background:#dde7ee;}
+  tbody tr.grp.grp-unrefl td{background:#fff3de;color:#7a4a00;}
+  tbody tr.grp.grp-unrefl:hover td{background:#ffe9c6;}
+  tbody tr.grp .caret{display:inline-block;width:16px;color:inherit;}
+  tbody tr.grp .grp-n{color:var(--gray-500);font-weight:700;font-size:11px;margin-left:8px;}
   .c-name{padding-left:11px!important;}
   .c-name a{display:block;color:var(--navy);font-weight:900;text-decoration:none;font-size:12.5px;line-height:1.35;overflow-wrap:anywhere;}
   .c-name a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
@@ -393,116 +400,145 @@
   }
 
   // ===== 描画 =====
+  // ===== 反映日グループ(未反映を上に、反映日ごとに新しい順・折りたたみ) =====
+  var collapsedState = {}; // key -> true(畳む)/false(開く)。未設定はデフォルト(未反映=開く/反映日=畳む)
+  function dayKey(iso){
+    if(!iso) return null; var d=new Date(iso); if(isNaN(d)) return null;
+    return d.getFullYear()+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+("0"+d.getDate()).slice(-2);
+  }
+  function groupByReflected(list){
+    var un=[], map={};
+    list.forEach(function(p){ var k=dayKey(p.reflected_at); if(!k) un.push(p); else (map[k]=map[k]||[]).push(p); });
+    var groups=[];
+    if(un.length) groups.push({ key:"未反映", label:"未反映", items:un });
+    Object.keys(map).sort().reverse().forEach(function(k){ groups.push({ key:k, label:k+" 反映", items:map[k] }); });
+    return groups;
+  }
+  function isCollapsed(key){ return (key in collapsedState) ? collapsedState[key] : (key!=="未反映"); }
+
   function render(){
     updateSortUI();
     var f=filter.trim().toLowerCase();
     var list = !f ? rows : rows.filter(function(p){
       return [p.name,p.address,p.agent_company].some(function(v){ return String(v||"").toLowerCase().indexOf(f)>=0; });
     });
-    list = sortList(list);
     $("count").textContent = list.length + (f && list.length!==rows.length ? " / "+rows.length : "");
     var tb=$("tbody"); tb.innerHTML="";
     $("loading").style.display="none";
     if(rows.length===0){ $("table").style.display="none"; $("empty").style.display="block"; return; }
     $("empty").style.display="none"; $("table").style.display="table";
 
-    list.forEach(function(p){
-      var pm=portalsOf(p);
-      var ptHtml=PORTALS.map(function(pr){ return '<button class="pt '+pr[0]+(pm[pr[0]]?" on":"")+'" data-portal="'+pr[0]+'">'+pr[1]+'</button>'; }).join("");
-      var hdHtml=HIDES.map(function(h){ return '<button class="hd'+(p[h[0]]?" on":"")+'" data-f="'+h[0]+'" title="'+h[2]+'">'+h[1]+'</button>'; }).join("");
-      var tr=document.createElement("tr");
-      applyRowStatus(tr, p);
-      tr.innerHTML =
-        '<td class="c-name"><a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>'+
-          (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+'</td>'+
-        '<td>'+srcBadge(p.source)+'</td>'+
-        '<td class="rent">'+yen(p.rent)+'</td>'+
-        '<td>'+esc(p.layout||"—")+'</td>'+
-        '<td class="agent">'+esc(p.agent_company||"—")+(p.agent_contact?'<div class="tel">'+esc(p.agent_contact)+'</div>':'')+'</td>'+
-        '<td class="score"><input type="number" data-f="suumo_score" value="'+(p.suumo_score==null?"":p.suumo_score)+'" placeholder="—" min="0" max="100"></td>'+
-        '<td class="chk"><input type="checkbox" data-f="vacancy_check"'+(p.vacancy_check?" checked":"")+'></td>'+
-        '<td class="chk"><input type="checkbox" data-f="application"'+(p.application?" checked":"")+'></td>'+
-        '<td class="portals"><div class="pt-wrap">'+ptHtml+'</div></td>'+
-        '<td class="hides"><div class="hd-wrap">'+hdHtml+'</div></td>'+
-        '<td class="chk"><input type="checkbox" data-f="reflect_flag"'+(p.reflect_flag?" checked":"")+'></td>'+
-        '<td class="admas">'+(p.admas_url?'<a class="admas-link" href="'+esc(p.admas_url)+'" target="_blank" rel="noopener">開く</a>':'<span class="none">未反映</span>')+'</td>'+
-        '<td class="memo"><textarea data-f="memo" rows="1" placeholder="メモ">'+esc(p.memo||"")+'</textarea></td>'+
-        '<td class="vnote"><textarea data-f="verify_note" rows="1" placeholder="気づき・ズレ">'+esc(p.verify_note||"")+'</textarea></td>'+
-        '<td class="date">'+fmtDate(p.imported_at)+'</td>'+
-        '<td><button class="del" title="削除">'+
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2m-9 0v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6"/></svg>'+
-        '</button></td>';
-
-      // チェックボックス更新(空き確認・申込・反映する)
-      Array.prototype.forEach.call(tr.querySelectorAll('input[type=checkbox]'), function(cb){
-        cb.addEventListener("change", function(){
-          var field=cb.getAttribute("data-f"), val=cb.checked, patch={}; patch[field]=val;
-          cb.disabled=true;
-          api("update",{ id:p.id, patch:patch }).then(function(){ p[field]=val; applyRowStatus(tr, p); cb.disabled=false; toast("保存しました"); })
-            .catch(function(e){ cb.checked=!val; cb.disabled=false; toast(e.message||"保存に失敗", true); });
-        });
+    groupByReflected(list).forEach(function(g){
+      var collapsed=isCollapsed(g.key);
+      var htr=document.createElement("tr");
+      htr.className="grp"+(g.key==="未反映"?" grp-unrefl":"");
+      htr.innerHTML='<td colspan="16"><span class="caret">'+(collapsed?"▶":"▼")+'</span>'+esc(g.label)+'<span class="grp-n">'+g.items.length+'件</span></td>';
+      htr.addEventListener("click", function(){ collapsedState[g.key]=!isCollapsed(g.key); render(); });
+      tb.appendChild(htr);
+      if(collapsed) return;
+      sortList(g.items).forEach(function(p){
+        var tr=buildRow(p);
+        tb.appendChild(tr);
+        resizeMemo(tr.querySelector('textarea[data-f=memo]'));
+        resizeMemo(tr.querySelector('textarea[data-f=verify_note]'));
       });
-      // SUUMO点数(確定時に保存・空欄はnull)
-      var si=tr.querySelector('input[data-f=suumo_score]');
-      si.addEventListener("change", function(){
-        var raw=si.value.trim(), val = raw==="" ? null : parseInt(raw,10);
-        if(val!==null && (isNaN(val)||val<0)){ si.value=(p.suumo_score==null?"":p.suumo_score); toast("点数は0以上の数字で", true); return; }
-        api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; toast("SUUMO点数を保存"); })
-          .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
-      });
-      // 掲載5媒体トグル(set_listing)
-      Array.prototype.forEach.call(tr.querySelectorAll('.pt'), function(btn){
-        btn.addEventListener("click", function(){
-          var portal=btn.getAttribute("data-portal"), cur=btn.classList.contains("on"), next=!cur;
-          btn.classList.toggle("on", next);
-          api("set_listing",{ id:p.id, portal:portal, listed:next }).then(function(){
-            p.listings=p.listings||[]; var f0=p.listings.filter(function(l){return l.portal===portal;})[0];
-            if(f0) f0.listed=next; else p.listings.push({portal:portal,listed:next});
-            toast(next?"掲載ON":"掲載OFF");
-          }).catch(function(e){ btn.classList.toggle("on", cur); toast(e.message||"保存に失敗", true); });
-        });
-      });
-      // 非掲載トグル(物件名・住所・号室)
-      Array.prototype.forEach.call(tr.querySelectorAll('.hd'), function(btn){
-        btn.addEventListener("click", function(){
-          var field=btn.getAttribute("data-f"), cur=btn.classList.contains("on"), next=!cur, patch={}; patch[field]=next;
-          btn.classList.toggle("on", next);
-          api("update",{ id:p.id, patch:patch }).then(function(){ p[field]=next; applyRowStatus(tr, p); toast(next?"非掲載に設定":"非掲載を解除"); })
-            .catch(function(e){ btn.classList.toggle("on", cur); toast(e.message||"保存に失敗", true); });
-        });
-      });
-      // メモ更新(フォーカスを外した時だけ送信)
-      var mi=tr.querySelector('textarea[data-f=memo]');
-      mi.addEventListener("input", function(){ resizeMemo(mi); });
-      mi.addEventListener("blur", function(){
-        var val=mi.value;
-        if(val===(p.memo||"")) return;
-        api("update",{ id:p.id, patch:{ memo:val } }).then(function(){ p.memo=val; toast("メモを保存"); })
-          .catch(function(e){ mi.value=p.memo||""; resizeMemo(mi); toast(e.message||"保存に失敗", true); });
-      });
-      // 検証メモ更新(アドマスには送らない=Supabaseのverify_noteのみ・社内メモとは別物)
-      var vi=tr.querySelector('textarea[data-f=verify_note]');
-      vi.addEventListener("input", function(){ resizeMemo(vi); });
-      vi.addEventListener("blur", function(){
-        var val=vi.value;
-        if(val===(p.verify_note||"")) return;
-        api("update",{ id:p.id, patch:{ verify_note:val } }).then(function(){ p.verify_note=val; toast("検証メモを保存"); })
-          .catch(function(e){ vi.value=p.verify_note||""; resizeMemo(vi); toast(e.message||"保存に失敗", true); });
-      });
-      // 削除(カスタム確認モーダル)
-      tr.querySelector(".del").addEventListener("click", function(){
-        confirmDialog('「'+(p.name||"この物件")+'」を削除します。よろしいですか？').then(function(ok){
-          if(!ok) return;
-          api("delete",{ id:p.id }).then(function(){
-            rows=rows.filter(function(x){ return x.id!==p.id; }); render(); toast("削除しました");
-          }).catch(function(e){ toast(e.message||"削除に失敗", true); });
-        });
-      });
-
-      tb.appendChild(tr);
-      resizeMemo(mi);
-      resizeMemo(vi);
     });
+  }
+
+  function buildRow(p){
+    var pm=portalsOf(p);
+    var ptHtml=PORTALS.map(function(pr){ return '<button class="pt '+pr[0]+(pm[pr[0]]?" on":"")+'" data-portal="'+pr[0]+'">'+pr[1]+'</button>'; }).join("");
+    var hdHtml=HIDES.map(function(h){ return '<button class="hd'+(p[h[0]]?" on":"")+'" data-f="'+h[0]+'" title="'+h[2]+'">'+h[1]+'</button>'; }).join("");
+    var tr=document.createElement("tr");
+    applyRowStatus(tr, p);
+    tr.innerHTML =
+      '<td class="c-name"><a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>'+
+        (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+'</td>'+
+      '<td>'+srcBadge(p.source)+'</td>'+
+      '<td class="rent">'+yen(p.rent)+'</td>'+
+      '<td>'+esc(p.layout||"—")+'</td>'+
+      '<td class="agent">'+esc(p.agent_company||"—")+(p.agent_contact?'<div class="tel">'+esc(p.agent_contact)+'</div>':'')+'</td>'+
+      '<td class="score"><input type="number" data-f="suumo_score" value="'+(p.suumo_score==null?"":p.suumo_score)+'" placeholder="—" min="0" max="100"></td>'+
+      '<td class="chk"><input type="checkbox" data-f="vacancy_check"'+(p.vacancy_check?" checked":"")+'></td>'+
+      '<td class="chk"><input type="checkbox" data-f="application"'+(p.application?" checked":"")+'></td>'+
+      '<td class="portals"><div class="pt-wrap">'+ptHtml+'</div></td>'+
+      '<td class="hides"><div class="hd-wrap">'+hdHtml+'</div></td>'+
+      '<td class="chk"><input type="checkbox" data-f="reflect_flag"'+(p.reflect_flag?" checked":"")+'></td>'+
+      '<td class="admas">'+(p.admas_url?'<a class="admas-link" href="'+esc(p.admas_url)+'" target="_blank" rel="noopener">開く</a>':'<span class="none">未反映</span>')+'</td>'+
+      '<td class="memo"><textarea data-f="memo" rows="1" placeholder="メモ">'+esc(p.memo||"")+'</textarea></td>'+
+      '<td class="vnote"><textarea data-f="verify_note" rows="1" placeholder="気づき・ズレ">'+esc(p.verify_note||"")+'</textarea></td>'+
+      '<td class="date">'+fmtDate(p.imported_at)+'</td>'+
+      '<td><button class="del" title="削除">'+
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2m-9 0v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6"/></svg>'+
+      '</button></td>';
+
+    // チェックボックス更新(空き確認・申込・反映する)
+    Array.prototype.forEach.call(tr.querySelectorAll('input[type=checkbox]'), function(cb){
+      cb.addEventListener("change", function(){
+        var field=cb.getAttribute("data-f"), val=cb.checked, patch={}; patch[field]=val;
+        cb.disabled=true;
+        api("update",{ id:p.id, patch:patch }).then(function(){ p[field]=val; applyRowStatus(tr, p); cb.disabled=false; toast("保存しました"); })
+          .catch(function(e){ cb.checked=!val; cb.disabled=false; toast(e.message||"保存に失敗", true); });
+      });
+    });
+    // SUUMO点数(確定時に保存・空欄はnull)
+    var si=tr.querySelector('input[data-f=suumo_score]');
+    si.addEventListener("change", function(){
+      var raw=si.value.trim(), val = raw==="" ? null : parseInt(raw,10);
+      if(val!==null && (isNaN(val)||val<0)){ si.value=(p.suumo_score==null?"":p.suumo_score); toast("点数は0以上の数字で", true); return; }
+      api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; toast("SUUMO点数を保存"); })
+        .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
+    });
+    // 掲載5媒体トグル(set_listing)
+    Array.prototype.forEach.call(tr.querySelectorAll('.pt'), function(btn){
+      btn.addEventListener("click", function(){
+        var portal=btn.getAttribute("data-portal"), cur=btn.classList.contains("on"), next=!cur;
+        btn.classList.toggle("on", next);
+        api("set_listing",{ id:p.id, portal:portal, listed:next }).then(function(){
+          p.listings=p.listings||[]; var f0=p.listings.filter(function(l){return l.portal===portal;})[0];
+          if(f0) f0.listed=next; else p.listings.push({portal:portal,listed:next});
+          toast(next?"掲載ON":"掲載OFF");
+        }).catch(function(e){ btn.classList.toggle("on", cur); toast(e.message||"保存に失敗", true); });
+      });
+    });
+    // 非掲載トグル(物件名・住所・号室)
+    Array.prototype.forEach.call(tr.querySelectorAll('.hd'), function(btn){
+      btn.addEventListener("click", function(){
+        var field=btn.getAttribute("data-f"), cur=btn.classList.contains("on"), next=!cur, patch={}; patch[field]=next;
+        btn.classList.toggle("on", next);
+        api("update",{ id:p.id, patch:patch }).then(function(){ p[field]=next; applyRowStatus(tr, p); toast(next?"非掲載に設定":"非掲載を解除"); })
+          .catch(function(e){ btn.classList.toggle("on", cur); toast(e.message||"保存に失敗", true); });
+      });
+    });
+    // メモ更新(フォーカスを外した時だけ送信)
+    var mi=tr.querySelector('textarea[data-f=memo]');
+    mi.addEventListener("input", function(){ resizeMemo(mi); });
+    mi.addEventListener("blur", function(){
+      var val=mi.value;
+      if(val===(p.memo||"")) return;
+      api("update",{ id:p.id, patch:{ memo:val } }).then(function(){ p.memo=val; toast("メモを保存"); })
+        .catch(function(e){ mi.value=p.memo||""; resizeMemo(mi); toast(e.message||"保存に失敗", true); });
+    });
+    // 検証メモ更新(アドマスには送らない=Supabaseのverify_noteのみ・社内メモとは別物)
+    var vi=tr.querySelector('textarea[data-f=verify_note]');
+    vi.addEventListener("input", function(){ resizeMemo(vi); });
+    vi.addEventListener("blur", function(){
+      var val=vi.value;
+      if(val===(p.verify_note||"")) return;
+      api("update",{ id:p.id, patch:{ verify_note:val } }).then(function(){ p.verify_note=val; toast("検証メモを保存"); })
+        .catch(function(e){ vi.value=p.verify_note||""; resizeMemo(vi); toast(e.message||"保存に失敗", true); });
+    });
+    // 削除(カスタム確認モーダル)
+    tr.querySelector(".del").addEventListener("click", function(){
+      confirmDialog('「'+(p.name||"この物件")+'」を削除します。よろしいですか？').then(function(ok){
+        if(!ok) return;
+        api("delete",{ id:p.id }).then(function(){
+          rows=rows.filter(function(x){ return x.id!==p.id; }); render(); toast("削除しました");
+        }).catch(function(e){ toast(e.message||"削除に失敗", true); });
+      });
+    });
+
+    return tr;
   }
 
   // ===== 読み込み =====
