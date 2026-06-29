@@ -272,6 +272,7 @@
               <th class="chk">反映<br>する</th>
               <th>アドマス</th>
               <th>社内メモ</th>
+              <th>メモ<br><span style="font-weight:600;color:var(--gray-400);font-size:9px">アドマス一覧に表示</span></th>
               <th>検証メモ<br><span style="font-weight:600;color:var(--gray-400);font-size:9px">アドマス非連携</span></th>
               <th class="sortable" data-sort="imported_at">取込日<span class="ar"></span></th>
               <th></th>
@@ -439,7 +440,7 @@
       var collapsed=isCollapsed(g.key);
       var htr=document.createElement("tr");
       htr.className="grp"+(g.key==="未反映"?" grp-unrefl":"");
-      htr.innerHTML='<td colspan="17"><span class="caret">'+(collapsed?"▶":"▼")+'</span>'+esc(g.label)+'<span class="grp-n">'+g.items.length+'件</span></td>';
+      htr.innerHTML='<td colspan="18"><span class="caret">'+(collapsed?"▶":"▼")+'</span>'+esc(g.label)+'<span class="grp-n">'+g.items.length+'件</span></td>';
       htr.addEventListener("click", function(){ collapsedState[g.key]=!isCollapsed(g.key); render(); });
       tb.appendChild(htr);
       if(collapsed) return;
@@ -447,6 +448,7 @@
         var tr=buildRow(p);
         tb.appendChild(tr);
         resizeMemo(tr.querySelector('textarea[data-f=memo]'));
+        resizeMemo(tr.querySelector('textarea[data-f=list_memo]'));
         resizeMemo(tr.querySelector('textarea[data-f=verify_note]'));
       });
     });
@@ -474,6 +476,7 @@
       '<td class="chk"><input type="checkbox" data-f="reflect_flag"'+(p.reflect_flag?" checked":"")+'></td>'+
       '<td class="admas">'+(p.admas_url?'<a class="admas-link" href="'+esc(p.admas_url)+'" target="_blank" rel="noopener">開く</a>':'<span class="none">未反映</span>')+'</td>'+
       '<td class="memo"><textarea data-f="memo" rows="1" placeholder="メモ">'+esc(p.memo||"")+'</textarea></td>'+
+      '<td class="memo"><textarea data-f="list_memo" rows="1" maxlength="100" placeholder="アドマス一覧に表示">'+esc(p.list_memo||"")+'</textarea></td>'+
       '<td class="vnote"><textarea data-f="verify_note" rows="1" placeholder="気づき・ズレ">'+esc(p.verify_note||"")+'</textarea></td>'+
       '<td class="date">'+fmtDate(p.imported_at)+'</td>'+
       '<td><button class="del" title="削除">'+
@@ -533,6 +536,15 @@
       if(val===(p.memo||"")) return;
       api("update",{ id:p.id, patch:{ memo:val } }).then(function(){ p.memo=val; toast("メモを保存"); })
         .catch(function(e){ mi.value=p.memo||""; resizeMemo(mi); toast(e.message||"保存に失敗", true); });
+    });
+    // メモ(アドマス一覧に表示=room[vacancy_state_comment]・社内メモとは別欄)更新
+    var li=tr.querySelector('textarea[data-f=list_memo]');
+    li.addEventListener("input", function(){ resizeMemo(li); });
+    li.addEventListener("blur", function(){
+      var val=li.value;
+      if(val===(p.list_memo||"")) return;
+      api("update",{ id:p.id, patch:{ list_memo:val } }).then(function(){ p.list_memo=val; toast("メモを保存"); })
+        .catch(function(e){ li.value=p.list_memo||""; resizeMemo(li); toast(e.message||"保存に失敗", true); });
     });
     // 検証メモ更新(アドマスには送らない=Supabaseのverify_noteのみ・社内メモとは別物)
     var vi=tr.querySelector('textarea[data-f=verify_note]');
