@@ -133,6 +133,11 @@
   .score input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(255,167,4,.16);}
   /* SUUMO名寄せ点数 33点以下=赤で目立たせる(34点以上が目標・写真改善の対象が一目で分かる・寺島さん要望2026-06-30) */
   .score.low input{background:var(--danger-bg);color:var(--danger);border-color:rgba(199,52,43,.5);font-weight:900;}
+  /* 写真を他サイトで探す(Phase A・寺島さん要望2026-07-02): 写真なし/33点以下の物件に表示。押すと物件名をコピーして対象サイトを開く */
+  .find-wrap{margin-top:4px;display:flex;flex-direction:column;gap:3px;align-items:stretch;}
+  .find-cap{font-size:8.5px;color:var(--gray-500);font-weight:900;text-align:center;}
+  .find-btn{height:20px;font-size:9px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#4a6b8a;border-radius:5px;cursor:pointer;padding:0 3px;line-height:1;}
+  .find-btn:hover{border-color:var(--navy);color:var(--navy);background:var(--gray-50);}
   /* 反映結果(要手動/エラー)の表示。一括反映のエラー物件と理由が管理画面で一目で分かる(渡辺さん要望2026-06-30) */
   .rres{margin-top:4px;border-radius:5px;padding:3px 5px;font-size:10px;font-weight:900;line-height:1.35;}
   .rres.err{color:var(--danger);background:var(--danger-bg);border:1px solid rgba(199,52,43,.25);}
@@ -476,6 +481,11 @@
     } else if(rnote){
       rresHtml='<div class="rres info" title="'+esc(rnote)+'"><span class="rres-note">'+esc(rnote)+'</span></div>';
     }
+    // 写真を他サイトで探す(Phase A・寺島さん要望2026-07-02): 写真なし or SUUMO33点以下の物件に「ATBB/レインズで探す」ボタン。
+    //   押すと物件名をコピーしてサイトを開く(貼り付けて検索する半自動)。検索欄への自動入力は次段階(実画面確認後に拡張側で対応)。
+    var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
+    var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
+    var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(押すと物件名をコピーしてサイトを開きます)"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
     tr.innerHTML =
@@ -486,7 +496,7 @@
       '<td>'+esc(p.layout||"—")+'</td>'+
       '<td class="agent">'+esc(p.agent_company||"—")+(p.agent_contact?'<div class="tel">'+esc(p.agent_contact)+'</div>':'')+'</td>'+
       '<td class="assignee"><select data-f="assignee"><option value="">—</option>'+STAFF.map(function(s){return '<option'+(p.assignee===s?" selected":"")+'>'+esc(s)+'</option>';}).join('')+'</select></td>'+
-      '<td class="score'+(p.suumo_score!=null && p.suumo_score<=33 ? ' low':'')+'"><input type="number" data-f="suumo_score" value="'+(p.suumo_score==null?"":p.suumo_score)+'" placeholder="—" min="0" max="100"></td>'+
+      '<td class="score'+(p.suumo_score!=null && p.suumo_score<=33 ? ' low':'')+'"><input type="number" data-f="suumo_score" value="'+(p.suumo_score==null?"":p.suumo_score)+'" placeholder="—" min="0" max="100">'+findHtml+'</td>'+
       '<td class="chk"><input type="checkbox" data-f="vacancy_check"'+(p.vacancy_check?" checked":"")+'></td>'+
       '<td class="chk"><input type="checkbox" data-f="application"'+(p.application?" checked":"")+'></td>'+
       '<td class="portals"><div class="pt-wrap">'+ptHtml+'</div></td>'+
@@ -517,6 +527,16 @@
       if(val!==null && (isNaN(val)||val<0)){ si.value=(p.suumo_score==null?"":p.suumo_score); toast("点数は0以上の数字で", true); return; }
       api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; si.closest("td").classList.toggle("low", val!=null && val<=33); toast("SUUMO点数を保存"); })
         .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
+    });
+    // 写真を他サイトで探す: 物件名をコピーして対象サイトを開く(貼り付けて検索する半自動・Phase A)
+    Array.prototype.forEach.call(tr.querySelectorAll(".find-btn"), function(fb){
+      fb.addEventListener("click", function(){
+        var nm=p.name||"";
+        try{ navigator.clipboard.writeText(nm); }catch(e){}
+        toast("「"+nm+"」をコピーしました。開いたサイトの検索欄に貼り付けて写真を確認してください");
+        var url=fb.getAttribute("data-site")==="atbb" ? "https://atbb.athome.co.jp/" : "https://system.reins.jp/";
+        window.open(url, "_blank", "noopener");
+      });
     });
     // 担当者(プルダウン)→assignee保存。一括反映時にtransform §16bがアドマスのroom[user_id]に変換。
     var asg=tr.querySelector('select[data-f=assignee]');
