@@ -133,6 +133,12 @@
   .score input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(255,167,4,.16);}
   /* SUUMO名寄せ点数 33点以下=赤で目立たせる(34点以上が目標・写真改善の対象が一目で分かる・寺島さん要望2026-06-30) */
   .score.low input{background:var(--danger-bg);color:var(--danger);border-color:rgba(199,52,43,.5);font-weight:900;}
+  /* 反映結果(要手動/エラー)の表示。一括反映のエラー物件と理由が管理画面で一目で分かる(渡辺さん要望2026-06-30) */
+  .rres{margin-top:4px;border-radius:5px;padding:3px 5px;font-size:10px;font-weight:900;line-height:1.35;}
+  .rres.err{color:var(--danger);background:var(--danger-bg);border:1px solid rgba(199,52,43,.25);}
+  .rres.info{color:#5a6b7a;background:var(--gray-50);border:1px solid var(--line);font-weight:700;}
+  .rres-note{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-weight:700;font-size:9.5px;margin-top:2px;}
+  .rres.err .rres-note{color:#8a4a44;}
   /* 掲載5媒体トグル */
   .pt-wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;}
   .pt{width:100%;min-width:0;height:22px;font-size:9.5px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#8d99a6;border-radius:5px;padding:0 4px;cursor:pointer;line-height:1.2;letter-spacing:0;transition:all .12s;white-space:nowrap;}
@@ -462,6 +468,14 @@
     var pm=portalsOf(p);
     var ptHtml=PORTALS.map(function(pr){ return '<button class="pt '+pr[0]+(pm[pr[0]]?" on":"")+'" data-portal="'+pr[0]+'">'+pr[1]+'</button>'; }).join("");
     var hdHtml=HIDES.map(function(h){ return '<button class="hd'+(p[h[0]]?" on":"")+'" data-f="'+h[0]+'" title="'+h[2]+'">'+h[1]+'</button>'; }).join("");
+    // 反映結果(エラー理由)の表示: 一括反映で要手動/エラーになった物件と理由を一目で分かるように(渡辺さん要望2026-06-30)。
+    //   反映結果はSupabaseのreflect_result(状態)+note(理由)に保存済みだったが、今まで画面に出していなかった。
+    var rr=p.reflect_result||"", rnote=p.note||"", rresHtml="";
+    if(rr && rr!=="登録済み" && rr!=="反映済み"){
+      rresHtml='<div class="rres err" title="'+esc(rr+(rnote?"："+rnote:""))+'">'+esc(rr)+(rnote?'<span class="rres-note">'+esc(rnote)+'</span>':'')+'</div>';
+    } else if(rnote){
+      rresHtml='<div class="rres info" title="'+esc(rnote)+'"><span class="rres-note">'+esc(rnote)+'</span></div>';
+    }
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
     tr.innerHTML =
@@ -478,7 +492,7 @@
       '<td class="portals"><div class="pt-wrap">'+ptHtml+'</div></td>'+
       '<td class="hides"><div class="hd-wrap">'+hdHtml+'</div></td>'+
       '<td class="chk"><input type="checkbox" data-f="reflect_flag"'+(p.reflect_flag?" checked":"")+'></td>'+
-      '<td class="admas">'+(p.admas_url?'<a class="admas-link" href="'+esc(p.admas_url)+'" target="_blank" rel="noopener">開く</a>':'<span class="none">未反映</span>')+'</td>'+
+      '<td class="admas">'+(p.admas_url?'<a class="admas-link" href="'+esc(p.admas_url)+'" target="_blank" rel="noopener">開く</a>':'<span class="none">未反映</span>')+rresHtml+'</td>'+
       '<td class="memo"><textarea data-f="memo" rows="1" placeholder="メモ">'+esc(p.memo||"")+'</textarea></td>'+
       '<td class="memo"><textarea data-f="list_memo" rows="1" maxlength="100" placeholder="アドマス一覧に表示">'+esc(p.list_memo||"")+'</textarea></td>'+
       '<td class="vnote"><textarea data-f="verify_note" rows="1" placeholder="気づき・ズレ">'+esc(p.verify_note||"")+'</textarea></td>'+
