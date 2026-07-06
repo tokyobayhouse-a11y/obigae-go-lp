@@ -117,6 +117,10 @@
   .agent .tel{color:var(--navy-light);font-size:11.5px;font-weight:800;}
   .chk{text-align:center;}
   .chk input{width:18px;height:18px;cursor:pointer;accent-color:var(--navy);}
+  /* 申込／掲載不可 プルダウン(2026-07-06 寺島さん要望で申込チェックボックスを置換) */
+  .applysel{text-align:center;}
+  .applysel select{width:100%;min-width:62px;border:1px solid var(--line);border-radius:6px;padding:5px 3px;font-size:11px;background:var(--gray-50);color:#243240;font-weight:800;cursor:pointer;}
+  .applysel select:focus{border-color:var(--accent);background:#fff;outline:none;}
   .memo textarea{width:100%;min-width:0;min-height:30px;border:1px solid var(--line);border-radius:6px;padding:6px 7px;font-size:11.5px;line-height:1.45;background:var(--gray-50);color:#243240;font-weight:700;outline:none;resize:none;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap;}
   .memo textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(255,167,4,.16);}
   /* 検証メモ(アドマス非連携・社内メモと区別するためアンバー系) */
@@ -220,7 +224,7 @@
     #table[style*="display: table"] td:nth-child(5)::before{content:"元付業者";}
     #table[style*="display: table"] td:nth-child(6)::before{content:"SUUMO点数";}
     #table[style*="display: table"] td:nth-child(7)::before{content:"空き確認";}
-    #table[style*="display: table"] td:nth-child(8)::before{content:"申込";}
+    #table[style*="display: table"] td:nth-child(8)::before{content:"申込/掲載不可";}
     #table[style*="display: table"] td:nth-child(9)::before{content:"掲載（許可が取れた媒体）";}
     #table[style*="display: table"] td:nth-child(10)::before{content:"非掲載";}
     #table[style*="display: table"] td:nth-child(11)::before{content:"反映する";}
@@ -286,7 +290,7 @@
               <th class="sortable" data-sort="assignee">担当者<span class="ar"></span></th>
               <th class="sortable" data-sort="suumo_score">SUUMO<br>点数<span class="ar"></span></th>
               <th class="chk">空き<br>確認</th>
-              <th class="chk">申込</th>
+              <th class="applysel-th">申込／<br>掲載不可</th>
               <th>掲載（許可が取れた媒体）</th>
               <th>非掲載</th>
               <th class="chk">反映<br>する</th>
@@ -488,6 +492,8 @@
     }
     // 写真を他サイトで探す(Phase A・寺島さん要望2026-07-02): 写真なし or SUUMO33点以下の物件に「ATBB/レインズで探す」ボタン。
     //   押すと物件名をコピーしてサイトを開く(貼り付けて検索する半自動)。検索欄への自動入力は次段階(実画面確認後に拡張側で対応)。
+    // 申込／掲載不可の現在値。application_status(新列)優先、未移行の申込ONは「申込」とみなす
+    var appStatus = p.application_status || (p.application ? "申込" : "");
     var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
     var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
     var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(押すと物件名をコピーしてサイトを開きます)"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
@@ -503,7 +509,7 @@
       '<td class="assignee"><select data-f="assignee"><option value="">—</option>'+STAFF.map(function(s){return '<option'+(p.assignee===s?" selected":"")+'>'+esc(s)+'</option>';}).join('')+'</select></td>'+
       '<td class="score'+(p.suumo_score!=null && p.suumo_score<=33 ? ' low':'')+'"><input type="number" data-f="suumo_score" value="'+(p.suumo_score==null?"":p.suumo_score)+'" placeholder="—" min="0" max="100">'+findHtml+'</td>'+
       '<td class="chk"><input type="checkbox" data-f="vacancy_check"'+(p.vacancy_check?" checked":"")+'></td>'+
-      '<td class="chk"><input type="checkbox" data-f="application"'+(p.application?" checked":"")+'></td>'+
+      '<td class="applysel"><select data-f="application_status"><option value="">—</option><option value="申込"'+(appStatus==="申込"?" selected":"")+'>申込</option><option value="掲載不可"'+(appStatus==="掲載不可"?" selected":"")+'>掲載不可</option></select></td>'+
       '<td class="portals"><div class="pt-wrap">'+ptHtml+'</div></td>'+
       '<td class="hides"><div class="hd-wrap">'+hdHtml+'</div></td>'+
       '<td class="chk"><input type="checkbox" data-f="reflect_flag"'+(p.reflect_flag?" checked":"")+'></td>'+
@@ -543,6 +549,18 @@
         window.open(url, "_blank", "noopener");
       });
     });
+    // 申込／掲載不可(プルダウン)。どちらも「反映対象から外す＋行グレー」=applicationに写す(サーバ側でも導出)。
+    var apsel=tr.querySelector('select[data-f=application_status]');
+    if(apsel){
+      apsel.addEventListener("change", function(){
+        var val=apsel.value, appBool=(val!=="");
+        apsel.disabled=true;
+        api("update",{ id:p.id, patch:{ application_status: val, application: appBool } }).then(function(){
+          p.application_status=val; p.application=appBool; applyRowStatus(tr, p); apsel.disabled=false;
+          toast(val?("「"+val+"」に設定"):"解除しました");
+        }).catch(function(e){ apsel.value=(p.application_status||(p.application?"申込":"")); apsel.disabled=false; toast(e.message||"保存に失敗", true); });
+      });
+    }
     // 担当者(プルダウン)→assignee保存。一括反映時にtransform §16bがアドマスのroom[user_id]に変換。
     var asg=tr.querySelector('select[data-f=assignee]');
     asg.addEventListener("change", function(){
