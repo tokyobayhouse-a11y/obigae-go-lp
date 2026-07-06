@@ -103,6 +103,9 @@
   tbody tr.grp .caret{display:inline-block;width:16px;color:inherit;}
   tbody tr.grp .grp-n{color:var(--gray-500);font-weight:700;font-size:11px;margin-left:8px;}
   .c-name{padding-left:11px!important;}
+  /* 図面リンク(Drive保存済みのマイソクPDF・渡辺さん要望2026-07-06)。取込がURLを記録した物件だけに出る */
+  .c-name .zlink{display:inline-block;margin-top:3px;font-size:10px;font-weight:800;color:#1f4e8c;text-decoration:none;border:1px solid rgba(31,78,140,.35);border-radius:5px;padding:1px 6px;background:#f4f8fd;}
+  .c-name .zlink:hover{background:#e8f0fa;}
   .c-name a{display:block;color:var(--navy);font-weight:900;text-decoration:none;font-size:12.5px;line-height:1.35;overflow-wrap:anywhere;}
   .c-name a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
   .c-name .addr{color:#71808f;font-size:11px;font-weight:650;margin-top:3px;line-height:1.35;}
@@ -501,7 +504,8 @@
     applyRowStatus(tr, p);
     tr.innerHTML =
       '<td class="c-name"><a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>'+
-        (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+'</td>'+
+        (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+
+        (p.zumen_url?'<a class="zlink" href="'+esc(p.zumen_url)+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
       '<td>'+srcBadge(p.source)+'</td>'+
       '<td class="rent">'+yen(p.rent)+'</td>'+
       '<td>'+esc(p.layout||"—")+'</td>'+
