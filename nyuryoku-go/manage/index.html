@@ -270,7 +270,7 @@
   <!-- 本体 -->
   <div id="app" style="display:none;">
     <div class="toolbar">
-      <span class="count"><span class="n" id="count">0</span> 件</span>
+      <span class="count" title="反映日がまだ入っていない物件の数">未反映 <span class="n" id="count">0</span> 件</span>
       <span class="search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="text" id="search" placeholder="物件名・所在地・元付で絞り込み">
@@ -457,7 +457,8 @@
     var list = !f ? rows : rows.filter(function(p){
       return [p.name,p.address,p.agent_company].some(function(v){ return String(v||"").toLowerCase().indexOf(f)>=0; });
     });
-    $("count").textContent = list.length + (f && list.length!==rows.length ? " / "+rows.length : "");
+    // 右上の件数=未反映(反映日が入っていない)の数だけ(寺島さん要望2026-07-08。絞り込み中は絞り込んだ中の未反映数)
+    $("count").textContent = list.filter(function(p){ return !dayKey(p.reflected_at); }).length;
     var tb=$("tbody"); tb.innerHTML="";
     $("loading").style.display="none";
     if(rows.length===0){ $("table").style.display="none"; $("empty").style.display="block"; return; }
