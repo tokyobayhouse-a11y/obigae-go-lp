@@ -93,10 +93,7 @@
 
   function updateButton() {
     const btn = document.getElementById("bgm-btn");
-    if (btn) {
-      btn.textContent = isPlaying ? "🎵" : "🔇";
-      btn.classList.toggle("on", isPlaying);
-    }
+    if (btn) btn.classList.toggle("on", isPlaying); // 見た目はCSS(.on)側で切替
   }
 
   // 公開API

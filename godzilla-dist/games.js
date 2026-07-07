@@ -1,901 +1,845 @@
-// ゴジラずかん - ゲーム＆機能 v12 (なきごえクイズ・かいじゅうたたき追加)
+// ゴジラずかん v20 - ゲーム群
+// バトル(ターン制) / シルエットクイズ / なきごえクイズ / めくって / かいじゅうたたき / パズル
 (function() {
-  const STAMP_KEY = "godzilla_zukan_stamps_v2"; // v2: count tracking
   const WHACK_BEST_KEY = "godzilla_zukan_whack_best_v1";
-  const TOKYO_TOWER = 333;
 
-  // ===== スタンプ管理（回数付き） =====
-  function loadStamps() {
-    try {
-      let s = JSON.parse(localStorage.getItem(STAMP_KEY) || "{}");
-      // 旧v1からのマイグレーション
-      const old = JSON.parse(localStorage.getItem("godzilla_zukan_stamps_v1") || "{}");
-      Object.keys(old).forEach(k => { if (!s[k]) s[k] = 1; });
-      return s;
-    } catch { return {}; }
-  }
-  function saveStamps(s) {
-    try { localStorage.setItem(STAMP_KEY, JSON.stringify(s)); } catch {}
-  }
-  function addStamp(id) {
-    const s = loadStamps();
-    const newCell = !s[id];
-    s[id] = (s[id] || 0) + 1;
-    saveStamps(s);
-    const tier = stampTier(s[id]);
-    if (newCell) showStampToast("⭐ スタンプ ゲット！");
-    else if (tier === "silver" && s[id] === 3) showStampToast("✨ シルバーに しんか！");
-    else if (tier === "gold" && s[id] === 5) showStampToast("👑 ゴールドに しんか！");
-  }
-  function hasStamp(id) { return !!loadStamps()[id]; }
-  function stampCount() { return Object.keys(loadStamps()).length; }
-  function stampTier(count) {
-    if (count >= 5) return "gold";
-    if (count >= 3) return "silver";
-    if (count >= 1) return "bronze";
-    return "none";
-  }
-  function viewCount(id) { return loadStamps()[id] || 0; }
+  const $ = id => document.getElementById(id);
+  const shuffle = a => [...a].sort(() => Math.random() - 0.5);
+  const rnd = n => Math.floor(Math.random() * n);
+  const ic = (n, c) => window.App.icon(n, c);
 
-  function showStampToast(text) {
-    const t = document.createElement("div");
-    t.className = "stamp-toast";
-    t.innerHTML = text;
-    document.body.appendChild(t);
-    setTimeout(() => t.classList.add("show"), 10);
-    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 400); }, 1800);
+  /* ============================================================
+     かいじゅうバトル (ターン制・わざ選択)
+     ============================================================ */
+  let bt = null;
+
+  function maxHp(k) { return 50 + k.guard * 10 + k.size * 4; }
+
+  function openBattle() {
+    bt = { mode: null, phase: "mode" };
+    renderBattleMode();
+    App.show("screen-battle");
   }
 
-  // ===== スタンプ帳画面（ティア対応） =====
-  function renderStamps() {
-    const stamps = loadStamps();
-    const total = KAIJU_DATA.length;
-    const got = Object.keys(stamps).length;
-    const pct = Math.round((got / total) * 100);
-    const golds = Object.values(stamps).filter(v => v >= 5).length;
-    const silvers = Object.values(stamps).filter(v => v >= 3 && v < 5).length;
-
-    const grid = KAIJU_DATA.map(k => {
-      const cnt = stamps[k.id] || 0;
-      const tier = stampTier(cnt);
-      return `
-        <div class="stamp-cell ${tier}" data-id="${k.id}">
-          ${cnt > 0
-            ? `<img src="images/${k.id}-1.jpg" alt="${k.name}" loading="lazy">`
-            : `<div class="stamp-q">？</div>`}
-          ${cnt >= 5 ? `<div class="stamp-crown">👑</div>` : cnt >= 3 ? `<div class="stamp-crown">✨</div>` : ""}
-          <div class="stamp-name">${cnt > 0 ? k.name : "？？？"}</div>
-          ${cnt > 0 ? `<div class="stamp-count">${cnt}かい</div>` : ""}
-        </div>
-      `;
-    }).join("");
-
-    document.getElementById("stamps-content").innerHTML = `
-      <div class="stamps-header">
-        <div class="stamps-progress">
-          <div class="stamps-progress-bar"><div class="stamps-progress-fill" style="width:${pct}%"></div></div>
-          <div class="stamps-progress-text">${got} / ${total}</div>
-        </div>
-        <div class="stamps-tiers">
-          <span class="tier-pill bronze">🥉 ${got - silvers - golds}</span>
-          <span class="tier-pill silver">✨ ${silvers}</span>
-          <span class="tier-pill gold">👑 ${golds}</span>
-        </div>
-        <div class="stamps-help">💡 同じ怪獣を3回見るとシルバー、5回でゴールド</div>
-        ${got === total ? `<div class="stamps-done">🎉 ぜんぶ あつめた！ かんぺき！ 🎉</div>` : ""}
+  function renderBattleMode() {
+    $("battle-side").textContent = "";
+    $("battle-body").innerHTML = `
+      <div class="mode-list">
+        <button class="btn" id="bt-cpu">${ic("robot")} コンピューターと たたかう</button>
+        <button class="btn warm" id="bt-2p">${ic("users")} ふたりで たいせん！</button>
       </div>
-      <div class="stamps-grid">${grid}</div>
-    `;
+      <div class="mode-note">わざを えらんで こうげき！<br>あいての HP を さきに ゼロに したら かち！</div>`;
+    $("bt-cpu").addEventListener("click", () => { SFX.tap(); bt.mode = "cpu"; bt.phase = "pick1"; renderBattlePick(); });
+    $("bt-2p").addEventListener("click", () => { SFX.tap(); bt.mode = "2p"; bt.phase = "pick1"; renderBattlePick(); });
+  }
 
-    document.querySelectorAll(".stamp-cell:not(.none)").forEach(el => {
-      el.addEventListener("click", () => {
-        const idx = KAIJU_DATA.findIndex(k => k.id === el.dataset.id);
-        if (idx >= 0) window.openDetail(idx);
+  function renderBattlePick() {
+    const who = bt.phase === "pick1"
+      ? (bt.mode === "2p" ? "プレイヤー1の かいじゅうを えらぼう！" : "じぶんの かいじゅうを えらぼう！")
+      : "プレイヤー2の かいじゅうを えらぼう！";
+    $("battle-body").innerHTML = `
+      <div class="bt-vs-label">${who}</div>
+      <div class="bt-pick-grid">
+        ${KAIJU_DATA.map(k => `
+          <button class="bt-pick" data-kid="${k.id}">
+            <img src="images/${k.id}-1.jpg" alt="${k.name}" loading="lazy" onerror="this.style.display='none'">
+            <span class="n">${k.name}</span>
+            <span class="p">HP${maxHp(k)}・こうげき${k.power}</span>
+          </button>`).join("")}
+      </div>`;
+    $("battle-body").scrollTop = 0;
+    document.querySelectorAll("#battle-body .bt-pick").forEach(b => {
+      b.addEventListener("click", () => {
+        SFX.tap();
+        const k = KAIJU_DATA.find(x => x.id === b.dataset.kid);
+        if (bt.phase === "pick1") {
+          bt.f1 = mkFighter(k, bt.mode === "2p" ? "プレイヤー1" : "じぶん");
+          if (bt.mode === "2p") { bt.phase = "pick2"; renderBattlePick(); }
+          else {
+            let e; do { e = KAIJU_DATA[rnd(KAIJU_DATA.length)]; } while (e.id === k.id);
+            bt.f2 = mkFighter(e, "コンピューター");
+            startFight();
+          }
+        } else {
+          bt.f2 = mkFighter(k, "プレイヤー2");
+          startFight();
+        }
       });
     });
   }
 
-  // ===== サイズくらべ（前回のまま - タップ式対決） =====
-  let compareState = { selectedId: "showa-1954" };
+  function mkFighter(k, owner) {
+    return { k, owner, hp: maxHp(k), max: maxHp(k), charge: false };
+  }
 
-  function renderCompare() {
-    const k = KAIJU_DATA.find(x => x.id === compareState.selectedId) || KAIJU_DATA[0];
-    const maxH = Math.max(k.height, TOKYO_TOWER) * 1.15;
-    const towerPct = (TOKYO_TOWER / maxH) * 100;
-    const kaijuPct = (k.height / maxH) * 100;
-    const ratio = (k.height / TOKYO_TOWER);
-    let ratioText = ratio >= 1
-      ? `とうきょうタワーより<br><b>${ratio.toFixed(1)}ばい おおきい！</b>`
-      : `とうきょうタワーの<br><b>${Math.round(ratio * 100)}% くらい</b>`;
-    const personPct = Math.max((1.2 / maxH) * 100, 0.5);
+  function startFight() {
+    bt.phase = "fight";
+    bt.busy = false;
+    bt.turn = bt.f1.k.speed >= bt.f2.k.speed ? 1 : 2;
+    renderArena(`${bt.turn === 1 ? bt.f1.k.name : bt.f2.k.name}が すばやさで せんこう！`);
+    App.speak("バトル スタート！");
+    if (isCpuTurn()) setTimeout(cpuMove, 1400);
+  }
 
-    document.getElementById("compare-content").innerHTML = `
-      <div class="compare-arena">
-        <div class="compare-grid">
-          <div class="compare-col" style="height:340px;">
-            <div class="compare-shape kaiju" style="height:${kaijuPct}%; background:linear-gradient(180deg,${k.color},${k.color}99);">
-              <img src="images/${k.id}-1.jpg" alt="${k.name}" class="compare-shape-img" loading="lazy" onerror="this.style.display='none'">
-              <div class="compare-shape-label">${k.height}m</div>
-            </div>
-            <div class="compare-col-name">${k.name}</div>
-          </div>
-          <div class="compare-col" style="height:340px;">
-            <div class="compare-shape tower" style="height:${towerPct}%; background:linear-gradient(180deg,#ff6600,#cc3300);">
-              <div class="compare-shape-emoji">🗼</div>
-              <div class="compare-shape-label">333m</div>
-            </div>
-            <div class="compare-col-name">とうきょうタワー</div>
-          </div>
-          <div class="compare-col" style="height:340px;">
-            <div class="compare-shape person" style="height:${personPct}%; background:linear-gradient(180deg,#88aabb,#445566);">
-              <div class="compare-shape-emoji">🧒</div>
-              <div class="compare-shape-label">1.2m</div>
-            </div>
-            <div class="compare-col-name">5さいのこ</div>
-          </div>
+  function isCpuTurn() { return bt.mode === "cpu" && bt.turn === 2; }
+  function fighter(n) { return n === 1 ? bt.f1 : bt.f2; }
+
+  function hpClass(f) { const r = f.hp / f.max; return r < 0.3 ? "low" : r < 0.6 ? "mid" : ""; }
+
+  function fighterHTML(f, side) {
+    return `
+      <div class="bt-fighter" id="bt-f${side}">
+        <img class="bt-face" src="images/${f.k.id}-1.jpg" alt="${f.k.name}" onerror="this.style.display='none'">
+        <div class="bt-name">${f.k.name}</div>
+        <div class="bt-owner">${f.owner}</div>
+        <div class="hp-wrap">
+          <div class="hp-bar"><div class="hp-fill ${hpClass(f)}" id="bt-hp${side}" style="width:${f.hp / f.max * 100}%"></div></div>
+          <div class="hp-num" id="bt-hpn${side}">${f.hp} / ${f.max}</div>
         </div>
-        <div class="compare-ratio">${ratioText}</div>
-      </div>
-      <div class="compare-picker-label">⬇ えらんで くらべよう ⬇</div>
-      <div class="compare-picker" id="compare-picker">
-        ${KAIJU_DATA.map(x => `
-          <button class="compare-pick ${x.id === k.id ? 'active' : ''}" data-id="${x.id}" style="background:${x.color}">
-            <img src="images/${x.id}-1.jpg" alt="${x.name}" loading="lazy" onerror="this.style.display='none'">
-            <span>${x.name}<br><small>${x.height}m</small></span>
-          </button>
-        `).join("")}
-      </div>
-    `;
+      </div>`;
+  }
 
-    document.querySelectorAll(".compare-pick").forEach(btn => {
-      btn.addEventListener("click", () => {
-        compareState.selectedId = btn.dataset.id;
-        renderCompare();
+  function renderArena(logText, logSub) {
+    const cur = fighter(bt.turn);
+    const isHuman = !(isCpuTurn());
+    const over = bt.phase === "over";
+    $("battle-side").textContent = "";
+    $("battle-body").innerHTML = `
+      ${over ? "" : `<div class="bt-turn-tag">${cur.owner}（${cur.k.name}）の ターン</div>`}
+      <div class="bt-stage" id="bt-stage">
+        <div class="bt-row">
+          ${fighterHTML(bt.f1, 1)}
+          <div class="bt-vs">VS</div>
+          ${fighterHTML(bt.f2, 2)}
+        </div>
+        <div class="bt-log" id="bt-log">${logText || ""}${logSub ? `<div class="sub">${logSub}</div>` : ""}</div>
+      </div>
+      <div id="bt-controls">
+        ${over ? `
+          <div class="btn-row">
+            <button class="btn" id="bt-again">${ic("zap")} もういちど</button>
+            <button class="btn ghost" id="bt-change">かえる</button>
+          </div>` : isHuman ? `
+          <div class="bt-moves">
+            <button class="mv-btn" data-mv="attack"><span class="mv-ic">${ic("zap")}</span><span><span class="mv-name">たいあたり</span><span class="mv-desc">かならず あたる こうげき</span></span></button>
+            <button class="mv-btn sp" data-mv="special"><span class="mv-ic">${ic("flame")}</span><span><span class="mv-name">${cur.k.skill}</span><span class="mv-desc">つよいけど たまに はずれる</span></span></button>
+            <button class="mv-btn ch" data-mv="charge" ${cur.charge ? "disabled" : ""}><span class="mv-ic">${ic("up")}</span><span><span class="mv-name">ためる</span><span class="mv-desc">つぎの こうげきが 2ばい！</span></span></button>
+          </div>` : `
+          <div class="mode-note">コンピューターが かんがえちゅう…</div>`}
+      </div>`;
+    if (bt.f1.charge) $("bt-f1").classList.add("charge");
+    if (bt.f2.charge) $("bt-f2").classList.add("charge");
+    if (!over && isHuman) {
+      document.querySelectorAll("#bt-controls .mv-btn").forEach(b => {
+        b.addEventListener("click", () => { if (!bt.busy) doMove(b.dataset.mv); });
       });
-    });
-  }
-
-  // ===== シルエットクイズ（難易度＋2人対戦対応） =====
-  let quizState = null;
-
-  function startQuiz(opts) {
-    opts = opts || {};
-    quizState = {
-      mode: opts.mode || "single",  // "single" or "2p"
-      difficulty: opts.difficulty || "normal", // "easy" / "normal" / "hard"
-      scoreP1: 0, scoreP2: 0, total: 0,
-      currentPlayer: 1
-    };
-    nextQuiz();
-  }
-
-  function getQuizPool() {
-    if (quizState.difficulty === "easy") {
-      // 有名どころ12体のみ
-      const popularIds = ["showa-1954","showa-mechagodzilla","showa-kingkong","showa-ghidorah","heisei-1984","burning-godzilla","shin-godzilla","godzilla-vs-kong","godzilla-minus-one","mothra","king-ghidorah","mechagodzilla"];
-      return KAIJU_DATA.filter(k => popularIds.includes(k.id));
     }
-    return KAIJU_DATA;
+    if (over) {
+      $("bt-again").addEventListener("click", () => {
+        SFX.tap();
+        bt.f1 = mkFighter(bt.f1.k, bt.f1.owner);
+        bt.f2 = mkFighter(bt.f2.k, bt.f2.owner);
+        startFight();
+      });
+      $("bt-change").addEventListener("click", () => { SFX.tap(); openBattle(); });
+    }
   }
 
-  function nextQuiz() {
-    const pool = getQuizPool();
-    const correct = pool[Math.floor(Math.random() * pool.length)];
+  function updateHp(side) {
+    const f = fighter(side);
+    const fill = $("bt-hp" + side);
+    if (fill) { fill.style.width = (f.hp / f.max * 100) + "%"; fill.className = "hp-fill " + hpClass(f); }
+    const n = $("bt-hpn" + side);
+    if (n) n.textContent = `${f.hp} / ${f.max}`;
+  }
+
+  function setLog(t, sub) {
+    const el = $("bt-log");
+    if (el) el.innerHTML = `${t}${sub ? `<div class="sub">${sub}</div>` : ""}`;
+  }
+
+  function floatDmg(side, text, cls) {
+    const f = $("bt-f" + side);
+    if (!f) return;
+    const d = document.createElement("div");
+    d.className = "dmg-float " + (cls || "");
+    d.textContent = text;
+    f.appendChild(d);
+    setTimeout(() => d.remove(), 900);
+  }
+
+  function doMove(mv) {
+    bt.busy = true;
+    const atkSide = bt.turn, defSide = bt.turn === 1 ? 2 : 1;
+    const A = fighter(atkSide), D = fighter(defSide);
+
+    if (mv === "charge") {
+      A.charge = true;
+      SFX.charge();
+      $("bt-f" + atkSide).classList.add("charge");
+      setLog(`${A.k.name}は ちからを ためた！`, "つぎの こうげきが 2ばいに なる");
+      floatDmg(atkSide, "ためた！", "gold");
+      return endTurn(900);
+    }
+
+    const isSp = mv === "special";
+    let dmg = isSp ? 10 + A.k.power * 2.2 + rnd(7) : 6 + A.k.power * 1.2 + rnd(5);
+    if (A.charge) { dmg *= 2; A.charge = false; $("bt-f" + atkSide).classList.remove("charge"); }
+    dmg = Math.round(dmg);
+
+    // 命中判定
+    let hitChance = isSp ? 0.74 + (A.k.speed - D.k.speed) * 0.012 : 0.95 + (A.k.speed - D.k.speed) * 0.008;
+    hitChance = Math.max(0.5, Math.min(0.97, hitChance));
+    const hit = Math.random() < hitChance;
+
+    setLog(`${A.k.name}の ${isSp ? A.k.skill : "たいあたり"}！`);
+    if (isSp && window.Roar && Roar.playType) {
+      window.BGM && BGM.duck();
+      Roar.playType(A.k.roar);
+      setTimeout(() => window.BGM && BGM.unduck(), 1800);
+    }
+
+    setTimeout(() => {
+      if (!$("bt-stage")) return; // 画面を離れた
+      if (!hit) {
+        SFX.miss();
+        floatDmg(defSide, "ミス！", "miss");
+        setLog(`${D.k.name}は ひらりと かわした！`);
+        return endTurn(1100);
+      }
+      D.hp = Math.max(0, D.hp - dmg);
+      (isSp || dmg >= 30) ? SFX.bigHit() : SFX.hit();
+      $("bt-f" + defSide).classList.add("hit");
+      $("bt-stage").classList.add("stage-shake");
+      setTimeout(() => {
+        const el1 = $("bt-f" + defSide), el2 = $("bt-stage");
+        el1 && el1.classList.remove("hit");
+        el2 && el2.classList.remove("stage-shake");
+      }, 480);
+      floatDmg(defSide, "-" + dmg);
+      updateHp(defSide);
+      setLog(`${D.k.name}に ${dmg} ダメージ！`);
+
+      if (D.hp <= 0) return setTimeout(() => finishBattle(atkSide, defSide), 700);
+      endTurn(1200);
+    }, isSp ? 950 : 450);
+  }
+
+  function endTurn(delay) {
+    setTimeout(() => {
+      if (!bt || bt.phase !== "fight" || !$("bt-stage")) return;
+      bt.turn = bt.turn === 1 ? 2 : 1;
+      bt.busy = false;
+      renderArena(`${fighter(bt.turn).owner}の ターン！`);
+      if (isCpuTurn()) setTimeout(cpuMove, 1100);
+    }, delay);
+  }
+
+  function cpuMove() {
+    if (!bt || bt.phase !== "fight" || !$("bt-stage")) return;
+    const me = bt.f2;
+    let mv;
+    if (!me.charge && me.hp / me.max > 0.45 && Math.random() < 0.25) mv = "charge";
+    else if (Math.random() < 0.55) mv = "special";
+    else mv = "attack";
+    doMove(mv);
+  }
+
+  function finishBattle(winSide, loseSide) {
+    bt.phase = "over";
+    const W = fighter(winSide), L = fighter(loseSide);
+    renderArena(`${W.k.name}の かち！`, `${L.k.name}は たおれた…`);
+    $("bt-f" + loseSide).classList.add("ko");
+    SFX.victory();
+    App.confetti(130);
+    const youWon = bt.mode === "cpu" && winSide === 1;
+    if (bt.mode === "cpu") App.addXp(youWon ? 18 : 6, youWon ? "バトルに かった！" : "よく たたかった！");
+    else App.addXp(14, "バトル けっしょう！");
+    App.speak(`${W.k.name}の かち！ ${youWon ? "おめでとう！" : ""}`);
+  }
+
+  /* ============================================================
+     シルエットクイズ (10もんチャレンジ)
+     ============================================================ */
+  const QUIZ_LEN = 10;
+  const EASY_IDS = ["showa-1954", "showa-mechagodzilla", "showa-kingkong", "showa-ghidorah", "heisei-1984", "burning-godzilla", "shin-godzilla", "godzilla-vs-kong", "godzilla-minus-one", "mothra", "king-ghidorah", "mechagodzilla"];
+  let qz = { mode: "single", diff: "easy" };
+
+  function openQuiz() {
+    renderQuizMenu();
+    App.show("screen-quiz");
+  }
+
+  function renderQuizMenu() {
+    $("quiz-side").textContent = "";
+    $("quiz-body").innerHTML = `
+      <div class="q-question">これ だーれだ？<br><small style="font-size:12px;color:var(--dim)">10もん チャレンジ！</small></div>
+      <div class="mode-list">
+        <button class="btn" id="qz-1p">${ic("person")} ひとりで あそぶ</button>
+        <button class="btn warm" id="qz-2p">${ic("users")} ふたりで たいせん！</button>
+      </div>
+      <div class="diff-row">
+        <button class="diff-btn ${qz.diff === "easy" ? "active" : ""}" data-d="easy">かんたん<small>ゆうめい12たい</small></button>
+        <button class="diff-btn ${qz.diff === "normal" ? "active" : ""}" data-d="normal">ふつう<small>ぜんいん・4たく</small></button>
+        <button class="diff-btn ${qz.diff === "hard" ? "active" : ""}" data-d="hard">むずかしい<small>ぼかし・6たく</small></button>
+      </div>`;
+    document.querySelectorAll("#quiz-body .diff-btn").forEach(b => {
+      b.addEventListener("click", () => {
+        SFX.tap();
+        qz.diff = b.dataset.d;
+        document.querySelectorAll("#quiz-body .diff-btn").forEach(x => x.classList.toggle("active", x === b));
+      });
+    });
+    $("qz-1p").addEventListener("click", () => { SFX.tap(); startQuizRound("single"); });
+    $("qz-2p").addEventListener("click", () => { SFX.tap(); startQuizRound("2p"); });
+  }
+
+  function quizPool() {
+    return qz.diff === "easy" ? KAIJU_DATA.filter(k => EASY_IDS.includes(k.id)) : KAIJU_DATA;
+  }
+
+  function startQuizRound(mode) {
+    qz.mode = mode;
+    qz.num = 0; qz.score = 0; qz.scoreP2 = 0;
+    qz.dots = Array(QUIZ_LEN).fill(null);
+    nextQuizQ();
+  }
+
+  function nextQuizQ() {
+    if (qz.num >= QUIZ_LEN) return quizResult();
+    const pool = quizPool();
+    const correct = pool[rnd(pool.length)];
+    const optCount = qz.diff === "hard" ? 6 : 4;
     const wrong = [];
-    const optCount = quizState.difficulty === "hard" ? 5 : 3;
-    while (wrong.length < optCount) {
-      const c = pool[Math.floor(Math.random() * pool.length)];
+    while (wrong.length < optCount - 1) {
+      const c = pool[rnd(pool.length)];
       if (c.id !== correct.id && !wrong.find(w => w.id === c.id)) wrong.push(c);
     }
-    const options = [correct, ...wrong].sort(() => Math.random() - 0.5);
-    quizState.current = { correct, options, revealed: false };
-    renderQuiz();
+    qz.cur = { correct, options: shuffle([correct, ...wrong]), revealed: false };
+    renderQuizQ();
+    setTimeout(() => App.speak(qz.mode === "2p" ? `プレイヤー${qz.num % 2 + 1}の ばん！ これ だーれだ？` : "これ だーれだ？"), 350);
+  }
+
+  function quizSideHTML() {
+    if (qz.mode === "2p") {
+      const p = qz.num % 2;
+      return `<span class="p2-score"><span class="p p1 ${p === 0 ? "on" : ""}">P1:${qz.score}</span><span class="p p2 ${p === 1 ? "on" : ""}">P2:${qz.scoreP2}</span></span>`;
+    }
+    return `${qz.score} / ${qz.num}`;
+  }
+
+  function renderQuizQ() {
+    const { correct, options } = qz.cur;
+    $("quiz-side").innerHTML = quizSideHTML();
+    const silCls = qz.diff === "hard" ? "sil-hard" : "sil";
+    $("quiz-body").innerHTML = `
+      <div class="q-prog">${qz.dots.map((d, i) => `<div class="q-dot ${d === true ? "ok" : d === false ? "ng" : i === qz.num ? "now" : ""}"></div>`).join("")}</div>
+      ${qz.mode === "2p" ? `<div class="q-turn">プレイヤー${qz.num % 2 + 1}の ばん！</div>` : ""}
+      <div class="q-question">これ だーれだ？</div>
+      <div class="q-img-wrap"><img id="qz-img" class="${silCls}" src="images/${correct.id}-1.jpg" alt="?"></div>
+      <div class="q-opts" style="${qz.diff === "hard" ? "grid-template-columns:1fr 1fr;" : ""}">
+        ${options.map(o => `<button class="q-opt" data-id="${o.id}">${o.name}</button>`).join("")}
+      </div>
+      <div class="q-next-wrap" id="qz-next"></div>`;
+    $("quiz-body").scrollTop = 0;
+    document.querySelectorAll("#quiz-body .q-opt").forEach(b => b.addEventListener("click", () => answerQuiz(b)));
+  }
+
+  function answerQuiz(btn) {
+    if (qz.cur.revealed) return;
+    qz.cur.revealed = true;
+    const ok = btn.dataset.id === qz.cur.correct.id;
+    $("qz-img").className = "";
+    document.querySelectorAll("#quiz-body .q-opt").forEach(b => {
+      b.disabled = true;
+      if (b.dataset.id === qz.cur.correct.id) b.classList.add("correct");
+    });
+    if (!ok) btn.classList.add("wrong");
+    qz.dots[qz.num] = ok;
+    if (ok) {
+      if (qz.mode === "2p" && qz.num % 2 === 1) qz.scoreP2++; else qz.score++;
+      SFX.good(); App.confetti(45);
+      App.speak(shuffle(["せいかい！すごい！", "やったね！", "ピンポーン！", "せいかい！てんさい！"])[0]);
+      if (qz.mode === "single") App.addXp(4);
+    } else {
+      SFX.bad();
+      App.speak(`ざんねん！ こたえは ${qz.cur.correct.name}！`);
+    }
+    $("quiz-side").innerHTML = quizSideHTML();
+    $("qz-next").innerHTML = `<button class="btn" id="qz-go">${qz.num === QUIZ_LEN - 1 ? "けっかを みる" : "つぎの もんだい"} →</button>`;
+    $("qz-go").addEventListener("click", () => { SFX.tap(); qz.num++; nextQuizQ(); });
+  }
+
+  function starsFor(score, total) {
+    const r = score / total;
+    return r >= 0.9 ? 3 : r >= 0.6 ? 2 : r >= 0.3 ? 1 : 0;
+  }
+
+  function quizResult() {
+    if (qz.mode === "2p") {
+      const w = qz.score === qz.scoreP2 ? "ひきわけ！" : qz.score > qz.scoreP2 ? "プレイヤー1の かち！" : "プレイヤー2の かち！";
+      $("quiz-body").innerHTML = `
+        <div class="result-panel">
+          <div class="result-title">${w}</div>
+          <div class="result-score">${qz.score} <small>vs</small> ${qz.scoreP2}</div>
+          <div class="result-xp">+10 XP ふたりとも がんばった！</div>
+          <div class="btn-row"><button class="btn" id="qz-re">もういちど</button><button class="btn ghost" id="qz-menu">メニューへ</button></div>
+        </div>`;
+      App.addXp(10);
+    } else {
+      const st = starsFor(qz.score, QUIZ_LEN);
+      const bonus = qz.score === QUIZ_LEN ? 25 : qz.score >= 8 ? 15 : qz.score >= 5 ? 8 : 3;
+      $("quiz-body").innerHTML = `
+        <div class="result-panel">
+          <div class="result-title">${qz.score === QUIZ_LEN ? "パーフェクト！！" : qz.score >= 8 ? "すごい！" : qz.score >= 5 ? "よくできた！" : "つぎは できるよ！"}</div>
+          <div class="result-stars">${"★".repeat(st)}<span class="off">${"★".repeat(3 - st)}</span></div>
+          <div class="result-score">${qz.score}<small> / ${QUIZ_LEN}もん</small></div>
+          <div class="result-xp">ボーナス +${bonus} XP</div>
+          <div class="btn-row"><button class="btn" id="qz-re">もういちど</button><button class="btn ghost" id="qz-menu">メニューへ</button></div>
+        </div>`;
+      App.addXp(bonus);
+    }
+    SFX.victory(); App.confetti(120);
+    $("qz-re").addEventListener("click", () => { SFX.tap(); startQuizRound(qz.mode); });
+    $("qz-menu").addEventListener("click", () => { SFX.tap(); renderQuizMenu(); });
+  }
+
+  /* ============================================================
+     なきごえクイズ (8もん・こえは合成エンジン)
+     ============================================================ */
+  const RQ_LEN = 8;
+  let rq = null;
+
+  function openRoarQuiz() {
+    rq = { num: 0, score: 0, dots: Array(RQ_LEN).fill(null) };
+    nextRoarQ();
+    App.show("screen-roarquiz");
+  }
+
+  function pickRoarSet() {
+    const pool = KAIJU_DATA;
+    const correct = pool[rnd(pool.length)];
+    const types = new Set([correct.roar]);
+    const ids = new Set([correct.id]);
+    const wrong = [];
+    for (const k of shuffle(pool)) {
+      if (wrong.length >= 3) break;
+      if (ids.has(k.id) || types.has(k.roar)) continue; // 同じ声は選択肢にしない
+      wrong.push(k); types.add(k.roar); ids.add(k.id);
+    }
+    return { correct, options: shuffle([correct, ...wrong]), revealed: false };
+  }
+
+  function playRq() {
+    if (!rq || !rq.cur) return;
+    const btn = $("rq-listen");
+    btn && btn.classList.add("playing");
+    window.BGM && BGM.duck();
+    const dur = (window.Roar && Roar.playType) ? Roar.playType(rq.cur.correct.roar) : 0;
     setTimeout(() => {
-      if (quizState.mode === "2p") {
-        window.AppSpeak && window.AppSpeak(`プレイヤー${quizState.currentPlayer}の ばん！ これだーれだ？`);
-      } else {
-        window.AppSpeak && window.AppSpeak("これだーれだ？");
-      }
-    }, 300);
+      window.BGM && BGM.unduck();
+      btn && btn.classList.remove("playing");
+    }, (dur || 1.5) * 1000 + 400);
   }
 
-  function renderQuiz() {
-    const { correct, options, revealed } = quizState.current;
-    const blurClass = quizState.difficulty === "hard" ? "silhouette-hard" : "silhouette";
-    let scoreHTML;
-    if (quizState.mode === "2p") {
-      scoreHTML = `<span class="p1-score ${quizState.currentPlayer === 1 ? 'active' : ''}">👦 ${quizState.scoreP1}</span> <span class="p2-score ${quizState.currentPlayer === 2 ? 'active' : ''}">👶 ${quizState.scoreP2}</span>`;
-    } else {
-      scoreHTML = `${quizState.scoreP1} / ${quizState.total}`;
-    }
-    document.getElementById("quiz-score").innerHTML = scoreHTML;
+  function nextRoarQ() {
+    if (rq.num >= RQ_LEN) return roarResult();
+    rq.cur = pickRoarSet();
+    renderRoarQ();
+    setTimeout(() => App.speak("だれの なきごえかな？", () => setTimeout(playRq, 300)), 350);
+  }
 
-    const turnLabel = quizState.mode === "2p"
-      ? `<div class="quiz-turn">プレイヤー${quizState.currentPlayer}の ばん！</div>`
-      : "";
-
-    document.getElementById("quiz-content").innerHTML = `
-      ${turnLabel}
-      <div class="quiz-question">これ だーれだ？</div>
-      <div class="quiz-image-wrap" style="background: ${revealed ? correct.color : 'linear-gradient(180deg, #ffd700, #ff8800)'}">
-        <img class="quiz-img ${revealed ? "" : blurClass}" src="images/${correct.id}-1.jpg" alt="?">
+  function renderRoarQ() {
+    $("roarquiz-side").textContent = `${rq.score} / ${rq.num}`;
+    $("roarquiz-body").innerHTML = `
+      <div class="q-prog">${rq.dots.map((d, i) => `<div class="q-dot ${d === true ? "ok" : d === false ? "ng" : i === rq.num ? "now" : ""}"></div>`).join("")}</div>
+      <div class="q-question">だれの なきごえ？</div>
+      <button class="listen-btn" id="rq-listen">${ic("sound")} なきごえを きく</button>
+      <div class="q-opts">
+        ${rq.cur.options.map(o => `
+          <button class="q-opt q-opt-img" data-id="${o.id}">
+            <img src="images/${o.id}-1.jpg" alt="${o.name}" loading="lazy" onerror="this.style.display='none'">
+            <span>${o.name}</span>
+          </button>`).join("")}
       </div>
-      <div class="quiz-options">
-        ${options.map(o => `<button class="quiz-option" data-id="${o.id}">${o.name}</button>`).join("")}
-      </div>
-      <div id="quiz-next-wrap"></div>
-    `;
-    document.querySelectorAll(".quiz-option").forEach(b => {
-      b.addEventListener("click", () => handleQuizAnswer(b));
-    });
+      <div class="q-next-wrap" id="rq-next"></div>`;
+    $("roarquiz-body").scrollTop = 0;
+    $("rq-listen").addEventListener("click", () => { SFX.tap(); playRq(); });
+    document.querySelectorAll("#roarquiz-body .q-opt").forEach(b => b.addEventListener("click", () => answerRoar(b)));
   }
 
-  function handleQuizAnswer(btn) {
-    if (quizState.current.revealed) return;
-    const id = btn.dataset.id;
-    const { correct } = quizState.current;
-    quizState.total++;
-    quizState.current.revealed = true;
-    document.querySelector(".quiz-img").className = "quiz-img";
-    document.querySelectorAll(".quiz-option").forEach(b => b.disabled = true);
-
-    if (id === correct.id) {
-      btn.classList.add("correct");
-      if (quizState.mode === "2p") {
-        if (quizState.currentPlayer === 1) quizState.scoreP1++;
-        else quizState.scoreP2++;
-      } else {
-        quizState.scoreP1++;
-      }
-      playFanfare(true);
-      showConfetti();
-      const phrases = ["せいかい！すごい！", "やったね！", "せいかい！てんさい！", "ピンポーン！"];
-      window.AppSpeak && window.AppSpeak(phrases[Math.floor(Math.random() * phrases.length)]);
-    } else {
-      btn.classList.add("wrong");
-      document.querySelectorAll(".quiz-option").forEach(b => {
-        if (b.dataset.id === correct.id) b.classList.add("correct");
-      });
-      playFanfare(false);
-      shakeScreen("screen-quiz");
-      window.AppSpeak && window.AppSpeak(`ざんねん、こたえは ${correct.name}！`);
-    }
-
-    // スコア更新
-    if (quizState.mode === "2p") {
-      document.getElementById("quiz-score").innerHTML =
-        `<span class="p1-score">👦 ${quizState.scoreP1}</span> <span class="p2-score">👶 ${quizState.scoreP2}</span>`;
-    } else {
-      document.getElementById("quiz-score").innerHTML = `${quizState.scoreP1} / ${quizState.total}`;
-    }
-
-    document.getElementById("quiz-next-wrap").innerHTML =
-      `<button class="quiz-next" id="quiz-next-btn">${quizState.mode === "2p" ? "つぎの ひとへ →" : "つぎの もんだい →"}</button>`;
-    document.getElementById("quiz-next-btn").addEventListener("click", () => {
-      if (quizState.mode === "2p") quizState.currentPlayer = quizState.currentPlayer === 1 ? 2 : 1;
-      nextQuiz();
+  function answerRoar(btn) {
+    if (rq.cur.revealed) return;
+    rq.cur.revealed = true;
+    const ok = btn.dataset.id === rq.cur.correct.id;
+    document.querySelectorAll("#roarquiz-body .q-opt").forEach(b => {
+      b.disabled = true;
+      if (b.dataset.id === rq.cur.correct.id) b.classList.add("correct");
     });
+    if (!ok) btn.classList.add("wrong");
+    rq.dots[rq.num] = ok;
+    if (ok) {
+      rq.score++;
+      SFX.good(); App.confetti(45);
+      App.speak(shuffle(["せいかい！いいみみ！", "だいせいかい！", "きこえてたね！すごい！"])[0]);
+      App.addXp(5);
+    } else {
+      SFX.bad();
+      App.speak(`ざんねん！ こたえは ${rq.cur.correct.name}！`);
+    }
+    $("roarquiz-side").textContent = `${rq.score} / ${rq.num + 1}`;
+    $("rq-next").innerHTML = `<button class="btn" id="rq-go">${rq.num === RQ_LEN - 1 ? "けっかを みる" : "つぎの もんだい"} →</button>`;
+    $("rq-go").addEventListener("click", () => { SFX.tap(); rq.num++; nextRoarQ(); });
   }
 
-  // ===== メモリーゲーム（2人対戦対応） =====
-  let memState = null;
-  function startMemory(opts) {
-    opts = opts || {};
-    const mode = opts.mode || "single";
-    const shuffled = [...KAIJU_DATA].sort(() => Math.random() - 0.5).slice(0, 8);
-    const cards = [];
-    shuffled.forEach((k, i) => {
-      cards.push({ id: i + "a", kaiju: k });
-      cards.push({ id: i + "b", kaiju: k });
-    });
-    cards.sort(() => Math.random() - 0.5);
-    memState = {
-      mode, cards, flipped: [], matched: new Set(), moves: 0, locked: false,
-      currentPlayer: 1, scoreP1: 0, scoreP2: 0
-    };
+  function roarResult() {
+    const st = starsFor(rq.score, RQ_LEN);
+    const bonus = rq.score === RQ_LEN ? 22 : rq.score >= 6 ? 12 : rq.score >= 4 ? 6 : 3;
+    $("roarquiz-body").innerHTML = `
+      <div class="result-panel">
+        <div class="result-title">${rq.score === RQ_LEN ? "きみは おとの てんさい！" : rq.score >= 6 ? "いいみみ してる！" : "たくさん きいて おぼえよう！"}</div>
+        <div class="result-stars">${"★".repeat(st)}<span class="off">${"★".repeat(3 - st)}</span></div>
+        <div class="result-score">${rq.score}<small> / ${RQ_LEN}もん</small></div>
+        <div class="result-xp">ボーナス +${bonus} XP</div>
+        <div class="btn-row"><button class="btn" id="rq-re">もういちど</button><button class="btn ghost" id="rq-home">ホームへ</button></div>
+      </div>`;
+    App.addXp(bonus);
+    SFX.victory(); App.confetti(120);
+    $("rq-re").addEventListener("click", () => { SFX.tap(); openRoarQuiz(); });
+    $("rq-home").addEventListener("click", () => { SFX.tap(); App.back(); });
+  }
+
+  /* ============================================================
+     めくってあわせ
+     ============================================================ */
+  let mem = null;
+
+  function openMemory() {
+    mem = { phase: "mode" };
+    $("memory-side").textContent = "";
+    $("memory-body").innerHTML = `
+      <div class="q-question">おなじ カードを みつけよう！</div>
+      <div class="mode-list">
+        <button class="btn" id="mem-1p">${ic("person")} ひとりで あそぶ</button>
+        <button class="btn warm" id="mem-2p">${ic("users")} ふたりで たいせん！</button>
+      </div>`;
+    $("mem-1p").addEventListener("click", () => { SFX.tap(); startMemory("single"); });
+    $("mem-2p").addEventListener("click", () => { SFX.tap(); startMemory("2p"); });
+    App.show("screen-memory");
+  }
+
+  function startMemory(mode) {
+    const chosen = shuffle(KAIJU_DATA).slice(0, 8);
+    const cards = shuffle(chosen.flatMap(k => [{ k }, { k }]));
+    mem = { phase: "play", mode, cards, flipped: [], matched: new Set(), moves: 0, locked: false, turn: 1, s1: 0, s2: 0 };
     renderMemory();
   }
 
   function renderMemory() {
-    const { cards, matched, mode } = memState;
-    let scoreHTML;
-    if (mode === "2p") {
-      const winner = matched.size === 16
-        ? (memState.scoreP1 > memState.scoreP2 ? "👦 のかち！" : memState.scoreP2 > memState.scoreP1 ? "👶 のかち！" : "ひきわけ！")
-        : "";
-      scoreHTML = `<span class="${memState.currentPlayer === 1 ? 'active' : ''}">👦${memState.scoreP1}</span> vs <span class="${memState.currentPlayer === 2 ? 'active' : ''}">👶${memState.scoreP2}</span> ${winner}`;
-    } else {
-      scoreHTML = `あわせた: ${matched.size / 2} / 8 ・ ${memState.moves}かい`;
-    }
-    document.getElementById("memory-score").innerHTML = scoreHTML;
-
-    const turnLabel = mode === "2p" && matched.size < 16
-      ? `<div class="mem-turn">プレイヤー${memState.currentPlayer}の ばん</div>` : "";
-
-    document.getElementById("memory-content").innerHTML = `
-      ${turnLabel}
+    const done = mem.matched.size === 8;
+    $("memory-side").innerHTML = mem.mode === "2p"
+      ? `<span class="p2-score"><span class="p p1 ${mem.turn === 1 ? "on" : ""}">P1:${mem.s1}</span><span class="p p2 ${mem.turn === 2 ? "on" : ""}">P2:${mem.s2}</span></span>`
+      : `${mem.matched.size} / 8`;
+    $("memory-body").innerHTML = `
+      ${mem.mode === "2p" && !done ? `<div class="q-turn">プレイヤー${mem.turn}の ばん</div>` : ""}
       <div class="mem-grid">
-        ${cards.map((c, i) => {
-          const isFlipped = memState.flipped.includes(i) || matched.has(c.kaiju.id);
-          const isMatched = matched.has(c.kaiju.id);
+        ${mem.cards.map((c, i) => {
+          const open = mem.flipped.includes(i) || mem.matched.has(c.k.id);
+          const got = mem.matched.has(c.k.id);
           return `
-            <div class="mem-card ${isFlipped ? "flipped" : ""} ${isMatched ? "matched" : ""}" data-idx="${i}">
-              <div class="mem-back" style="background: ${c.kaiju.color}">
-                <img src="images/${c.kaiju.id}-1.jpg" alt="${c.kaiju.name}" loading="lazy">
+            <div class="mem-card ${open ? "open" : ""} ${got ? "got" : ""}" data-i="${i}">
+              <div class="mem-in">
+                <div class="mem-f">${ic("gem")}</div>
+                <div class="mem-b"><img src="images/${c.k.id}-1.jpg" alt="" loading="lazy"></div>
               </div>
-              <div class="mem-front">?</div>
-            </div>
-          `;
+            </div>`;
         }).join("")}
       </div>
-      ${matched.size === 16 ? `<div class="mem-done">🎉 ぜんぶ そろえた！ 🎉 <br><button class="quiz-next" id="mem-restart">もういちど</button></div>` : ""}
-    `;
-    document.querySelectorAll(".mem-card").forEach(card => {
-      card.addEventListener("click", () => onMemCard(parseInt(card.dataset.idx)));
-    });
-    const r = document.getElementById("mem-restart");
-    if (r) r.addEventListener("click", () => startMemory({ mode }));
+      ${done ? `<div class="result-panel">
+          <div class="result-title">${mem.mode === "2p" ? (mem.s1 === mem.s2 ? "ひきわけ！" : mem.s1 > mem.s2 ? "プレイヤー1の かち！" : "プレイヤー2の かち！") : "ぜんぶ そろえた！"}</div>
+          ${mem.mode === "single" ? `<div class="result-score">${mem.moves}<small> かいで クリア</small></div>` : `<div class="result-score">${mem.s1} <small>vs</small> ${mem.s2}</div>`}
+          <div class="result-xp">+14 XP</div>
+          <button class="btn" id="mem-re">もういちど</button>
+        </div>` : ""}`;
+    document.querySelectorAll("#memory-body .mem-card").forEach(c =>
+      c.addEventListener("click", () => flipMem(parseInt(c.dataset.i))));
+    const re = $("mem-re");
+    if (re) re.addEventListener("click", () => { SFX.tap(); startMemory(mem.mode); });
   }
 
-  function onMemCard(idx) {
-    if (memState.locked) return;
-    const { cards, flipped, matched } = memState;
-    if (matched.has(cards[idx].kaiju.id) || flipped.includes(idx)) return;
-    flipped.push(idx);
+  function flipMem(i) {
+    if (mem.locked || mem.phase !== "play") return;
+    const c = mem.cards[i];
+    if (mem.matched.has(c.k.id) || mem.flipped.includes(i)) return;
+    SFX.flip();
+    mem.flipped.push(i);
     renderMemory();
-
-    if (flipped.length === 2) {
-      memState.moves++;
-      const a = cards[flipped[0]].kaiju;
-      const b = cards[flipped[1]].kaiju;
+    if (mem.flipped.length === 2) {
+      mem.moves++;
+      const [a, b] = mem.flipped.map(x => mem.cards[x].k);
       if (a.id === b.id) {
-        matched.add(a.id);
-        memState.flipped = [];
-        if (memState.mode === "2p") {
-          if (memState.currentPlayer === 1) memState.scoreP1++;
-          else memState.scoreP2++;
-        }
-        playFanfare(true);
-        // 2人モードでも同じプレイヤーが続ける
-        setTimeout(renderMemory, 200);
+        mem.matched.add(a.id);
+        mem.flipped = [];
+        if (mem.mode === "2p") mem.turn === 1 ? mem.s1++ : mem.s2++;
+        SFX.good();
+        if (mem.matched.size === 8) {
+          setTimeout(() => {
+            SFX.victory(); App.confetti(120); App.addXp(14, "めくってクリア！");
+            renderMemory();
+          }, 350);
+        } else setTimeout(renderMemory, 250);
       } else {
-        memState.locked = true;
+        mem.locked = true;
         setTimeout(() => {
-          memState.flipped = [];
-          memState.locked = false;
-          if (memState.mode === "2p") {
-            memState.currentPlayer = memState.currentPlayer === 1 ? 2 : 1;
-          }
+          mem.flipped = [];
+          mem.locked = false;
+          if (mem.mode === "2p") mem.turn = mem.turn === 1 ? 2 : 1;
           renderMemory();
-        }, 900);
+        }, 850);
       }
     }
   }
 
-  // ===== 怪獣バトル（2人対戦対応） =====
-  let battleState = null;
-  function startBattle(opts) {
-    opts = opts || {};
-    battleState = {
-      mode: opts.mode || "single", // "single" or "2p"
-      step: "p1pick",  // p1pick → (p2pick) → fight → result
-      p1: null, p2: null, result: null,
-      winsP1: 0, winsP2: 0
-    };
-    renderBattle();
-  }
-
-  function renderBattle() {
-    const s = battleState;
-    if (s.step === "p1pick") {
-      const title = s.mode === "2p" ? "👦 プレイヤー1: かいじゅう えらぼう！" : "じぶんの かいじゅうを えらぼう！";
-      renderBattlePicker(title, "p1");
-    } else if (s.step === "p2pick") {
-      renderBattlePicker("👶 プレイヤー2: かいじゅう えらぼう！", "p2");
-    } else if (s.step === "fight" || s.step === "result") {
-      renderBattleArena();
-    }
-  }
-
-  function renderBattlePicker(title, target) {
-    document.getElementById("battle-content").innerHTML = `
-      <div class="battle-step">
-        <h2 class="battle-title">${title}</h2>
-        ${battleState.mode === "2p" ? `<div class="battle-wins">👦 ${battleState.winsP1}しょう vs ${battleState.winsP2}しょう 👶</div>` : ""}
-        <div class="battle-grid">
-          ${KAIJU_DATA.map((k, i) => `
-            <button class="battle-pick" data-idx="${i}" style="background:${k.color}">
-              <img src="images/${k.id}-1.jpg" alt="${k.name}" loading="lazy">
-              <span>${k.name}</span>
-              <small>💪${calcPower(k)}</small>
-            </button>
-          `).join("")}
-        </div>
-      </div>
-    `;
-    document.querySelectorAll(".battle-pick").forEach(b => {
-      b.addEventListener("click", () => {
-        const picked = KAIJU_DATA[parseInt(b.dataset.idx)];
-        if (target === "p1") {
-          battleState.p1 = picked;
-          if (battleState.mode === "2p") {
-            battleState.step = "p2pick";
-            renderBattle();
-          } else {
-            // ランダム敵
-            let e;
-            do { e = KAIJU_DATA[Math.floor(Math.random() * KAIJU_DATA.length)]; }
-            while (e.id === picked.id);
-            battleState.p2 = e;
-            battleState.step = "fight";
-            doBattle();
-          }
-        } else {
-          battleState.p2 = picked;
-          battleState.step = "fight";
-          doBattle();
-        }
-      });
-    });
-  }
-
-  function renderBattleArena() {
-    const s = battleState;
-    const p1Win = s.result?.winner === "p1";
-    const p2Win = s.result?.winner === "p2";
-    const labelP1 = s.mode === "2p" ? "👦 プレイヤー1" : "じぶん";
-    const labelP2 = s.mode === "2p" ? "👶 プレイヤー2" : "あいて";
-    const resultText = !s.result ? "" :
-      s.result.winner === "p1" ? `🏆 ${labelP1}の かち！` :
-      s.result.winner === "p2" ? `🏆 ${labelP2}の かち！` :
-      "🤝 ひきわけ";
-    document.getElementById("battle-content").innerHTML = `
-      <div class="battle-arena">
-        <div class="battle-side">
-          <div class="battle-player-label">${labelP1}</div>
-          <img src="images/${s.p1.id}-1.jpg" alt="${s.p1.name}" class="battle-img ${p1Win ? "win" : p2Win ? "lose" : ""}">
-          <div class="battle-name">${s.p1.name}</div>
-          <div class="battle-stat">💪 ${calcPower(s.p1)}</div>
-        </div>
-        <div class="battle-vs">
-          ${s.result ? `<div class="battle-result">${resultText}</div>` : "VS"}
-        </div>
-        <div class="battle-side">
-          <div class="battle-player-label">${labelP2}</div>
-          <img src="images/${s.p2.id}-1.jpg" alt="${s.p2.name}" class="battle-img ${p2Win ? "win" : p1Win ? "lose" : ""}">
-          <div class="battle-name">${s.p2.name}</div>
-          <div class="battle-stat">💪 ${calcPower(s.p2)}</div>
-        </div>
-      </div>
-      ${s.result ? `
-        ${s.mode === "2p" ? `<div class="battle-wins-big">👦 ${s.winsP1} vs ${s.winsP2} 👶</div>` : ""}
-        <button class="battle-again" id="battle-again-btn">もういちど！</button>
-      ` : ""}
-    `;
-    const again = document.getElementById("battle-again-btn");
-    if (again) again.addEventListener("click", () => {
-      const keepStats = { mode: s.mode, winsP1: s.winsP1, winsP2: s.winsP2 };
-      startBattle(keepStats);
-      battleState.winsP1 = keepStats.winsP1;
-      battleState.winsP2 = keepStats.winsP2;
-      renderBattle();
-    });
-  }
-
-  function calcPower(k) {
-    const base = Math.sqrt(k.height * (k.weight / 1000));
-    return Math.round(base);
-  }
-
-  function doBattle() {
-    renderBattle();
-    setTimeout(() => {
-      const { p1, p2 } = battleState;
-      const p1Power = calcPower(p1) + Math.random() * 50;
-      const p2Power = calcPower(p2) + Math.random() * 50;
-      let winner = "draw";
-      if (p1Power > p2Power + 5) winner = "p1";
-      else if (p2Power > p1Power + 5) winner = "p2";
-      battleState.result = { winner };
-      if (winner === "p1") battleState.winsP1++;
-      else if (winner === "p2") battleState.winsP2++;
-      // 咆哮（ゴジラ系のみ）
-      if (window.Roar) {
-        if (p1.type === "godzilla") window.Roar.play(p1.roar);
-        else if (p2.type === "godzilla") setTimeout(() => window.Roar.play(p2.roar), 800);
-      }
-      setTimeout(() => {
-        renderBattleArena();
-        if (window.AppSpeak) {
-          if (winner === "p1") window.AppSpeak(`${p1.name}の かち！`);
-          else if (winner === "p2") window.AppSpeak(`${p2.name}の かち！`);
-          else window.AppSpeak("ひきわけ！");
-        }
-      }, 1500);
-    }, 800);
-  }
-
-  // ===== なきごえクイズ =====
-  let rqState = null;
-
-  function startRoarQuiz() {
-    rqState = { score: 0, total: 0, current: null };
-    nextRoarQuiz();
-  }
-
-  function pickRoarQuizSet() {
-    const pool = KAIJU_DATA;
-    const correct = pool[Math.floor(Math.random() * pool.length)];
-    // 同じ鳴き声タイプ同士は聞き分けられないので、選択肢はタイプが全部違う組み合わせにする
-    const usedTypes = new Set([correct.roar]);
-    const usedIds = new Set([correct.id]);
-    const wrong = [];
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    for (const k of shuffled) {
-      if (wrong.length >= 3) break;
-      if (usedIds.has(k.id) || usedTypes.has(k.roar)) continue;
-      wrong.push(k);
-      usedTypes.add(k.roar);
-      usedIds.add(k.id);
-    }
-    const options = [correct, ...wrong].sort(() => Math.random() - 0.5);
-    return { correct, options, revealed: false };
-  }
-
-  function playRoarQuizSound() {
-    if (!rqState || !rqState.current) return;
-    if (window.BGM) window.BGM.duck();
-    const dur = window.Roar && window.Roar.playType ? window.Roar.playType(rqState.current.correct.roar) : 0;
-    setTimeout(() => { if (window.BGM) window.BGM.unduck(); }, ((dur || 1.5) * 1000) + 400);
-  }
-
-  function nextRoarQuiz() {
-    rqState.current = pickRoarQuizSet();
-    renderRoarQuiz();
-    setTimeout(() => {
-      window.AppSpeak && window.AppSpeak("だれの なきごえかな？");
-      setTimeout(playRoarQuizSound, 1700);
-    }, 300);
-  }
-
-  function renderRoarQuiz() {
-    const { options, revealed, correct } = rqState.current;
-    document.getElementById("roarquiz-score").textContent = `${rqState.score} / ${rqState.total}`;
-    document.getElementById("roarquiz-content").innerHTML = `
-      <div class="quiz-question">だれの なきごえ？</div>
-      <button class="rq-listen" id="rq-listen">
-        <span class="rq-listen-icon">🔊</span>
-        <span>なきごえを きく</span>
-      </button>
-      <div class="rq-options">
-        ${options.map(o => `
-          <button class="rq-option ${revealed && o.id === correct.id ? 'correct' : ''}" data-id="${o.id}" style="background:${o.color}">
-            <img src="images/${o.id}-1.jpg" alt="${o.name}" loading="lazy" onerror="this.style.display='none'">
-            <span>${o.name}</span>
-          </button>
-        `).join("")}
-      </div>
-      <div id="roarquiz-next-wrap"></div>
-    `;
-    document.getElementById("rq-listen").addEventListener("click", playRoarQuizSound);
-    document.querySelectorAll(".rq-option").forEach(b => {
-      b.addEventListener("click", () => handleRoarQuizAnswer(b));
-    });
-  }
-
-  function handleRoarQuizAnswer(btn) {
-    if (rqState.current.revealed) return;
-    rqState.current.revealed = true;
-    rqState.total++;
-    const { correct } = rqState.current;
-    const id = btn.dataset.id;
-    document.querySelectorAll(".rq-option").forEach(b => b.disabled = true);
-
-    if (id === correct.id) {
-      btn.classList.add("correct");
-      rqState.score++;
-      playFanfare(true);
-      showConfetti();
-      const phrases = ["せいかい！いいみみ！", "だいせいかい！", "すごい！きこえてたね！", "ピンポーン！"];
-      window.AppSpeak && window.AppSpeak(phrases[Math.floor(Math.random() * phrases.length)]);
-    } else {
-      btn.classList.add("wrong");
-      document.querySelectorAll(".rq-option").forEach(b => {
-        if (b.dataset.id === correct.id) b.classList.add("correct");
-      });
-      playFanfare(false);
-      shakeScreen("screen-roarquiz");
-      window.AppSpeak && window.AppSpeak(`ざんねん、こたえは ${correct.name}！`);
-    }
-    document.getElementById("roarquiz-score").textContent = `${rqState.score} / ${rqState.total}`;
-    document.getElementById("roarquiz-next-wrap").innerHTML =
-      `<button class="quiz-next" id="roarquiz-next-btn">つぎの もんだい →</button>`;
-    document.getElementById("roarquiz-next-btn").addEventListener("click", nextRoarQuiz);
-  }
-
-  // ===== かいじゅうたたき（もぐらたたき） =====
+  /* ============================================================
+     かいじゅうたたき (30びょう・コンボつき)
+     ============================================================ */
   const WHACK_TIME = 30;
-  let whackState = null;
+  let wh = null;
 
-  function loadWhackBest() {
-    try { return parseInt(localStorage.getItem(WHACK_BEST_KEY) || "0", 10) || 0; } catch { return 0; }
-  }
-  function saveWhackBest(v) {
-    try { localStorage.setItem(WHACK_BEST_KEY, String(v)); } catch {}
-  }
+  function whackBest() { try { return parseInt(localStorage.getItem(WHACK_BEST_KEY) || "0", 10) || 0; } catch { return 0; } }
 
-  function stopWhackTimers() {
-    if (!whackState) return;
-    if (whackState.timerId) clearInterval(whackState.timerId);
-    if (whackState.popTimerId) clearTimeout(whackState.popTimerId);
-    whackState.timerId = null;
-    whackState.popTimerId = null;
-    whackState.running = false;
-  }
-
-  function startWhack() {
-    stopWhackTimers();
-    whackState = { score: 0, timeLeft: WHACK_TIME, running: false, timerId: null, popTimerId: null, activeHole: -1 };
-    // 戻るボタンでタイマーを確実に止める（画面遷移自体は共通ハンドラが行う）
-    const backBtn = document.querySelector("#screen-whack .back-btn");
-    if (backBtn) backBtn.onclick = stopWhackTimers;
-    renderWhackIntro();
-  }
-
-  function renderWhackIntro() {
-    const best = loadWhackBest();
-    document.getElementById("whack-content").innerHTML = `
-      <div class="whack-intro">
-        <div class="whack-intro-title">🔨 かいじゅうたたき！</div>
-        <div class="whack-intro-rules">
-          <div class="whack-rule"><span class="whack-rule-icon">👾</span> かいじゅうを タップ！ <b>+1てん</b></div>
-          <div class="whack-rule minilla"><img src="images/minilla-1.jpg" alt="ミニラ"> ミニラは たたいちゃダメ！ <b>-2てん</b></div>
-          <div class="whack-rule"><span class="whack-rule-icon">⏱</span> ${WHACK_TIME}びょうで なんてん とれるかな？</div>
+  function openWhack() {
+    stopWhack();
+    wh = { running: false };
+    const best = whackBest();
+    $("whack-body").innerHTML = `
+      <div class="wh-intro">
+        <div class="wh-title">かいじゅうたたき！</div>
+        <div class="wh-rules">
+          <div class="wh-rule">${ic("hammer")} かいじゅうを タップ <b>+1てん</b></div>
+          <div class="wh-rule">${ic("flame")} 3れんぞくで コンボ <b>+2てん</b></div>
+          <div class="wh-rule no"><img src="images/minilla-1.jpg" alt="ミニラ"> ミニラは たたいちゃダメ <b>-2てん</b></div>
         </div>
-        ${best > 0 ? `<div class="whack-best">👑 さいこうきろく: ${best}てん</div>` : ""}
-        <button class="big-action-btn p2" id="whack-start-btn">
-          <span class="action-emoji">🔨</span><span>スタート！</span>
-        </button>
-      </div>
-    `;
-    document.getElementById("whack-start-btn").addEventListener("click", runWhack);
+        ${best > 0 ? `<div class="wh-best">さいこうきろく ${best}てん</div>` : ""}
+        <button class="btn warm" id="wh-start">${ic("hammer")} スタート！</button>
+      </div>`;
+    $("wh-start").addEventListener("click", () => { SFX.tap(); runWhack(); });
+    App.show("screen-whack");
   }
+
+  function stopWhack() {
+    if (!wh) return;
+    if (wh.timerId) clearInterval(wh.timerId);
+    if (wh.popId) clearTimeout(wh.popId);
+    wh.running = false;
+  }
+
+  function whActive() { return document.getElementById("screen-whack").classList.contains("active"); }
 
   function runWhack() {
-    whackState.score = 0;
-    whackState.timeLeft = WHACK_TIME;
-    whackState.running = true;
-    whackState.startTime = Date.now();
-
-    document.getElementById("whack-content").innerHTML = `
-      <div class="whack-hud">
-        <div class="whack-hud-box">とくてん<br><b id="whack-score">0</b></div>
-        <div class="whack-hud-box">のこり<br><b id="whack-time">${WHACK_TIME}</b></div>
+    wh = { running: true, score: 0, timeLeft: WHACK_TIME, combo: 0, lastHit: 0, hole: -1, lastHole: -1, k: null, hitDone: false, t0: Date.now() };
+    $("whack-body").innerHTML = `
+      <div class="wh-hud">
+        <div class="wh-box">とくてん<b id="wh-score">0</b></div>
+        <div class="wh-box combo">コンボ<b id="wh-combo">0</b></div>
+        <div class="wh-box">のこり<b id="wh-time">${WHACK_TIME}</b></div>
       </div>
-      <div class="whack-board">
-        ${Array.from({ length: 9 }, (_, i) => `
-          <div class="whack-hole" data-hole="${i}"><div class="whack-pop" id="whack-pop-${i}"></div></div>
-        `).join("")}
+      <div class="wh-grid">
+        ${Array.from({ length: 9 }, (_, i) => `<div class="wh-hole" data-h="${i}"><div class="wh-pop" id="wh-pop-${i}"></div></div>`).join("")}
       </div>
-      <div class="whack-tip">ミニラは たたかないでね！</div>
-    `;
-
-    document.querySelectorAll(".whack-hole").forEach(h => {
-      h.addEventListener("pointerdown", () => onWhackHole(parseInt(h.dataset.hole)));
-    });
-
-    whackState.timerId = setInterval(() => {
-      whackState.timeLeft--;
-      const t = document.getElementById("whack-time");
-      if (t) t.textContent = whackState.timeLeft;
-      if (whackState.timeLeft <= 0) endWhack();
+      <div class="wh-tip">ミニラは たたかないでね！</div>`;
+    document.querySelectorAll("#whack-body .wh-hole").forEach(h =>
+      h.addEventListener("pointerdown", () => hitWhack(parseInt(h.dataset.h))));
+    wh.timerId = setInterval(() => {
+      if (!whActive()) return stopWhack();
+      wh.timeLeft--;
+      const t = $("wh-time");
+      if (t) t.textContent = wh.timeLeft;
+      if (wh.timeLeft <= 3 && wh.timeLeft > 0) SFX.tick();
+      if (wh.timeLeft <= 0) endWhack();
     }, 1000);
-
-    window.AppSpeak && window.AppSpeak("よーい、スタート！");
-    schedulePop(900);
+    App.speak("よーい、スタート！");
+    schedulePop(850);
   }
 
   function popInterval() {
-    // 経過とともにテンポアップ（900ms → 450ms）
-    const elapsed = (Date.now() - whackState.startTime) / 1000;
-    return Math.max(450, 900 - elapsed * 15);
+    const e = (Date.now() - wh.t0) / 1000;
+    return Math.max(430, 850 - e * 15);
   }
 
-  function schedulePop(delay) {
-    if (!whackState.running) return;
-    whackState.popTimerId = setTimeout(() => {
-      if (!whackState.running) return;
-      showWhackKaiju();
+  function schedulePop(d) {
+    if (!wh.running) return;
+    wh.popId = setTimeout(() => {
+      if (!wh.running || !whActive()) return stopWhack();
+      showPop();
       schedulePop(popInterval());
-    }, delay);
+    }, d);
   }
 
-  function showWhackKaiju() {
-    // 前のを引っ込める
-    hideWhackKaiju();
-    let hole;
-    do { hole = Math.floor(Math.random() * 9); } while (hole === whackState.lastHole);
-    whackState.lastHole = hole;
-    whackState.activeHole = hole;
-
+  function showPop() {
+    hidePop();
+    let h;
+    do { h = rnd(9); } while (h === wh.lastHole);
+    wh.lastHole = h; wh.hole = h; wh.hitDone = false;
     const isMinilla = Math.random() < 0.22;
-    let k;
-    if (isMinilla) {
-      k = KAIJU_DATA.find(x => x.id === "minilla");
-    } else {
-      do { k = KAIJU_DATA[Math.floor(Math.random() * KAIJU_DATA.length)]; } while (k.id === "minilla");
-    }
-    whackState.activeKaiju = k;
-    whackState.hit = false;
-
-    const pop = document.getElementById(`whack-pop-${hole}`);
+    wh.k = isMinilla ? KAIJU_DATA.find(x => x.id === "minilla")
+      : (() => { let k; do { k = KAIJU_DATA[rnd(KAIJU_DATA.length)]; } while (k.id === "minilla"); return k; })();
+    const pop = $("wh-pop-" + h);
     if (pop) {
-      pop.innerHTML = `<img src="images/${k.id}-1.jpg" alt="${k.name}" draggable="false">`;
+      pop.innerHTML = `<img src="images/${wh.k.id}-1.jpg" alt="" draggable="false">`;
       pop.classList.add("up");
-      pop.classList.toggle("is-minilla", k.id === "minilla");
+      pop.classList.toggle("minilla", isMinilla);
     }
   }
 
-  function hideWhackKaiju() {
-    if (whackState.activeHole < 0) return;
-    const pop = document.getElementById(`whack-pop-${whackState.activeHole}`);
-    if (pop) { pop.classList.remove("up", "is-minilla", "bonked"); pop.innerHTML = ""; }
-    whackState.activeHole = -1;
-    whackState.activeKaiju = null;
+  function hidePop() {
+    if (wh.hole < 0) return;
+    const pop = $("wh-pop-" + wh.hole);
+    if (pop) { pop.classList.remove("up", "minilla", "bonk"); pop.innerHTML = ""; }
+    wh.hole = -1; wh.k = null;
   }
 
-  function onWhackHole(hole) {
-    if (!whackState.running || whackState.hit) return;
-    if (hole !== whackState.activeHole || !whackState.activeKaiju) return;
-    whackState.hit = true;
-    const k = whackState.activeKaiju;
-    const pop = document.getElementById(`whack-pop-${hole}`);
-    if (pop) pop.classList.add("bonked");
-
-    if (k.id === "minilla") {
-      whackState.score = Math.max(0, whackState.score - 2);
-      playWhackSound(false);
-      showWhackFloat(hole, "-2", true);
+  function hitWhack(h) {
+    if (!wh.running || wh.hitDone || h !== wh.hole || !wh.k) return;
+    wh.hitDone = true;
+    const pop = $("wh-pop-" + h);
+    pop && pop.classList.add("bonk");
+    const hole = document.querySelector(`#whack-body .wh-hole[data-h="${h}"]`);
+    const float = (t, bad) => {
+      if (!hole) return;
+      const f = document.createElement("div");
+      f.className = "wh-float" + (bad ? " bad" : "");
+      f.textContent = t;
+      hole.appendChild(f);
+      setTimeout(() => f.remove(), 750);
+    };
+    if (wh.k.id === "minilla") {
+      wh.score = Math.max(0, wh.score - 2);
+      wh.combo = 0;
+      SFX.boo();
+      float("-2", true);
     } else {
-      whackState.score++;
-      playWhackSound(true);
-      showWhackFloat(hole, "+1", false);
+      const now = Date.now();
+      wh.combo = (now - wh.lastHit < 1300) ? wh.combo + 1 : 1;
+      wh.lastHit = now;
+      const pt = wh.combo >= 3 ? 2 : 1;
+      wh.score += pt;
+      SFX.pop();
+      float("+" + pt);
     }
-    const s = document.getElementById("whack-score");
-    if (s) s.textContent = whackState.score;
-    // すぐ次を出してテンポよく
-    setTimeout(hideWhackKaiju, 180);
-  }
-
-  function showWhackFloat(hole, text, bad) {
-    const holeEl = document.querySelector(`.whack-hole[data-hole="${hole}"]`);
-    if (!holeEl) return;
-    const f = document.createElement("div");
-    f.className = "whack-float" + (bad ? " bad" : "");
-    f.textContent = text;
-    holeEl.appendChild(f);
-    setTimeout(() => f.remove(), 700);
-  }
-
-  function playWhackSound(good) {
-    try {
-      const c = new (window.AudioContext || window.webkitAudioContext)();
-      if (c.state === "suspended") c.resume();
-      const now = c.currentTime + 0.01;
-      const o = c.createOscillator();
-      const g = c.createGain();
-      if (good) {
-        o.type = "sine";
-        o.frequency.setValueAtTime(700, now);
-        o.frequency.exponentialRampToValueAtTime(1300, now + 0.09);
-        g.gain.setValueAtTime(0.3, now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-        o.start(now); o.stop(now + 0.16);
-      } else {
-        o.type = "sawtooth";
-        o.frequency.setValueAtTime(220, now);
-        o.frequency.exponentialRampToValueAtTime(90, now + 0.25);
-        g.gain.setValueAtTime(0.28, now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-        o.start(now); o.stop(now + 0.32);
-      }
-      o.connect(g).connect(c.destination);
-    } catch (e) {}
+    const s = $("wh-score"), c = $("wh-combo");
+    if (s) s.textContent = wh.score;
+    if (c) c.textContent = wh.combo;
+    setTimeout(hidePop, 160);
   }
 
   function endWhack() {
-    stopWhackTimers();
-    hideWhackKaiju();
-    const score = whackState.score;
-    const best = loadWhackBest();
-    const isNewBest = score > best;
-    if (isNewBest) saveWhackBest(score);
-    if (isNewBest) showConfetti();
-    playFanfare(true);
-    window.AppSpeak && window.AppSpeak(isNewBest ? `おしまい！ ${score}てん！ しんきろく、おめでとう！` : `おしまい！ ${score}てん！`);
-
-    document.getElementById("whack-content").innerHTML = `
-      <div class="whack-result">
-        <div class="whack-result-title">おしまい！</div>
-        <div class="whack-result-score">${score}<small>てん</small></div>
-        ${isNewBest
-          ? `<div class="whack-result-best new">🎉 しんきろく！ 🎉</div>`
-          : `<div class="whack-result-best">👑 さいこうきろく: ${Math.max(best, score)}てん</div>`}
-        <button class="quiz-next" id="whack-retry-btn">もういちど！</button>
-      </div>
-    `;
-    document.getElementById("whack-retry-btn").addEventListener("click", () => { startWhack(); });
+    stopWhack();
+    hidePop();
+    const score = wh.score;
+    const best = whackBest();
+    const isBest = score > best;
+    if (isBest) { try { localStorage.setItem(WHACK_BEST_KEY, String(score)); } catch {} }
+    SFX.victory();
+    if (isBest) App.confetti(130);
+    App.addXp(Math.min(30, Math.max(3, score)) + (isBest ? 10 : 0), "かいじゅうたたき おわり！");
+    App.speak(isBest ? `おしまい！ ${score}てん！ しんきろく おめでとう！` : `おしまい！ ${score}てん！`);
+    $("whack-body").innerHTML = `
+      <div class="result-panel">
+        <div class="result-title">おしまい！</div>
+        <div class="result-score">${score}<small> てん</small></div>
+        <div class="${isBest ? "result-xp" : "wh-best"}" style="margin-top:8px">${isBest ? "しんきろく たっせい！" : `さいこうきろく ${Math.max(best, score)}てん`}</div>
+        <div class="btn-row" style="margin-top:16px"><button class="btn warm" id="wh-re">もういちど！</button><button class="btn ghost" id="wh-home">ホームへ</button></div>
+      </div>`;
+    $("wh-re").addEventListener("click", () => { SFX.tap(); openWhack(); });
+    $("wh-home").addEventListener("click", () => { SFX.tap(); App.back(); });
   }
 
-  // ===== エフェクト関数（共通） =====
-  function playFanfare(correct) {
-    try {
-      const c = new (window.AudioContext || window.webkitAudioContext)();
-      if (c.state === "suspended") c.resume();
-      const now = c.currentTime + 0.02;
-      if (correct) {
-        const notes = [523, 659, 784, 1047];
-        notes.forEach((f, i) => {
-          const o = c.createOscillator();
-          const g = c.createGain();
-          o.type = "triangle";
-          o.frequency.value = f;
-          g.gain.setValueAtTime(0.0001, now + i * 0.1);
-          g.gain.linearRampToValueAtTime(0.3, now + i * 0.1 + 0.02);
-          g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
-          o.connect(g).connect(c.destination);
-          o.start(now + i * 0.1);
-          o.stop(now + i * 0.1 + 0.35);
-        });
-      } else {
-        const notes = [400, 300, 200];
-        notes.forEach((f, i) => {
-          const o = c.createOscillator();
-          const g = c.createGain();
-          o.type = "sawtooth";
-          o.frequency.value = f;
-          g.gain.setValueAtTime(0.0001, now + i * 0.18);
-          g.gain.linearRampToValueAtTime(0.25, now + i * 0.18 + 0.02);
-          g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.25);
-          o.connect(g).connect(c.destination);
-          o.start(now + i * 0.18);
-          o.stop(now + i * 0.18 + 0.3);
-        });
-      }
-    } catch (e) {}
+  /* ============================================================
+     ジグソーパズル
+     ============================================================ */
+  let pz = null;
+  const PZ_POOL = ["showa-kingkong", "showa-mothra", "showa-ghidorah", "heisei-biollante", "heisei-mothra", "heisei-ghidorah", "heisei-spacegodzilla", "mothra", "king-ghidorah", "biollante", "kingkong", "ebirah", "manda", "jet-jaguar", "rodan", "godzilla-vs-kong"];
+
+  function openPuzzle() {
+    $("puzzle-body").innerHTML = `
+      <div class="q-question">どの レベルで あそぶ？</div>
+      <div class="pz-levels">
+        <button class="btn" data-n="2">かんたん（4ピース）</button>
+        <button class="btn" data-n="3">ふつう（9ピース）</button>
+        <button class="btn warm" data-n="4">むずかしい（16ピース）</button>
+      </div>`;
+    document.querySelectorAll("#puzzle-body [data-n]").forEach(b => {
+      b.addEventListener("click", () => {
+        SFX.tap();
+        const pool = KAIJU_DATA.filter(k => PZ_POOL.includes(k.id));
+        startPuzzle(pool[rnd(pool.length)], parseInt(b.dataset.n));
+      });
+    });
+    App.show("screen-puzzle");
   }
 
-  function showConfetti() {
-    const emojis = ["🎉", "⭐", "✨", "🎊", "💫", "🏆"];
-    const container = document.createElement("div");
-    container.className = "confetti-container";
-    document.body.appendChild(container);
-    for (let i = 0; i < 30; i++) {
-      const c = document.createElement("div");
-      c.className = "confetti";
-      c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      c.style.left = Math.random() * 100 + "%";
-      c.style.animationDelay = Math.random() * 0.5 + "s";
-      c.style.animationDuration = (1.5 + Math.random()) + "s";
-      c.style.fontSize = (24 + Math.random() * 24) + "px";
-      container.appendChild(c);
+  function startPuzzle(k, n) {
+    const pieces = Array.from({ length: n * n }, (_, i) => ({ correct: i, cur: i }));
+    for (let i = pieces.length - 1; i > 0; i--) {
+      const j = rnd(i + 1);
+      [pieces[i].cur, pieces[j].cur] = [pieces[j].cur, pieces[i].cur];
     }
-    setTimeout(() => container.remove(), 3000);
+    pz = { k, n, pieces, sel: null, moves: 0, t0: Date.now(), done: false };
+    renderPuzzle();
   }
 
-  function shakeScreen(id) {
-    const s = document.getElementById(id || "screen-quiz");
-    if (!s) return;
-    s.classList.add("shake");
-    setTimeout(() => s.classList.remove("shake"), 500);
+  function renderPuzzle() {
+    const { k, n, pieces } = pz;
+    const done = pieces.every(p => p.correct === p.cur);
+    const sec = Math.floor((Date.now() - pz.t0) / 1000);
+    const placed = new Array(n * n);
+    pieces.forEach(p => { placed[p.cur] = p; });
+    const step = n > 1 ? 100 / (n - 1) : 0;
+    $("puzzle-body").innerHTML = `
+      <div class="pz-info"><span>うごかした <b>${pz.moves}</b> かい</span><span>タイム <b>${sec}</b> びょう</span></div>
+      <div class="pz-hint"><img src="images/${k.id}-1.jpg" alt="かんせいず"><span>かんせいず</span></div>
+      <div class="pz-board" style="--n:${n}">
+        ${placed.map((p, i) => {
+          const row = Math.floor(p.correct / n), col = p.correct % n;
+          return `<div class="pz-cell ${p.correct === p.cur ? "ok" : ""} ${pz.sel === i ? "sel" : ""}" data-i="${i}"
+            style="background-image:url('images/${k.id}-1.jpg');background-position:${col * step}% ${row * step}%">
+            <span class="num">${p.correct + 1}</span></div>`;
+        }).join("")}
+      </div>
+      ${done ? `<div class="result-panel">
+          <div class="result-title">かんせい！</div>
+          <div class="result-score">${sec}<small> びょう</small></div>
+          <div class="result-xp">+${n === 2 ? 8 : n === 3 ? 14 : 22} XP</div>
+          <button class="btn" id="pz-re">もういちど</button>
+        </div>` : `<div class="pz-help">いれかえたい 2まいを じゅんばんに タップ</div>`}`;
+    document.querySelectorAll("#puzzle-body .pz-cell").forEach(c =>
+      c.addEventListener("click", () => tapPz(parseInt(c.dataset.i))));
+    const re = $("pz-re");
+    if (re) re.addEventListener("click", () => { SFX.tap(); openPuzzle(); });
   }
 
-  // 公開
-  window.Games = {
-    addStamp, hasStamp, stampCount, loadStamps, viewCount, stampTier,
-    renderStamps, renderCompare,
-    startQuiz, startMemory, startBattle,
-    startRoarQuiz, startWhack, stopWhackTimers,
-    playFanfare, showConfetti
-  };
+  function tapPz(i) {
+    if (pz.done) return;
+    SFX.tap();
+    if (pz.sel === null) pz.sel = i;
+    else if (pz.sel === i) pz.sel = null;
+    else {
+      const a = pz.pieces.find(p => p.cur === i);
+      const b = pz.pieces.find(p => p.cur === pz.sel);
+      [a.cur, b.cur] = [b.cur, a.cur];
+      pz.sel = null;
+      pz.moves++;
+      if (pz.pieces.every(p => p.correct === p.cur)) {
+        pz.done = true;
+        SFX.victory(); App.confetti(120);
+        App.addXp(pz.n === 2 ? 8 : pz.n === 3 ? 14 : 22, "パズル かんせい！");
+        App.speak(`やったね！ ${pz.k.name} かんせい！`);
+      }
+    }
+    renderPuzzle();
+  }
+
+  /* ================= 公開 ================= */
+  window.Games = { openBattle, openQuiz, openRoarQuiz, openMemory, openWhack, openPuzzle };
 })();

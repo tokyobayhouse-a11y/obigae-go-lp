@@ -6,267 +6,250 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ゴジラずかん">
-  <meta name="theme-color" content="#0a0a0a">
+  <meta name="theme-color" content="#070a12">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <title>ゴジラずかん</title>
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
-  <!-- ホーム -->
+  <div class="app-bg"></div>
+
+  <!-- ============ ホーム ============ -->
   <div id="screen-home" class="screen active">
-    <header class="top-header">
-      <h1 class="title">ゴジラずかん</h1>
-      <button class="bgm-btn on" id="bgm-btn" aria-label="BGM">🎵</button>
+    <header class="hd">
+      <div class="icon-btn" style="visibility:hidden"></div>
+      <h1 class="hd-title grad">ゴジラずかん</h1>
+      <button class="icon-btn on" id="bgm-btn" aria-label="BGM"></button>
     </header>
-    <div class="home-content">
-      <div id="daily-godzilla-wrap"></div>
-      <button class="menu-tile menu-big" data-target="zukan">
-        <span class="menu-emoji">📖</span>
-        <span class="menu-name">ずかん</span>
-        <span class="menu-sub">51たい</span>
-      </button>
-      <div class="menu-section-label">🎮 ゲーム</div>
+    <div class="screen-body">
+      <div id="home-prof"></div>
+      <div id="home-hero-wrap"></div>
+
+      <div class="sec-label">あつめる</div>
       <div class="menu-grid">
-        <button class="menu-tile" data-target="quiz-menu">
-          <span class="menu-emoji">❓</span><span class="menu-name">クイズ</span>
+        <button class="tile tile-big" data-target="zukan">
+          <span class="tile-ic" data-icon="book"></span>
+          <span class="tile-tx">
+            <span class="tile-name">ずかん</span>
+            <span class="tile-sub" id="zukan-tile-sub">51たいの かいじゅう</span>
+          </span>
         </button>
-        <button class="menu-tile" data-target="memory-menu">
-          <span class="menu-emoji">🃏</span><span class="menu-name">めくって</span>
-        </button>
-        <button class="menu-tile" data-target="battle-menu">
-          <span class="menu-emoji">⚔️</span><span class="menu-name">バトル</span>
-        </button>
-        <button class="menu-tile" data-target="puzzle">
-          <span class="menu-emoji">🧩</span><span class="menu-name">パズル</span>
-        </button>
-        <button class="menu-tile menu-new" data-target="roarquiz">
-          <span class="menu-emoji">🔊</span><span class="menu-name">なきごえクイズ</span>
-        </button>
-        <button class="menu-tile menu-new" data-target="whack">
-          <span class="menu-emoji">🔨</span><span class="menu-name">かいじゅうたたき</span>
+        <button class="tile tile-big goldy" data-target="gacha">
+          <span class="badge-new">NEW!</span>
+          <span class="tile-ic" data-icon="sparkles"></span>
+          <span class="tile-tx">
+            <span class="tile-name">カードガチャ</span>
+            <span class="tile-sub" id="gacha-tile-sub">1にち 3かい ひける！</span>
+          </span>
         </button>
       </div>
-      <div class="menu-section-label">📚 みる・しる</div>
+
+      <div class="sec-label">あそぶ</div>
       <div class="menu-grid">
-        <button class="menu-tile" data-target="timeline">
-          <span class="menu-emoji">📅</span><span class="menu-name">ねんぴょう</span>
+        <button class="tile warm" data-target="battle">
+          <span class="badge-new">NEW!</span>
+          <span class="tile-ic" data-icon="zap"></span>
+          <span class="tile-tx"><span class="tile-name">バトル</span><span class="tile-sub">わざを えらんで たたかえ</span></span>
         </button>
-        <button class="menu-tile" data-target="family">
-          <span class="menu-emoji">👪</span><span class="menu-name">かんけい</span>
+        <button class="tile" data-target="quiz">
+          <span class="tile-ic" data-icon="quiz"></span>
+          <span class="tile-tx"><span class="tile-name">クイズ</span><span class="tile-sub">これ だーれだ？</span></span>
         </button>
-        <button class="menu-tile" data-target="ranking">
-          <span class="menu-emoji">🏆</span><span class="menu-name">ランキング</span>
+        <button class="tile" data-target="roarquiz">
+          <span class="tile-ic" data-icon="sound"></span>
+          <span class="tile-tx"><span class="tile-name">なきごえクイズ</span><span class="tile-sub">こえで あてよう</span></span>
         </button>
-        <button class="menu-tile" data-target="compare">
-          <span class="menu-emoji">📏</span><span class="menu-name">サイズくらべ</span>
+        <button class="tile" data-target="memory">
+          <span class="tile-ic" data-icon="cards"></span>
+          <span class="tile-tx"><span class="tile-name">めくって</span><span class="tile-sub">ペアを さがそう</span></span>
         </button>
-        <button class="menu-tile" data-target="stamps">
-          <span class="menu-emoji">⭐</span><span class="menu-name">スタンプ</span>
-          <span class="menu-sub" id="stamp-count-label">0たい</span>
+        <button class="tile warm" data-target="whack">
+          <span class="tile-ic" data-icon="hammer"></span>
+          <span class="tile-tx"><span class="tile-name">かいじゅうたたき</span><span class="tile-sub">30びょう しょうぶ</span></span>
         </button>
-        <button class="menu-tile" data-target="zukan-kaiju">
-          <span class="menu-emoji">👾</span><span class="menu-name">かいじゅう</span>
+        <button class="tile" data-target="puzzle">
+          <span class="tile-ic" data-icon="puzzle"></span>
+          <span class="tile-tx"><span class="tile-name">パズル</span><span class="tile-sub">ばらばらを なおそう</span></span>
         </button>
       </div>
-    </div>
-  </div>
 
-  <!-- クイズメニュー（モード選択） -->
-  <div id="screen-quiz-menu" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">クイズ</h2><div class="sub-spacer"></div>
-    </header>
-    <div class="screen-body">
-      <div class="mode-section-label">🎮 モード</div>
-      <button class="big-action-btn" data-quiz-mode="single">
-        <span class="action-emoji">🧑</span>
-        <span>ひとりで あそぶ</span>
-      </button>
-      <button class="big-action-btn p2" data-quiz-mode="2p">
-        <span class="action-emoji">👦👶</span>
-        <span>ふたりで たいせん！</span>
-      </button>
-      <div class="mode-section-label">📊 むずかしさ</div>
-      <div class="diff-row" id="diff-row">
-        <button class="diff-btn active" data-diff="easy">かんたん<br><small>12たい・4たく</small></button>
-        <button class="diff-btn" data-diff="normal">ふつう<br><small>51たい・4たく</small></button>
-        <button class="diff-btn" data-diff="hard">むずかしい<br><small>51たい・6たく</small></button>
+      <div class="sec-label">しらべる</div>
+      <div class="menu-grid">
+        <button class="tile" data-target="timeline">
+          <span class="tile-ic" data-icon="clock"></span>
+          <span class="tile-tx"><span class="tile-name">ねんぴょう</span><span class="tile-sub">70ねんの れきし</span></span>
+        </button>
+        <button class="tile" data-target="family">
+          <span class="tile-ic" data-icon="users"></span>
+          <span class="tile-tx"><span class="tile-name">かんけい</span><span class="tile-sub">なかま と ライバル</span></span>
+        </button>
+        <button class="tile" data-target="ranking">
+          <span class="tile-ic" data-icon="trophy"></span>
+          <span class="tile-tx"><span class="tile-name">ランキング</span><span class="tile-sub">だれが いちばん？</span></span>
+        </button>
+        <button class="tile" data-target="compare">
+          <span class="tile-ic" data-icon="ruler"></span>
+          <span class="tile-tx"><span class="tile-name">サイズくらべ</span><span class="tile-sub">とうきょうタワーと</span></span>
+        </button>
       </div>
+      <div class="empty-note" style="padding:18px 0 4px">ゴジラずかん v20</div>
     </div>
   </div>
 
-  <!-- メモリーメニュー -->
-  <div id="screen-memory-menu" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">めくってあわせる</h2><div class="sub-spacer"></div>
-    </header>
-    <div class="screen-body">
-      <div class="mode-section-label">🎮 モード</div>
-      <button class="big-action-btn" data-mem-mode="single">
-        <span class="action-emoji">🧑</span><span>ひとりで あそぶ</span>
-      </button>
-      <button class="big-action-btn p2" data-mem-mode="2p">
-        <span class="action-emoji">👦👶</span><span>ふたりで たいせん！</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- バトルメニュー -->
-  <div id="screen-battle-menu" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">かいじゅうバトル</h2><div class="sub-spacer"></div>
-    </header>
-    <div class="screen-body">
-      <div class="mode-section-label">🎮 モード</div>
-      <button class="big-action-btn" data-bat-mode="single">
-        <span class="action-emoji">🤖</span><span>コンピューターと たたかう</span>
-      </button>
-      <button class="big-action-btn p2" data-bat-mode="2p">
-        <span class="action-emoji">👦👶</span><span>ふたりで たいせん！</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- ずかん -->
+  <!-- ============ ずかん ============ -->
   <div id="screen-zukan" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">ずかん</h2><div class="sub-spacer"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">ずかん</h2>
+      <div class="hd-side" id="zukan-count"></div>
     </header>
-    <div class="filter-tabs">
-      <button class="filter-tab active" data-filter="all">ぜんぶ</button>
-      <button class="filter-tab" data-filter="godzilla">ゴジラ</button>
-      <button class="filter-tab" data-filter="kaiju">かいじゅう</button>
+    <div class="chips" id="zukan-chips">
+      <button class="chip active" data-filter="all">ぜんぶ</button>
+      <button class="chip" data-filter="godzilla">ゴジラ</button>
+      <button class="chip" data-filter="kaiju">かいじゅう</button>
+      <button class="chip" data-filter="owned">あつめた</button>
+      <button class="chip" data-filter="legend">レジェンド</button>
     </div>
-    <div class="gallery" id="gallery"></div>
+    <div class="screen-body">
+      <div class="gallery" id="gallery"></div>
+    </div>
   </div>
 
-  <!-- 詳細 -->
+  <!-- ============ 詳細 ============ -->
   <div id="screen-detail" class="screen">
-    <header class="detail-header">
-      <button class="back-btn" id="btn-back">←</button>
-      <div class="detail-counter" id="detail-counter"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title" id="detail-title"></h2>
+      <div class="hd-side" id="detail-counter"></div>
     </header>
-    <div class="detail-content" id="detail-content"></div>
+    <div class="screen-body" id="detail-body"></div>
   </div>
 
-  <!-- 全画面ビューア -->
+  <!-- ============ 全画面ビューア ============ -->
   <div id="screen-fullimg" class="screen fullimg-screen">
-    <img id="fullimg" alt="">
-    <button class="fullimg-close" id="btn-fullimg-close">×</button>
+    <img id="fullimg-img" alt="">
+    <button class="icon-btn fullimg-close" id="fullimg-close" data-icon="close" aria-label="とじる"></button>
   </div>
 
-  <!-- クイズ -->
-  <div id="screen-quiz" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="quiz-menu">←</button>
-      <h2 class="sub-title">クイズ</h2>
-      <div class="quiz-score" id="quiz-score">0 / 0</div>
+  <!-- ============ ガチャ ============ -->
+  <div id="screen-gacha" class="screen">
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">カードガチャ</h2>
+      <div class="hd-side" id="gacha-side"></div>
     </header>
-    <div class="screen-body" id="quiz-content"></div>
+    <div class="screen-body" id="gacha-body"></div>
   </div>
 
-  <!-- メモリーゲーム -->
-  <div id="screen-memory" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="memory-menu">←</button>
-      <h2 class="sub-title">めくってあわせる</h2>
-      <div class="memory-score" id="memory-score">0 / 8</div>
-    </header>
-    <div class="screen-body" id="memory-content"></div>
-  </div>
-
-  <!-- バトル -->
+  <!-- ============ バトル ============ -->
   <div id="screen-battle" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="battle-menu">←</button>
-      <h2 class="sub-title">かいじゅうバトル</h2><div class="sub-spacer"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">かいじゅうバトル</h2>
+      <div class="hd-side" id="battle-side"></div>
     </header>
-    <div class="screen-body" id="battle-content"></div>
+    <div class="screen-body" id="battle-body"></div>
   </div>
 
-  <!-- なきごえクイズ -->
+  <!-- ============ シルエットクイズ ============ -->
+  <div id="screen-quiz" class="screen">
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">シルエットクイズ</h2>
+      <div class="hd-side" id="quiz-side"></div>
+    </header>
+    <div class="screen-body" id="quiz-body"></div>
+  </div>
+
+  <!-- ============ なきごえクイズ ============ -->
   <div id="screen-roarquiz" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">なきごえクイズ</h2>
-      <div class="quiz-score" id="roarquiz-score">0 / 0</div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">なきごえクイズ</h2>
+      <div class="hd-side" id="roarquiz-side"></div>
     </header>
-    <div class="screen-body" id="roarquiz-content"></div>
+    <div class="screen-body" id="roarquiz-body"></div>
   </div>
 
-  <!-- かいじゅうたたき -->
+  <!-- ============ めくってあわせ ============ -->
+  <div id="screen-memory" class="screen">
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">めくってあわせ</h2>
+      <div class="hd-side" id="memory-side"></div>
+    </header>
+    <div class="screen-body" id="memory-body"></div>
+  </div>
+
+  <!-- ============ かいじゅうたたき ============ -->
   <div id="screen-whack" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">かいじゅうたたき</h2><div class="sub-spacer"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">かいじゅうたたき</h2>
+      <div class="hd-side"></div>
     </header>
-    <div class="screen-body" id="whack-content"></div>
+    <div class="screen-body" id="whack-body"></div>
   </div>
 
-  <!-- パズル -->
+  <!-- ============ パズル ============ -->
   <div id="screen-puzzle" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">ジグソーパズル</h2><div class="sub-spacer"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">ジグソーパズル</h2>
+      <div class="hd-side"></div>
     </header>
-    <div class="screen-body" id="puzzle-content"></div>
+    <div class="screen-body" id="puzzle-body"></div>
   </div>
 
-  <!-- タイムライン -->
+  <!-- ============ ねんぴょう ============ -->
   <div id="screen-timeline" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">ねんぴょう</h2><div class="sub-spacer"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">ねんぴょう</h2>
+      <div class="hd-side"></div>
     </header>
-    <div class="screen-body" id="timeline-content"></div>
+    <div class="screen-body" id="timeline-body"></div>
   </div>
 
-  <!-- ファミリー -->
+  <!-- ============ かんけい ============ -->
   <div id="screen-family" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">かんけい</h2><div class="sub-spacer"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">かんけいマップ</h2>
+      <div class="hd-side"></div>
     </header>
-    <div class="screen-body" id="family-content"></div>
+    <div class="screen-body" id="family-body"></div>
   </div>
 
-  <!-- ランキング -->
+  <!-- ============ ランキング ============ -->
   <div id="screen-ranking" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">ランキング</h2><div class="sub-spacer"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">ランキング</h2>
+      <div class="hd-side"></div>
     </header>
-    <div class="screen-body" id="ranking-content"></div>
+    <div class="chips" id="rank-chips"></div>
+    <div class="screen-body" id="ranking-body"></div>
   </div>
 
-  <!-- サイズくらべ -->
+  <!-- ============ サイズくらべ ============ -->
   <div id="screen-compare" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">サイズくらべ</h2><div class="sub-spacer"></div>
+    <header class="hd">
+      <button class="icon-btn back-btn" data-icon="back" aria-label="もどる"></button>
+      <h2 class="hd-title">サイズくらべ</h2>
+      <div class="hd-side"></div>
     </header>
-    <div class="screen-body" id="compare-content"></div>
+    <div class="screen-body" id="compare-body"></div>
   </div>
 
-  <!-- スタンプ帳 -->
-  <div id="screen-stamps" class="screen">
-    <header class="sub-header">
-      <button class="back-btn" data-back="home">←</button>
-      <h2 class="sub-title">スタンプ帳</h2><div class="sub-spacer"></div>
-    </header>
-    <div class="screen-body" id="stamps-content"></div>
-  </div>
-
-  <script src="data.js?v=12"></script>
-  <script src="roar.js?v=12"></script>
-  <script src="bgm.js?v=12"></script>
-  <script src="games.js?v=12"></script>
-  <script src="extras.js?v=12"></script>
-  <script src="app.js?v=12"></script>
+  <script src="data.js?v=20"></script>
+  <script src="data-stats.js?v=20"></script>
+  <script src="sfx.js?v=20"></script>
+  <script src="roar.js?v=20"></script>
+  <script src="bgm.js?v=20"></script>
+  <script src="app.js?v=20"></script>
+  <script src="games.js?v=20"></script>
+  <script src="extras.js?v=20"></script>
 </body>
 </html>
