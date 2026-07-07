@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>物出管理 | 入力GO!!</title>
+<link rel="icon" type="image/png" href="nyuryoku_go_icon128.png">
+<link rel="apple-touch-icon" href="nyuryoku_go_icon128.png">
+<style>
+  :root{
+    --navy:#0C4A68; --navy-light:#14617F; --navy-deep:#08384F; --navy-bg:#eef5f8;
+    --accent:#FFA704; --accent-bg:#fff3de;
+    --gray-50:#fbfcfd; --gray-100:#f7f8fa; --gray-200:#edf1f4; --gray-300:#dce3ea;
+    --gray-400:#9aa7b3; --gray-500:#667382; --gray-600:#50606f; --gray-700:#2f3f4f; --gray-900:#17212b;
+    --ok:#11985D; --ok-bg:#e7f7ef; --danger:#c7342b; --danger-bg:#fcecea;
+    --blue:#276ef1; --blue-bg:#eaf2ff; --green:#0f9f78; --green-bg:#e8f7f2;
+    --line:#d9e1e8; --line-strong:#c7d4df; --surface:#fff; --page:#f7f8fa;
+    --shadow-sm:0 1px 2px rgba(12,74,104,.08); --shadow-md:0 8px 20px rgba(22,41,54,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  /* overflow-x:hidden は祖先に付くと position:sticky を殺す(topbar/theadが追従しなくなる)。clipはスクロール枠を作らないのでsticky併用可 */
+  html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;}
+  body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;color:var(--gray-900);background:var(--page);-webkit-font-smoothing:antialiased;font-size:13px;line-height:1.45;letter-spacing:0;}
+  button,input,textarea{font:inherit;}
+
+  /* ヘッダー */
+  .topbar{background:#fff;color:var(--gray-900);position:sticky;top:0;z-index:30;border-bottom:1px solid var(--line);box-shadow:inset 0 -3px 0 var(--accent);}
+  .topbar .inner{max-width:none;margin:0 auto;padding:10px 18px;min-height:60px;display:flex;align-items:center;gap:16px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:18px;letter-spacing:0;white-space:nowrap;}
+  .brand-logo{width:38px;height:38px;display:block;flex:0 0 auto;border-radius:9px;background:#fff;object-fit:cover;box-shadow:0 5px 14px rgba(12,74,104,.14);}
+  .brand-text{display:inline-flex;align-items:baseline;gap:7px;min-width:0;}
+  .brand .go{color:var(--navy);font-weight:950;}
+  .brand .bang{color:var(--accent);}
+  .brand .sub{font-size:12px;font-weight:900;color:var(--gray-500);letter-spacing:0;}
+  .topbar .spacer{flex:1;}
+  .company{font-size:12px;color:var(--gray-500);font-weight:700;}
+  .company b{color:var(--gray-900);font-weight:900;}
+
+  /* ツールバー */
+  .toolbar{max-width:none;margin:0 auto;padding:10px 18px;min-height:56px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--line);}
+  .count{min-width:96px;font-weight:900;color:var(--navy);font-size:13px;white-space:nowrap;}
+  .count .n{font-size:26px;line-height:1;letter-spacing:0;}
+  .search{flex:1;min-width:240px;max-width:520px;position:relative;}
+  .search input{width:100%;height:36px;padding:0 12px 0 36px;border:1px solid var(--line-strong);border-radius:8px;font-size:13px;background:#fff;color:var(--gray-900);outline:none;box-shadow:var(--shadow-sm);}
+  .search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,167,4,.16);}
+  .search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--gray-400);}
+  .btn{height:34px;border:1px solid var(--line);background:#fff;color:var(--gray-700);border-radius:8px;padding:0 12px;font-size:12px;font-weight:850;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;box-shadow:var(--shadow-sm);}
+  .btn:hover{background:var(--gray-50);}
+  .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 8px 18px rgba(12,74,104,.14);}
+  .btn.primary:hover{background:var(--navy-light);}
+  .updated{font-size:12px;color:var(--gray-500);font-weight:750;}
+
+  /* テーブル */
+  .wrap{max-width:none;margin:12px auto 60px;padding:0 18px;}
+  /* overflow:hidden だと祖先がクリップ枠になり thead の sticky が効かない(前回「1行目が隠れる」で外した原因)。visibleにして角丸はth側で再現 */
+  .card{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:visible;box-shadow:none;}
+  table{width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0;}
+  th:nth-child(1),td:nth-child(1){width:14%;}
+  th:nth-child(2),td:nth-child(2){width:5.5%;}
+  th:nth-child(3),td:nth-child(3){width:5%;}
+  th:nth-child(4),td:nth-child(4){width:4%;}
+  th:nth-child(5),td:nth-child(5){width:8%;}
+  th:nth-child(6),td:nth-child(6){width:6%;}
+  th:nth-child(7),td:nth-child(7){width:5%;}
+  th:nth-child(8),td:nth-child(8){width:3.5%;}
+  th:nth-child(9),td:nth-child(9){width:3.5%;}
+  th:nth-child(10),td:nth-child(10){width:11%;}
+  th:nth-child(11),td:nth-child(11){width:6%;}
+  th:nth-child(12),td:nth-child(12){width:3.5%;}
+  th:nth-child(13),td:nth-child(13){width:4.5%;}
+  th:nth-child(14),td:nth-child(14){width:6.5%;}
+  th:nth-child(15),td:nth-child(15){width:6.5%;}
+  th:nth-child(16),td:nth-child(16){width:5.5%;}
+  th:nth-child(17),td:nth-child(17){width:3%;}
+  /* 担当者プルダウン */
+  .assignee select{width:100%;border:1px solid var(--line);border-radius:6px;padding:5px 4px;font-size:11.5px;background:var(--gray-50);color:#243240;font-weight:700;cursor:pointer;}
+  .assignee select:focus{border-color:var(--accent);background:#fff;outline:none;}
+  /* 項目行はスクロール追従(寺島さん要望2026-07-02)。top=61px はsticky状態の.topbar実測高。z-indexはtopbar(30)より下・セルより上 */
+  thead th{background:#f4f6f8;color:#263a4a;font-size:10.5px;line-height:1.25;font-weight:900;text-align:left;padding:8px 6px;border-bottom:1px solid var(--line-strong);border-right:1px solid #e7ecf0;white-space:normal;overflow-wrap:anywhere;vertical-align:middle;position:sticky;top:61px;z-index:20;}
+  thead th:first-child{border-top-left-radius:8px;}
+  thead th:last-child{border-top-right-radius:8px;}
+  tbody td{position:relative;padding:8px 6px;border-bottom:1px solid var(--line);border-right:1px solid #eef2f5;vertical-align:middle;background:#fff;color:#253241;overflow-wrap:anywhere;}
+  thead th:last-child,tbody td:last-child{border-right:0;}
+  /* 削除列(最終列)に幅を確保。これが無いと列数が多い時(メモ列追加で18列)に幅を配分し切って削除列が0pxになり、削除ボタンが見切れる(2026-06-29修正)。グループ見出し行(colspan)は対象外。 */
+  #table thead th:last-child,#table tbody tr:not(.grp) td:last-child{width:38px;min-width:38px;text-align:center;}
+  tbody tr:nth-child(even) td{background:#fff;}
+  tbody tr:hover td{background:#f9fcfd;}
+  tbody tr:last-child td{border-bottom:0;}
+  tbody tr.status-ready td:first-child{box-shadow:inset 4px 0 0 var(--ok);}
+  tbody tr.status-pending td:first-child{box-shadow:inset 4px 0 0 var(--accent);}
+  tbody tr.status-locked td:first-child{box-shadow:inset 4px 0 0 var(--danger);}
+  /* 申込ON=取引中→行をグレーアウト(チェックや削除など操作自体は可能) */
+  tbody tr.row-applied td{background:#eef1f3;color:#9aa7b3;}
+  tbody tr.row-applied .c-name a{color:#8a96a3;text-decoration:line-through;}
+  tbody tr.row-applied .c-name .addr,tbody tr.row-applied .rent,tbody tr.row-applied .rent .man,tbody tr.row-applied .agent,tbody tr.row-applied .agent .tel,tbody tr.row-applied .date{color:#9aa7b3;}
+  tbody tr.row-applied .src{opacity:.5;}
+  /* 反映日グループ見出し(クリックで折りたたみ) */
+  tbody tr.grp td{background:#e8eef3;color:var(--navy);font-weight:900;font-size:12.5px;padding:9px 11px;cursor:pointer;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);}
+  tbody tr.grp:hover td{background:#dde7ee;}
+  tbody tr.grp.grp-unrefl td{background:#fff3de;color:#7a4a00;}
+  tbody tr.grp.grp-unrefl:hover td{background:#ffe9c6;}
+  tbody tr.grp .caret{display:inline-block;width:16px;color:inherit;}
+  tbody tr.grp .grp-n{color:var(--gray-500);font-weight:700;font-size:11px;margin-left:8px;}
+  .c-name{padding-left:11px!important;}
+  /* 図面リンク(Drive保存済みのマイソクPDF・渡辺さん要望2026-07-06)。取込がURLを記録した物件だけに出る */
+  .c-name .zlink{display:inline-block;margin-top:3px;font-size:10px;font-weight:800;color:#1f4e8c;text-decoration:none;border:1px solid rgba(31,78,140,.35);border-radius:5px;padding:1px 6px;background:#f4f8fd;}
+  .c-name .zlink:hover{background:#e8f0fa;}
+  .c-name a{display:block;color:var(--navy);font-weight:900;text-decoration:none;font-size:12.5px;line-height:1.35;overflow-wrap:anywhere;}
+  .c-name a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
+  .c-name .addr{color:#71808f;font-size:11px;font-weight:650;margin-top:3px;line-height:1.35;}
+  .src{display:inline-flex;align-items:center;justify-content:center;min-height:23px;font-size:9.5px;font-weight:900;padding:3px 6px;border-radius:5px;letter-spacing:0;line-height:1.2;white-space:nowrap;}
+  .src.atbb{background:var(--blue-bg);color:#1558a7;box-shadow:inset 0 0 0 1px rgba(39,110,241,.12);}
+  .src.itandi{background:var(--danger-bg);color:#c0362e;box-shadow:inset 0 0 0 1px rgba(199,52,43,.12);}
+  .src.reins{background:var(--ok-bg);color:#23714d;box-shadow:inset 0 0 0 1px rgba(17,152,93,.12);}
+  .src.other{background:var(--gray-100);color:var(--gray-600);}
+  .rent{font-size:13.5px;font-weight:950;color:#151e28;white-space:nowrap;}
+  .rent .man{font-size:10px;color:var(--gray-500);font-weight:800;}
+  .agent{font-size:11.5px;color:#354352;font-weight:750;line-height:1.45;}
+  .agent .tel{color:var(--navy-light);font-size:11.5px;font-weight:800;}
+  .chk{text-align:center;}
+  .chk input{width:18px;height:18px;cursor:pointer;accent-color:var(--navy);}
+  /* 申込／掲載不可 プルダウン(2026-07-06 寺島さん要望で申込チェックボックスを置換) */
+  .applysel{text-align:center;}
+  .applysel select{width:100%;min-width:62px;border:1px solid var(--line);border-radius:6px;padding:5px 3px;font-size:11px;background:var(--gray-50);color:#243240;font-weight:800;cursor:pointer;}
+  .applysel select:focus{border-color:var(--accent);background:#fff;outline:none;}
+  .memo textarea{width:100%;min-width:0;min-height:30px;border:1px solid var(--line);border-radius:6px;padding:6px 7px;font-size:11.5px;line-height:1.45;background:var(--gray-50);color:#243240;font-weight:700;outline:none;resize:none;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap;}
+  .memo textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(255,167,4,.16);}
+  /* 検証メモ(アドマス非連携・社内メモと区別するためアンバー系) */
+  .vnote textarea{width:100%;min-width:0;min-height:30px;border:1px solid #f0d9a8;border-radius:6px;padding:6px 7px;font-size:11.5px;line-height:1.45;background:#fffaf0;color:#7a5b1e;font-weight:700;outline:none;resize:none;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap;}
+  .vnote textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(255,167,4,.16);}
+  .vnote textarea::placeholder{color:#c9a96a;}
+  .admas a{color:var(--navy);font-weight:900;text-decoration:none;font-size:12px;}
+  .admas a:hover{color:var(--accent);text-decoration:underline;text-underline-offset:3px;}
+  .admas .none{color:var(--gray-400);font-size:11.5px;font-weight:800;}
+  /* アドマス反映後=詳細ページへのボタン(目立たせる) */
+  .admas a.admas-link{display:inline-block;background:var(--navy);color:#fff;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap;}
+  .admas a.admas-link:hover{background:var(--accent);color:#fff;text-decoration:none;}
+  .date{color:var(--gray-500);font-size:10.5px;font-weight:750;line-height:1.25;white-space:normal;}
+  .del{width:25px;height:25px;color:var(--gray-400);background:none;border:0;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;}
+  .del:hover{color:var(--danger);background:var(--danger-bg);}
+  .del svg{width:15px;height:15px;}
+  /* SUUMO点数 */
+  .score input{width:100%;max-width:50px;height:30px;border:1px solid var(--line);border-radius:6px;padding:5px 4px;font-size:13px;text-align:center;background:var(--gray-50);font-weight:900;color:var(--navy);outline:none;}
+  .score input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(255,167,4,.16);}
+  /* SUUMO名寄せ点数 33点以下=赤で目立たせる(34点以上が目標・写真改善の対象が一目で分かる・寺島さん要望2026-06-30) */
+  .score.low input{background:var(--danger-bg);color:var(--danger);border-color:rgba(199,52,43,.5);font-weight:900;}
+  /* 写真を他サイトで探す(Phase A・寺島さん要望2026-07-02): 写真なし/33点以下の物件に表示。押すと物件名をコピーして対象サイトを開く */
+  .find-wrap{margin-top:4px;display:flex;flex-direction:column;gap:3px;align-items:stretch;}
+  .find-cap{font-size:8.5px;color:var(--gray-500);font-weight:900;text-align:center;}
+  .find-btn{height:20px;font-size:9px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#4a6b8a;border-radius:5px;cursor:pointer;padding:0 3px;line-height:1;}
+  .find-btn:hover{border-color:var(--navy);color:var(--navy);background:var(--gray-50);}
+  /* 反映結果(要手動/エラー)の表示。一括反映のエラー物件と理由が管理画面で一目で分かる(渡辺さん要望2026-06-30) */
+  .rres{margin-top:4px;border-radius:5px;padding:3px 5px;font-size:10px;font-weight:900;line-height:1.35;}
+  .rres.err{color:var(--danger);background:var(--danger-bg);border:1px solid rgba(199,52,43,.25);}
+  .rres.info{color:#5a6b7a;background:var(--gray-50);border:1px solid var(--line);font-weight:700;}
+  .rres-note{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-weight:700;font-size:9.5px;margin-top:2px;}
+  .rres.err .rres-note{color:#8a4a44;}
+  /* 掲載5媒体トグル */
+  .pt-wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;}
+  .pt{width:100%;min-width:0;height:22px;font-size:9.5px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#8d99a6;border-radius:5px;padding:0 4px;cursor:pointer;line-height:1.2;letter-spacing:0;transition:all .12s;white-space:nowrap;}
+  .pt:hover{border-color:var(--gray-400);}
+  .pt.on{color:#fff;border-color:transparent;}
+  .pt.on.suumo{background:#17a65a;} .pt.on.homes{background:#f16f32;} .pt.on.athome{background:#0d9e92;} .pt.on.reblo{background:var(--navy);} .pt.on.reins{background:#576574;}
+  /* 非掲載トグル */
+  .hd-wrap{display:flex;justify-content:center;gap:3px;}
+  .hd{width:22px;height:24px;font-size:10.5px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#8d99a6;border-radius:5px;padding:0;cursor:pointer;transition:all .12s;}
+  .hd:hover{border-color:var(--gray-400);}
+  .hd.on{background:var(--danger);color:#fff;border-color:transparent;}
+  /* 並べ替え見出し */
+  th.sortable{cursor:pointer;user-select:none;}
+  th.sortable:hover{background:#eef3f6;}
+  th.sortable .ar{color:#7b92a2;font-size:9px;margin-left:2px;}
+  th.sortable.asc .ar,th.sortable.desc .ar{color:var(--navy);}
+
+  /* 空状態・ゲート */
+  .empty{padding:60px 20px;text-align:center;color:var(--gray-500);}
+  .empty h3{color:var(--gray-700);font-size:16px;margin-bottom:6px;}
+  .gate{max-width:430px;margin:80px auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px;box-shadow:0 24px 60px rgba(12,33,43,.14);}
+  .gate-brand{display:flex;align-items:center;gap:14px;margin-bottom:22px;color:var(--navy);font-size:22px;font-weight:950;}
+  .gate-logo{width:62px;height:62px;display:block;border-radius:15px;object-fit:cover;box-shadow:0 10px 28px rgba(12,74,104,.16);}
+  .gate .bang{color:var(--accent);}
+  .gate .sub{font-size:12px;color:#6c8391;font-weight:900;}
+  .gate h2{color:#1f2b38;font-size:20px;margin-bottom:6px;}
+  .gate p{color:var(--gray-500);font-size:12px;font-weight:700;margin-bottom:20px;line-height:1.75;}
+  .gate label{display:block;font-size:12px;font-weight:900;color:#334252;margin-bottom:7px;}
+  .gate input{width:100%;height:42px;padding:0 12px;border:1px solid var(--line-strong);border-radius:9px;font-size:14px;margin-bottom:14px;outline:none;background:#fff;}
+  .gate input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,167,4,.16);}
+  .gate .btn{width:100%;justify-content:center;height:42px;font-size:13px;}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#142332;color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;font-weight:850;box-shadow:0 18px 36px rgba(12,24,33,.26);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+  .toast.err{background:var(--danger);}
+  .modal-bg{position:fixed;inset:0;background:rgba(14,27,36,.42);display:none;align-items:center;justify-content:center;z-index:60;backdrop-filter:blur(4px);}
+  .modal-bg.show{display:flex;}
+  .modal{background:#fff;border:1px solid rgba(255,255,255,.64);border-radius:15px;padding:22px;max-width:420px;width:90%;box-shadow:0 24px 60px rgba(12,33,43,.18);}
+  .modal h3{font-size:17px;color:#182430;margin-bottom:6px;}
+  .modal p{font-size:12px;color:var(--gray-500);font-weight:700;line-height:1.75;margin-bottom:20px;}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end;}
+  .modal .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff;}
+  .modal .btn.danger:hover{background:#a93226;}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  .loading{padding:50px;text-align:center;color:var(--gray-500);}
+  @media(max-width:900px){
+    .topbar .inner,.toolbar{padding-left:12px;padding-right:12px;}
+    .topbar .inner,.toolbar{flex-wrap:wrap;}
+    .brand{width:100%;}
+    .company{flex:1;}
+    .search{flex:1 1 100%;max-width:none;min-width:0;}
+    .updated{width:100%;}
+    .wrap{padding:0 12px;margin-top:12px;}
+    .card{overflow:visible;}
+    #table[style*="display: table"]{display:block!important;}
+    #table[style*="display: table"] thead{display:none;}
+    #table[style*="display: table"] tbody,#table[style*="display: table"] tr,#table[style*="display: table"] td{display:block;width:100%!important;}
+    #table[style*="display: table"] tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;padding:12px;border-bottom:1px solid var(--line);}
+    #table[style*="display: table"] tr.status-ready{border-left:4px solid var(--ok);}
+    #table[style*="display: table"] tr.status-pending{border-left:4px solid var(--accent);}
+    #table[style*="display: table"] tr.status-locked{border-left:4px solid var(--danger);}
+    #table[style*="display: table"] td{padding:0!important;border:0;background:transparent!important;box-shadow:none!important;}
+    #table[style*="display: table"] td::before{display:block;margin-bottom:3px;color:#71808f;font-size:10px;line-height:1.2;font-weight:900;}
+    #table[style*="display: table"] td:nth-child(1),#table[style*="display: table"] td:nth-child(9),#table[style*="display: table"] td:nth-child(13){grid-column:1/-1;}
+    #table[style*="display: table"] td:nth-child(1)::before{content:"物件名 / 所在地";}
+    #table[style*="display: table"] td:nth-child(2)::before{content:"引用元";}
+    #table[style*="display: table"] td:nth-child(3)::before{content:"賃料";}
+    #table[style*="display: table"] td:nth-child(4)::before{content:"間取り";}
+    #table[style*="display: table"] td:nth-child(5)::before{content:"元付業者";}
+    #table[style*="display: table"] td:nth-child(6)::before{content:"SUUMO点数";}
+    #table[style*="display: table"] td:nth-child(7)::before{content:"空き確認";}
+    #table[style*="display: table"] td:nth-child(8)::before{content:"申込/掲載不可";}
+    #table[style*="display: table"] td:nth-child(9)::before{content:"掲載（許可が取れた媒体）";}
+    #table[style*="display: table"] td:nth-child(10)::before{content:"非掲載";}
+    #table[style*="display: table"] td:nth-child(11)::before{content:"反映する";}
+    #table[style*="display: table"] td:nth-child(12)::before{content:"アドマス";}
+    #table[style*="display: table"] td:nth-child(13)::before{content:"社内メモ";}
+    #table[style*="display: table"] td:nth-child(14)::before{content:"取込日";}
+    #table[style*="display: table"] td:nth-child(15)::before{content:"削除";}
+    .pt-wrap{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .chk,.hd-wrap{text-align:left;justify-content:flex-start;}
+    .score input{width:58px;}
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <span class="brand">
+        <img class="brand-logo" src="nyuryoku_go_icon128.png" alt="入力GO!!">
+        <span class="brand-text">入力<span class="go">GO</span><span class="bang">!!</span> <span class="sub">物出管理</span></span>
+      </span>
+      <span class="spacer"></span>
+      <span class="company" id="companyLabel"></span>
+      <button class="btn" id="btnSettings" title="合言葉を変更">設定</button>
+    </div>
+  </div>
+
+  <!-- 合言葉ゲート -->
+  <div id="gate" class="gate" style="display:none;">
+    <div class="gate-brand">
+      <img class="gate-logo" src="nyuryoku_go_icon128.png" alt="入力GO!!">
+      <div>入力 <span>GO</span><span class="bang">!!</span> <span class="sub">物出管理</span></div>
+    </div>
+    <h2>物出管理にログイン</h2>
+    <p>拡張機能と同じ<b>合言葉</b>を入力してください。この端末にだけ保存され、次回から省略できます。</p>
+    <label for="tokenInput">合言葉</label>
+    <input type="password" id="tokenInput" placeholder="合言葉" autocomplete="off">
+    <button class="btn primary" id="btnEnter">開く</button>
+  </div>
+
+  <!-- 本体 -->
+  <div id="app" style="display:none;">
+    <div class="toolbar">
+      <span class="count"><span class="n" id="count">0</span> 件</span>
+      <span class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="search" placeholder="物件名・所在地・元付で絞り込み">
+      </span>
+      <button class="btn primary" id="btnReload"><span id="reloadIcon">↻</span> 更新</button>
+      <span class="updated" id="updated"></span>
+    </div>
+
+    <div class="wrap">
+      <div class="card">
+        <div id="loading" class="loading"><span class="spin" style="border-top-color:var(--navy);border-color:var(--gray-300);border-top-color:var(--navy);"></span> 読み込み中…</div>
+        <table id="table" style="display:none;">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="name">物件名 / 所在地<span class="ar"></span></th>
+              <th class="sortable" data-sort="source">引用元<span class="ar"></span></th>
+              <th class="sortable" data-sort="rent">賃料<span class="ar"></span></th>
+              <th>間取り</th>
+              <th class="sortable" data-sort="agent_company">元付業者<span class="ar"></span></th>
+              <th class="sortable" data-sort="assignee">担当者<span class="ar"></span></th>
+              <th class="sortable" data-sort="suumo_score">SUUMO<br>点数<span class="ar"></span></th>
+              <th class="chk">空き<br>確認</th>
+              <th class="applysel-th">申込／<br>掲載不可</th>
+              <th>掲載（許可が取れた媒体）</th>
+              <th>非掲載</th>
+              <th class="chk">反映<br>する</th>
+              <th>アドマス</th>
+              <th>社内メモ</th>
+              <th>メモ<br><span style="font-weight:600;color:var(--gray-400);font-size:9px">アドマス一覧に表示</span></th>
+              <th>検証メモ<br><span style="font-weight:600;color:var(--gray-400);font-size:9px">アドマス非連携</span></th>
+              <th class="sortable" data-sort="imported_at">取込日<span class="ar"></span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div id="empty" class="empty" style="display:none;">
+          <h3>まだ物件がありません</h3>
+          <p>拡張機能「入力GO!!」の一覧ページで「アドマス取込」を押すと、ここに物件がたまっていきます。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 確認モーダル(native confirmの代わり=自動操作も可・統一デザイン) -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <h3>削除の確認</h3>
+      <p id="modalMsg"></p>
+      <div class="row">
+        <button class="btn" id="modalCancel">キャンセル</button>
+        <button class="btn danger" id="modalOk">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  // ===== 設定 =====
+  var API_URL = "https://qtbtnunmrhtjrotwimbw.supabase.co/functions/v1/admas-intake";
+  var COMPANY = "東京ベイハウス";               // 自社運用フェーズの会社名(商品化でログイン会社に切替)
+  var TOKEN_KEY = "admas_intake_token";          // 合言葉の保存先(この端末のみ)
+
+  // ===== 状態 =====
+  var token = localStorage.getItem(TOKEN_KEY) || "";
+  var rows = [];               // サーバーから取得した全物件
+  var filter = "";             // 検索語
+  var sortKey = "imported_at"; // 並べ替えの基準列
+  var sortDir = "desc";        // "asc"(昇順) | "desc"(降順)
+  var STR_SORT = {name:1, source:1, agent_company:1, assignee:1}; // 文字列で並べ替える列(他は数値/日付)
+  // 担当者プルダウンの選択肢(アドマスの担当者プルダウンと一致・transform §16bが名前→user_idに変換)
+  var STAFF = ["寺島考一郎","古東進一","小堀恵理","鈴木麻優子","渡辺由佳","川嶋結希"];
+  // 掲載5媒体(リブロ＝自社ホームページ)。スキーマの listings.portal と一致。
+  var PORTALS = [["suumo","SUUMO"],["homes","HOME'S"],["athome","at home"],["reblo","リブロ"],["reins","レインズ"]];
+  // 非掲載フラグ(物件名・住所・号室)
+  var HIDES = [["hide_name","名","物件名を非掲載にする"],["hide_address","住","住所を非掲載にする"],["hide_room","号","号室を非掲載にする"]];
+
+  // ===== DOM =====
+  var $ = function(id){ return document.getElementById(id); };
+  var gate=$("gate"), app=$("app");
+
+  // ===== API =====
+  function api(action, extra){
+    var body = Object.assign({ token: token, company: COMPANY, action: action }, extra || {});
+    return fetch(API_URL, {
+      method:"POST",
+      headers:{ "Content-Type":"text/plain" },   // CORS preflightを起こさない形
+      body: JSON.stringify(body)
+    }).then(function(res){
+      return res.json().catch(function(){ return { error:"応答を解釈できません(HTTP "+res.status+")" }; })
+        .then(function(j){
+          if(res.status===401) { var e=new Error("合言葉が違います"); e.unauth=true; throw e; }
+          if(!res.ok || (j && j.ok===false) || (j && j.error)) throw new Error((j&&j.error)||("エラー(HTTP "+res.status+")"));
+          return j;
+        });
+    });
+  }
+
+  // ===== 表示ヘルパー =====
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+  function yen(n){
+    if(typeof n!=="number"||!isFinite(n)) return '<span style="color:var(--gray-400);font-size:11.5px;">—</span>';
+    if(n>=10000){ var man=(n/10000); var t=(man%1===0)?man.toFixed(0):man.toFixed(1); return t+'<span class="man">万円</span>'; }
+    return n.toLocaleString()+'<span class="man">円</span>';
+  }
+  function srcBadge(s){
+    var map={atbb:["atbb","ATBB"],itandi:["itandi","イタンジBB"],reins:["reins","レインズ"]};
+    var m=map[s]; if(!m) return '<span class="src other">'+esc(s||"—")+'</span>';
+    return '<span class="src '+m[0]+'">'+m[1]+'</span>';
+  }
+  function fmtDate(iso){
+    if(!iso) return "—";
+    var d=new Date(iso); if(isNaN(d)) return "—";
+    var mm=("0"+(d.getMonth()+1)).slice(-2), dd=("0"+d.getDate()).slice(-2);
+    var hh=("0"+d.getHours()).slice(-2), mi=("0"+d.getMinutes()).slice(-2);
+    return (d.getFullYear())+"/"+mm+"/"+dd+"<br><span style='color:var(--gray-400)'>"+hh+":"+mi+"</span>";
+  }
+  // listings配列 → { suumo:true, reblo:false, ... } の形に
+  function portalsOf(p){ var m={}; (p.listings||[]).forEach(function(l){ m[l.portal]=!!l.listed; }); return m; }
+  function isHiddenAny(p){ return !!(p.hide_name || p.hide_address || p.hide_room); }
+  function rowStatus(p){
+    if(p.application || isHiddenAny(p)) return "status-locked";
+    if(p.vacancy_check) return "status-ready";
+    return "status-pending";
+  }
+  function applyRowStatus(tr, p){
+    tr.classList.remove("status-ready","status-pending","status-locked");
+    tr.classList.add(rowStatus(p));
+    tr.classList.toggle("row-applied", !!p.application); // 申込ON=行をグレーアウト
+  }
+  function resizeMemo(el){
+    if(!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }
+  // 並べ替え(数値・日付は未設定を常に末尾、物件名は日本語順)
+  function sortList(arr){
+    var dir = sortDir==="asc" ? 1 : -1;
+    return arr.slice().sort(function(a,b){
+      if(STR_SORT[sortKey]){
+        var sa=String(a[sortKey]||""), sb=String(b[sortKey]||"");
+        if(!sa&&!sb) return 0; if(!sa) return 1; if(!sb) return -1; // 空は常に末尾
+        return sa.localeCompare(sb,"ja")*dir;
+      }
+      var va=a[sortKey], vb=b[sortKey];
+      if(sortKey==="imported_at"){ va=va?new Date(va).getTime():null; vb=vb?new Date(vb).getTime():null; }
+      var na=(typeof va==="number"&&isFinite(va)), nb=(typeof vb==="number"&&isFinite(vb));
+      if(!na&&!nb) return 0; if(!na) return 1; if(!nb) return -1; // 未設定は常に末尾
+      return (va-vb)*dir;
+    });
+  }
+  function updateSortUI(){
+    Array.prototype.forEach.call(document.querySelectorAll('th.sortable'), function(th){
+      var k=th.getAttribute("data-sort"), ar=th.querySelector(".ar");
+      th.classList.remove("asc","desc");
+      if(k===sortKey){ th.classList.add(sortDir); ar.textContent = sortDir==="asc"?"▲":"▼"; }
+      else { ar.textContent="↕"; }
+    });
+  }
+
+  // ===== 描画 =====
+  // ===== 反映日グループ(未反映を上に、反映日ごとに新しい順・折りたたみ) =====
+  var collapsedState = {}; // key -> true(畳む)/false(開く)。未設定はデフォルト(未反映=開く/反映日=畳む)
+  function dayKey(iso){
+    if(!iso) return null; var d=new Date(iso); if(isNaN(d)) return null;
+    return d.getFullYear()+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+("0"+d.getDate()).slice(-2);
+  }
+  function groupByReflected(list){
+    var un=[], map={};
+    list.forEach(function(p){ var k=dayKey(p.reflected_at); if(!k) un.push(p); else (map[k]=map[k]||[]).push(p); });
+    var groups=[];
+    if(un.length) groups.push({ key:"未反映", label:"未反映", items:un });
+    Object.keys(map).sort().reverse().forEach(function(k){ groups.push({ key:k, label:k+" 反映", items:map[k] }); });
+    return groups;
+  }
+  function isCollapsed(key){ return (key in collapsedState) ? collapsedState[key] : (key!=="未反映"); }
+
+  function render(){
+    updateSortUI();
+    var f=filter.trim().toLowerCase();
+    var list = !f ? rows : rows.filter(function(p){
+      return [p.name,p.address,p.agent_company].some(function(v){ return String(v||"").toLowerCase().indexOf(f)>=0; });
+    });
+    $("count").textContent = list.length + (f && list.length!==rows.length ? " / "+rows.length : "");
+    var tb=$("tbody"); tb.innerHTML="";
+    $("loading").style.display="none";
+    if(rows.length===0){ $("table").style.display="none"; $("empty").style.display="block"; return; }
+    $("empty").style.display="none"; $("table").style.display="table";
+
+    groupByReflected(list).forEach(function(g){
+      var collapsed=isCollapsed(g.key);
+      var htr=document.createElement("tr");
+      htr.className="grp"+(g.key==="未反映"?" grp-unrefl":"");
+      htr.innerHTML='<td colspan="18"><span class="caret">'+(collapsed?"▶":"▼")+'</span>'+esc(g.label)+'<span class="grp-n">'+g.items.length+'件</span></td>';
+      htr.addEventListener("click", function(){ collapsedState[g.key]=!isCollapsed(g.key); render(); });
+      tb.appendChild(htr);
+      if(collapsed) return;
+      sortList(g.items).forEach(function(p){
+        var tr=buildRow(p);
+        tb.appendChild(tr);
+        resizeMemo(tr.querySelector('textarea[data-f=memo]'));
+        resizeMemo(tr.querySelector('textarea[data-f=list_memo]'));
+        resizeMemo(tr.querySelector('textarea[data-f=verify_note]'));
+      });
+    });
+  }
+
+  function buildRow(p){
+    var pm=portalsOf(p);
+    var ptHtml=PORTALS.map(function(pr){ return '<button class="pt '+pr[0]+(pm[pr[0]]?" on":"")+'" data-portal="'+pr[0]+'">'+pr[1]+'</button>'; }).join("");
+    var hdHtml=HIDES.map(function(h){ return '<button class="hd'+(p[h[0]]?" on":"")+'" data-f="'+h[0]+'" title="'+h[2]+'">'+h[1]+'</button>'; }).join("");
+    // 反映結果(エラー理由)の表示: 一括反映で要手動/エラーになった物件と理由を一目で分かるように(渡辺さん要望2026-06-30)。
+    //   反映結果はSupabaseのreflect_result(状態)+note(理由)に保存済みだったが、今まで画面に出していなかった。
+    var rr=p.reflect_result||"", rnote=p.note||"", rresHtml="";
+    if(rr && rr!=="登録済み" && rr!=="反映済み"){
+      rresHtml='<div class="rres err" title="'+esc(rr+(rnote?"："+rnote:""))+'">'+esc(rr)+(rnote?'<span class="rres-note">'+esc(rnote)+'</span>':'')+'</div>';
+    } else if(rnote){
+      rresHtml='<div class="rres info" title="'+esc(rnote)+'"><span class="rres-note">'+esc(rnote)+'</span></div>';
+    }
+    // 写真を他サイトで探す(Phase A・寺島さん要望2026-07-02): 写真なし or SUUMO33点以下の物件に「ATBB/レインズで探す」ボタン。
+    //   押すと物件名をコピーしてサイトを開く(貼り付けて検索する半自動)。検索欄への自動入力は次段階(実画面確認後に拡張側で対応)。
+    // 申込／掲載不可の現在値。application_status(新列)優先、未移行の申込ONは「申込」とみなす
+    var appStatus = p.application_status || (p.application ? "申込" : "");
+    var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
+    var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
+    var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(押すと物件名をコピーしてサイトを開きます)"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
+    var tr=document.createElement("tr");
+    applyRowStatus(tr, p);
+    tr.innerHTML =
+      '<td class="c-name"><a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>'+
+        (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+
+        (p.zumen_url?'<a class="zlink" href="'+esc(p.zumen_url)+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
+      '<td>'+srcBadge(p.source)+'</td>'+
+      '<td class="rent">'+yen(p.rent)+'</td>'+
+      '<td>'+esc(p.layout||"—")+'</td>'+
+      '<td class="agent">'+esc(p.agent_company||"—")+(p.agent_contact?'<div class="tel">'+esc(p.agent_contact)+'</div>':'')+'</td>'+
+      '<td class="assignee"><select data-f="assignee"><option value="">—</option>'+STAFF.map(function(s){return '<option'+(p.assignee===s?" selected":"")+'>'+esc(s)+'</option>';}).join('')+'</select></td>'+
+      '<td class="score'+(p.suumo_score!=null && p.suumo_score<=33 ? ' low':'')+'"><input type="number" data-f="suumo_score" value="'+(p.suumo_score==null?"":p.suumo_score)+'" placeholder="—" min="0" max="100">'+findHtml+'</td>'+
+      '<td class="chk"><input type="checkbox" data-f="vacancy_check"'+(p.vacancy_check?" checked":"")+'></td>'+
+      '<td class="applysel"><select data-f="application_status"><option value="">—</option><option value="申込"'+(appStatus==="申込"?" selected":"")+'>申込</option><option value="掲載不可"'+(appStatus==="掲載不可"?" selected":"")+'>掲載不可</option></select></td>'+
+      '<td class="portals"><div class="pt-wrap">'+ptHtml+'</div></td>'+
+      '<td class="hides"><div class="hd-wrap">'+hdHtml+'</div></td>'+
+      '<td class="chk"><input type="checkbox" data-f="reflect_flag"'+(p.reflect_flag?" checked":"")+'></td>'+
+      '<td class="admas">'+(p.admas_url?'<a class="admas-link" href="'+esc(p.admas_url)+'" target="_blank" rel="noopener">開く</a>':'<span class="none">未反映</span>')+rresHtml+'</td>'+
+      '<td class="memo"><textarea data-f="memo" rows="1" placeholder="メモ">'+esc(p.memo||"")+'</textarea></td>'+
+      '<td class="memo"><textarea data-f="list_memo" rows="1" maxlength="100" placeholder="アドマス一覧に表示">'+esc(p.list_memo||"")+'</textarea></td>'+
+      '<td class="vnote"><textarea data-f="verify_note" rows="1" placeholder="気づき・ズレ">'+esc(p.verify_note||"")+'</textarea></td>'+
+      '<td class="date">'+fmtDate(p.imported_at)+'</td>'+
+      '<td><button class="del" title="削除">'+
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2m-9 0v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6"/></svg>'+
+      '</button></td>';
+
+    // チェックボックス更新(空き確認・申込・反映する)
+    Array.prototype.forEach.call(tr.querySelectorAll('input[type=checkbox]'), function(cb){
+      cb.addEventListener("change", function(){
+        var field=cb.getAttribute("data-f"), val=cb.checked, patch={}; patch[field]=val;
+        cb.disabled=true;
+        api("update",{ id:p.id, patch:patch }).then(function(){ p[field]=val; applyRowStatus(tr, p); cb.disabled=false; toast("保存しました"); })
+          .catch(function(e){ cb.checked=!val; cb.disabled=false; toast(e.message||"保存に失敗", true); });
+      });
+    });
+    // SUUMO点数(確定時に保存・空欄はnull)
+    var si=tr.querySelector('input[data-f=suumo_score]');
+    si.addEventListener("change", function(){
+      var raw=si.value.trim(), val = raw==="" ? null : parseInt(raw,10);
+      if(val!==null && (isNaN(val)||val<0)){ si.value=(p.suumo_score==null?"":p.suumo_score); toast("点数は0以上の数字で", true); return; }
+      api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; si.closest("td").classList.toggle("low", val!=null && val<=33); toast("SUUMO点数を保存"); })
+        .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
+    });
+    // 写真を他サイトで探す: 物件名をコピーして対象サイトを開く(貼り付けて検索する半自動・Phase A)
+    Array.prototype.forEach.call(tr.querySelectorAll(".find-btn"), function(fb){
+      fb.addEventListener("click", function(){
+        var nm=p.name||"";
+        try{ navigator.clipboard.writeText(nm); }catch(e){}
+        toast("「"+nm+"」をコピーしました。開いたサイトの検索欄に貼り付けて写真を確認してください");
+        var url=fb.getAttribute("data-site")==="atbb" ? "https://atbb.athome.co.jp/" : "https://system.reins.jp/";
+        window.open(url, "_blank", "noopener");
+      });
+    });
+    // 申込／掲載不可(プルダウン)。どちらも「反映対象から外す＋行グレー」=applicationに写す(サーバ側でも導出)。
+    var apsel=tr.querySelector('select[data-f=application_status]');
+    if(apsel){
+      apsel.addEventListener("change", function(){
+        var val=apsel.value, appBool=(val!=="");
+        apsel.disabled=true;
+        api("update",{ id:p.id, patch:{ application_status: val, application: appBool } }).then(function(){
+          p.application_status=val; p.application=appBool; applyRowStatus(tr, p); apsel.disabled=false;
+          toast(val?("「"+val+"」に設定"):"解除しました");
+        }).catch(function(e){ apsel.value=(p.application_status||(p.application?"申込":"")); apsel.disabled=false; toast(e.message||"保存に失敗", true); });
+      });
+    }
+    // 担当者(プルダウン)→assignee保存。一括反映時にtransform §16bがアドマスのroom[user_id]に変換。
+    var asg=tr.querySelector('select[data-f=assignee]');
+    asg.addEventListener("change", function(){
+      var val=asg.value||null;
+      api("update",{ id:p.id, patch:{ assignee: val } }).then(function(){ p.assignee=val; toast("担当者を保存"); })
+        .catch(function(e){ asg.value=p.assignee||""; toast(e.message||"保存に失敗", true); });
+    });
+    // 掲載5媒体トグル(set_listing)
+    Array.prototype.forEach.call(tr.querySelectorAll('.pt'), function(btn){
+      btn.addEventListener("click", function(){
+        var portal=btn.getAttribute("data-portal"), cur=btn.classList.contains("on"), next=!cur;
+        btn.classList.toggle("on", next);
+        api("set_listing",{ id:p.id, portal:portal, listed:next }).then(function(){
+          p.listings=p.listings||[]; var f0=p.listings.filter(function(l){return l.portal===portal;})[0];
+          if(f0) f0.listed=next; else p.listings.push({portal:portal,listed:next});
+          toast(next?"掲載ON":"掲載OFF");
+        }).catch(function(e){ btn.classList.toggle("on", cur); toast(e.message||"保存に失敗", true); });
+      });
+    });
+    // 非掲載トグル(物件名・住所・号室)
+    Array.prototype.forEach.call(tr.querySelectorAll('.hd'), function(btn){
+      btn.addEventListener("click", function(){
+        var field=btn.getAttribute("data-f"), cur=btn.classList.contains("on"), next=!cur, patch={}; patch[field]=next;
+        btn.classList.toggle("on", next);
+        api("update",{ id:p.id, patch:patch }).then(function(){ p[field]=next; applyRowStatus(tr, p); toast(next?"非掲載に設定":"非掲載を解除"); })
+          .catch(function(e){ btn.classList.toggle("on", cur); toast(e.message||"保存に失敗", true); });
+      });
+    });
+    // メモ更新(フォーカスを外した時だけ送信)
+    var mi=tr.querySelector('textarea[data-f=memo]');
+    mi.addEventListener("input", function(){ resizeMemo(mi); });
+    mi.addEventListener("blur", function(){
+      var val=mi.value;
+      if(val===(p.memo||"")) return;
+      api("update",{ id:p.id, patch:{ memo:val } }).then(function(){ p.memo=val; toast("メモを保存"); })
+        .catch(function(e){ mi.value=p.memo||""; resizeMemo(mi); toast(e.message||"保存に失敗", true); });
+    });
+    // メモ(アドマス一覧に表示=room[vacancy_state_comment]・社内メモとは別欄)更新
+    var li=tr.querySelector('textarea[data-f=list_memo]');
+    li.addEventListener("input", function(){ resizeMemo(li); });
+    li.addEventListener("blur", function(){
+      var val=li.value;
+      if(val===(p.list_memo||"")) return;
+      api("update",{ id:p.id, patch:{ list_memo:val } }).then(function(){ p.list_memo=val; toast("メモを保存"); })
+        .catch(function(e){ li.value=p.list_memo||""; resizeMemo(li); toast(e.message||"保存に失敗", true); });
+    });
+    // 検証メモ更新(アドマスには送らない=Supabaseのverify_noteのみ・社内メモとは別物)
+    var vi=tr.querySelector('textarea[data-f=verify_note]');
+    vi.addEventListener("input", function(){ resizeMemo(vi); });
+    vi.addEventListener("blur", function(){
+      var val=vi.value;
+      if(val===(p.verify_note||"")) return;
+      api("update",{ id:p.id, patch:{ verify_note:val } }).then(function(){ p.verify_note=val; toast("検証メモを保存"); })
+        .catch(function(e){ vi.value=p.verify_note||""; resizeMemo(vi); toast(e.message||"保存に失敗", true); });
+    });
+    // 削除(カスタム確認モーダル)
+    tr.querySelector(".del").addEventListener("click", function(){
+      confirmDialog('「'+(p.name||"この物件")+'」を削除します。よろしいですか？').then(function(ok){
+        if(!ok) return;
+        api("delete",{ id:p.id }).then(function(){
+          rows=rows.filter(function(x){ return x.id!==p.id; }); render(); toast("削除しました");
+        }).catch(function(e){ toast(e.message||"削除に失敗", true); });
+      });
+    });
+
+    return tr;
+  }
+
+  // ===== 読み込み =====
+  function load(){
+    $("loading").style.display="block"; $("table").style.display="none"; $("empty").style.display="none";
+    var ic=$("reloadIcon"); ic.innerHTML='<span class="spin" style="border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>';
+    api("list").then(function(j){
+      rows=j.properties||[]; render();
+      $("updated").textContent="最終更新 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+      ic.textContent="↻";
+    }).catch(function(e){
+      ic.textContent="↻"; $("loading").style.display="none";
+      if(e.unauth){ openGate(); toast("合言葉が違います", true); return; }
+      toast(e.message||"読み込みに失敗", true);
+    });
+  }
+
+  // ===== トースト =====
+  var toastT;
+  function toast(msg, isErr){
+    var t=$("toast"); t.textContent=msg; t.className="toast show"+(isErr?" err":"");
+    clearTimeout(toastT); toastT=setTimeout(function(){ t.className="toast"; }, 2200);
+  }
+
+  // ===== 確認モーダル =====
+  function confirmDialog(msg){
+    return new Promise(function(resolve){
+      $("modalMsg").textContent = msg;
+      $("modalBg").className = "modal-bg show";
+      function done(v){ $("modalBg").className="modal-bg"; $("modalOk").onclick=null; $("modalCancel").onclick=null; resolve(v); }
+      $("modalOk").onclick = function(){ done(true); };
+      $("modalCancel").onclick = function(){ done(false); };
+    });
+  }
+
+  // ===== ゲート =====
+  function openGate(){ gate.style.display="block"; app.style.display="none"; $("tokenInput").value=""; $("tokenInput").focus(); }
+  function openApp(){ gate.style.display="none"; app.style.display="block"; $("companyLabel").innerHTML="会社：<b>"+esc(COMPANY)+"</b>"; load(); }
+
+  $("btnEnter").addEventListener("click", function(){
+    var v=$("tokenInput").value.trim(); if(!v){ toast("合言葉を入力してください", true); return; }
+    token=v; localStorage.setItem(TOKEN_KEY, v); openApp();
+  });
+  $("tokenInput").addEventListener("keydown", function(e){ if(e.key==="Enter") $("btnEnter").click(); });
+  $("btnSettings").addEventListener("click", function(){ openGate(); });
+  $("btnReload").addEventListener("click", load);
+  $("search").addEventListener("input", function(e){ filter=e.target.value; render(); });
+  // 並べ替え(見出しクリック=同じ列なら昇順/降順を切替、別の列なら名前は昇順・他は降順から)
+  Array.prototype.forEach.call(document.querySelectorAll('th.sortable'), function(th){
+    th.addEventListener("click", function(){
+      var k=th.getAttribute("data-sort");
+      if(sortKey===k){ sortDir = sortDir==="asc"?"desc":"asc"; }
+      else { sortKey=k; sortDir = STR_SORT[k]?"asc":"desc"; }
+      render();
+    });
+  });
+
+  // ===== 起動 =====
+  if(token) openApp(); else openGate();
+})();
+</script>
+</body>
+</html>

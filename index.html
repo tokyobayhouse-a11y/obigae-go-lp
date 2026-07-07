@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="業者間流通サイトの募集図面を、1クリックで自社の帯付きPDFへ。帯替えGO‼︎ は不動産営業マン向けのChrome拡張機能。ATBB・REINS・イタンジBB 対応。" />
+  <meta name="robots" content="index,follow" />
+  <title>募集図面の帯替えを3秒に短縮｜帯替えGO‼︎ 不動産営業マン専用ツール</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-374XB1CNBR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-374XB1CNBR');
+  </script>
+  <!-- Microsoft Clarity -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "x6a3jwppyf");
+  </script>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="募集図面の帯替えを3秒に短縮｜帯替えGO‼︎ 不動産営業マン専用ツール" />
+  <meta property="og:description" content="ATBB・REINS・イタンジBBの物件カードに「📥帯付き」ボタン。1クリックで自社帯付き募集図面PDFを生成。" />
+  <meta property="og:image" content="https://obigae-go.com/icons/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://obigae-go.com/" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="shortcut icon" href="/icons/favicon.ico" />
+  <link rel="preload" as="image" href="/illust/reins-list.jpg" />
+  <link rel="preload" as="image" href="/illust/maisoku-before.jpg" />
+  <link rel="preload" as="image" href="/illust/maisoku-after.jpg" />
+  <style>
+    :root {
+      --navy: #0d4d6b;
+      --navy-dark: #08344a;
+      --navy-light: #1a6b8f;
+      --navy-bg: #e8f1f5;
+      --orange: #d97706;
+      --orange-light: #fbbf24;
+      --orange-bg: #fff7ed;
+      --cream: #fff8ec;
+      --teal: #14b8a6;
+      --text: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --shadow: 0 24px 70px rgba(13, 77, 107, 0.12);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.75;
+      letter-spacing: 0.02em;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    /* モバイル専用案内バナー */
+    .mobile-notice {
+      background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+      border-bottom: 2px solid #d97706;
+      padding: 14px 0;
+    }
+    .mn-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .mn-text strong {
+      display: block;
+      color: #0d4d6b;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .mn-text small {
+      display: block;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .mn-form {
+      display: flex;
+      gap: 6px;
+    }
+    .mn-form input[type="email"] {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .mn-form input[type="email"]:focus {
+      outline: none;
+      border-color: #0d4d6b;
+    }
+    .mn-form button {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .mn-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .mn-msg {
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .mn-msg.show { display: block; }
+    .mn-msg.success { background: #dcfce7; color: #166534; }
+    .mn-msg.error { background: #fee2e2; color: #991b1b; }
+
+    /* 上部の限定特典バナー */
+    .top-strip {
+      background: linear-gradient(135deg, #fff8ec 0%, #fef3c7 50%, #fde68a 100%);
+      color: var(--navy);
+      padding: 12px 0;
+      border-bottom: 1px solid #fcd34d;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .top-strip .tag {
+      display: inline-block;
+      background: var(--navy);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      margin-right: 10px;
+    }
+    .top-strip strong { color: var(--orange); }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(226,232,240,0.8);
+    }
+
+    .header-inner {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      color: var(--navy);
+      letter-spacing: 0.02em;
+    }
+    .logo img { width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0; }
+    .logo > span { white-space: nowrap; }
+    .logo span.brand { font-size: 18px; white-space: nowrap; }
+    .logo small {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1;
+      letter-spacing: 0.18em;
+      margin-top: 3px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .nav a:hover { color: var(--navy); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-login {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 14px;
+      height: 36px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      text-decoration: none;
+      border: 1px solid var(--gray-300, #cbd5e1);
+      border-radius: 8px;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-login:hover {
+      background: #f8fafc;
+      border-color: var(--navy);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 0 22px;
+      border-radius: 12px;
+      font-weight: 800;
+      border: 1px solid transparent;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      color: white;
+      background: linear-gradient(135deg, var(--orange), #b45309);
+      box-shadow: 0 16px 34px rgba(217,119,6,0.30);
+    }
+    .btn-navy {
+      color: white;
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      box-shadow: 0 16px 34px rgba(13,77,107,0.28);
+    }
+    .btn-secondary {
+      background: white;
+      color: var(--navy);
+      border-color: #bfdbfe;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.06);
+    }
+    .btn-ghost {
+      background: white;
+      color: var(--navy);
+      border-color: var(--line);
+    }
+
+    /* Hero (1枚画像版) */
+    .hero {
+      position: relative;
+      padding: 28px 0 24px;
+      background: linear-gradient(180deg, #eaf3fb 0%, #ffffff 100%);
+    }
+    .hero-image-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .hero-image-wrap picture,
+    .hero-image-wrap img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+    }
+    /* 画像内CTAボタン位置に重ねる透明リンク (% 単位で画像と一緒に縮小) */
+    .hero-cta-hit {
+      position: absolute;
+      display: block;
+      background: transparent;
+      border-radius: 999px;
+      cursor: pointer;
+      z-index: 2;
+      transition: background 0.2s ease;
+    }
+    .hero-cta-hit:hover {
+      background: rgba(217,119,6,0.10);
+    }
+    /* 画像全体をインストールへの入口にする (ボタン位置のズレ解消のため) */
+    .hero-cta-hit.backdrop {
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+    }
+    .hero-cta-hit.backdrop:hover {
+      background: transparent;
+    }
+    /* PC版画像 (1672×941) のCTA位置 (旧hotspot方式・現在は未使用) */
+    @media (min-width: 761px) {
+      .hero-cta-hit.primary {
+        left: 2.2%;
+        top: 73%;
+        width: 21%;
+        height: 8.5%;
+      }
+      .hero-cta-hit.secondary {
+        left: 25%;
+        top: 73%;
+        width: 18%;
+        height: 8.5%;
+      }
+    }
+    /* スマホ版画像 (1035×1520) のCTA位置 */
+    @media (max-width: 760px) {
+      .hero-cta-hit.primary {
+        left: 7%;
+        top: 58.5%;
+        width: 86%;
+        height: 4.6%;
+      }
+      .hero-cta-hit.secondary {
+        left: 7%;
+        top: 64.2%;
+        width: 86%;
+        height: 4%;
+      }
+    }
+
+    /* 右上の金色リボン: サービス公開記念（月桂冠スタイル） */
+    .hero-ribbon {
+      position: absolute;
+      top: 18px;
+      right: 24px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px 10px 14px;
+      background: linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #b45309 100%);
+      border-radius: 999px;
+      box-shadow:
+        0 8px 22px rgba(180,83,9,0.30),
+        inset 0 1px 0 rgba(255,255,255,0.6),
+        inset 0 -2px 0 rgba(120,53,15,0.25);
+      color: #5b2c00;
+      text-align: left;
+    }
+    .hero-ribbon .ribbon-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: radial-gradient(circle at 30% 30%, #fef3c7 0%, #f59e0b 70%, #92400e 100%);
+      border-radius: 50%;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.6),
+        0 2px 6px rgba(120,53,15,0.4);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .hero-ribbon .ribbon-body {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .hero-ribbon .ribbon-top {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      color: #7c2d12;
+    }
+    .hero-ribbon .ribbon-main {
+      font-size: 15px;
+      font-weight: 900;
+      color: #4a1d00;
+    }
+    .hero-ribbon .ribbon-main strong {
+      font-size: 19px;
+      color: #7c2d12;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      align-items: center;
+      gap: 40px;
+      position: relative;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      color: #1e3a8a;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid #93c5fd;
+      box-shadow: 0 2px 6px rgba(30,58,138,0.08);
+    }
+    /* 価格カード (ヒーロー内) */
+    .price-hero-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 22px;
+      align-items: center;
+      margin: 0 0 18px;
+      padding: 16px 22px;
+      background: #ffffff;
+      border: 2px solid var(--orange);
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(217,119,6,0.14);
+      position: relative;
+    }
+    .price-hero-left {
+      display: grid;
+      grid-template-areas:
+        "pill num"
+        "foot foot";
+      grid-template-columns: auto 1fr;
+      column-gap: 12px;
+      row-gap: 4px;
+      align-items: center;
+      padding-right: 22px;
+      border-right: 1px dashed #fcd34d;
+    }
+    .price-hero-pill {
+      grid-area: pill;
+      display: inline-block;
+      padding: 5px 12px;
+      background: var(--navy);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      writing-mode: horizontal-tb;
+    }
+    .price-hero-num {
+      grid-area: num;
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+      font-weight: 900;
+      color: var(--orange-deep);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .price-hero-num .num {
+      font-size: 46px;
+      font-family: "Helvetica Neue", -apple-system, sans-serif;
+    }
+    .price-hero-num .yen { font-size: 20px; padding-bottom: 4px; }
+    .price-hero-num .tilde { font-size: 20px; padding-bottom: 4px; color: var(--orange-deep); }
+    .price-hero-num .tax { font-size: 10px; color: var(--muted); padding-bottom: 6px; margin-left: 2px; font-weight: 700; }
+    .price-hero-foot {
+      grid-area: foot;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .price-hero-foot strong { color: var(--navy); }
+    .price-hero-right {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+    }
+    .price-hero-right li {
+      list-style: none;
+      font-size: 14px;
+      color: #1e293b;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .price-hero-right li::before {
+      content: "✓";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background: var(--teal);
+      color: #fff;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    /* 価値訴求 4バリュー（ヒーロー下部） */
+    .value-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(15,23,42,0.05);
+    }
+    .value-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .value-item .v-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      color: #fff;
+      border-radius: 7px;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+    .value-item strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--navy);
+      letter-spacing: -0.01em;
+    }
+    .value-item strong em {
+      font-style: normal;
+      color: var(--orange-deep);
+      font-size: 16px;
+    }
+
+    /* セキュリティバナー (ヒーロー最下部) */
+    .security-strip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 18px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #0d4d6b 0%, #2d8b9c 100%);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 13px;
+      box-shadow: 0 6px 18px rgba(13,77,107,0.22);
+    }
+    .security-strip .sec-lock {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 50%;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .security-strip strong {
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      margin-right: 8px;
+    }
+    .security-strip span {
+      font-weight: 600;
+      opacity: 0.92;
+    }
+
+    /* Before / After ラベル（ラップトップ画像上に被せる） */
+    .ba-label {
+      position: absolute;
+      z-index: 4;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 10px rgba(15,23,42,0.18);
+    }
+    .ba-label.before {
+      top: 8px;
+      left: 12%;
+      background: #fff;
+      color: #475569;
+      border: 1px solid var(--line);
+    }
+    .ba-label.before small { color: var(--muted); font-size: 10px; font-weight: 700; margin-left: 4px; }
+    .ba-label.after {
+      top: 8px;
+      right: 18%;
+      background: var(--navy);
+      color: #fff;
+    }
+    .ba-label.after small { color: #fbbf24; font-size: 10px; font-weight: 700; margin-left: 4px; }
+
+    h1 {
+      margin: 16px 0 14px;
+      font-size: clamp(26px, 4.2vw, 48px);
+      line-height: 1.22;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      font-weight: 900;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    h1 .nowrap { display: inline-block; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .lead {
+      font-size: 15px;
+      color: #334155;
+      margin: 0 0 18px;
+      line-height: 1.75;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .trust-row span::before {
+      content: "✓";
+      color: var(--teal);
+      font-weight: 900;
+      margin-right: 6px;
+    }
+
+    /* Hero — Laptop & Phone mockup style */
+    .device-stage {
+      position: relative;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* Laptop */
+    .laptop {
+      position: relative;
+      width: 100%;
+      filter: drop-shadow(0 30px 50px rgba(15,23,42,0.18));
+    }
+    .laptop-screen {
+      background: linear-gradient(135deg, #1f2937, #0f172a);
+      padding: 16px;
+      border-radius: 14px 14px 4px 4px;
+      border: 2px solid #2d3748;
+      position: relative;
+    }
+    .laptop-camera {
+      position: absolute;
+      top: 5px; left: 50%; transform: translateX(-50%);
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #4a5568;
+    }
+    .laptop-screen-inner {
+      background: white;
+      border-radius: 6px;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+    }
+    .laptop-base {
+      height: 16px;
+      background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+      border-radius: 0 0 14px 14px;
+      margin: 0 -22px;
+      position: relative;
+    }
+    .laptop-base::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 80px; height: 5px;
+      background: #64748b;
+      border-radius: 0 0 8px 8px;
+    }
+
+    /* Inside the laptop screen — Animation from v1 LP */
+    .hb-frame { width:100%; height:100%; background:#fff; display:flex; flex-direction:column; }
+    .hb-bar { height:24px; background:linear-gradient(180deg,#fafbfc,#eceef1); display:flex; align-items:center; gap:5px; padding:0 10px; border-bottom:1px solid var(--line); flex-shrink:0; }
+    .hb-dot { width:8px; height:8px; border-radius:50%; }
+    .hb-url { flex:1; margin-left:6px; background:#fff; border-radius:4px; padding:2px 8px; font-size:9px; color:var(--muted); font-family:ui-monospace,monospace; border:1px solid var(--line); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .hb-stage { position:absolute; top:24px; left:0; right:0; bottom:0; background:#fff; overflow:hidden; }
+    .laptop-screen-inner { position:relative; }
+    .hb-reins { width:100%; height:100%; display:block; object-fit:cover; }
+    .hb-cursor { position:absolute; left:9%; top:61%; font-size:20px; line-height:1; color:var(--navy); text-shadow:0 2px 4px rgba(0,0,0,.4); pointer-events:none; opacity:0; transform-origin:50% 0%; animation:hbc 6s ease-in-out infinite; z-index:6; }
+    .hb-tooltip { position:absolute; left:13%; top:51%; background:var(--navy); color:#fff; font-weight:900; font-size:10px; padding:5px 10px; border-radius:6px; box-shadow:0 6px 16px rgba(13,77,107,.4); white-space:nowrap; opacity:0; transform:translateY(8px); animation:hbt 6s ease-in-out infinite; z-index:5; }
+    .hb-tooltip::after { content:""; position:absolute; left:16px; bottom:-4px; width:8px; height:8px; background:var(--navy); transform:rotate(45deg); }
+    .hb-flash { position:absolute; left:2%; top:64%; width:12%; height:5%; border-radius:8px; background:radial-gradient(circle,rgba(217,119,6,.7),transparent 70%); opacity:0; pointer-events:none; animation:hbf 6s ease-in-out infinite; }
+    .hb-pdf-card { position:absolute; left:12%; right:12%; top:50%; transform:translateY(-50%) scale(.7); background:#fff; border-radius:8px; box-shadow:0 20px 50px rgba(0,0,0,.35); opacity:0; animation:hbpdf 6s ease-in-out infinite; z-index:10; }
+    .hb-pdf-header { background:linear-gradient(180deg,#fff,#f3f4f6); border-bottom:1px solid var(--line); padding:5px 8px; display:flex; align-items:center; gap:5px; font-size:9px; border-top-left-radius:8px; border-top-right-radius:8px; }
+    .hb-pdf-icon { font-size:12px; }
+    .hb-pdf-title { flex:1; font-weight:700; color:#374151; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:ui-monospace,monospace; font-size:9px; }
+    .hb-pdf-status { font-weight:900; color:#059669; font-size:8px; background:#d1fae5; padding:1px 5px; border-radius:999px; }
+    .hb-pdf-body { position:relative; padding:0; background:#fff; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; aspect-ratio: 3 / 2; }
+    .hb-pdf-body img { position:absolute; top:0; left:0; width:100%; height:100%; display:block; object-fit:cover; }
+    .hb-mai-before { z-index:1; }
+    .hb-mai-after { z-index:2; opacity:0; animation:hb-swap 6s ease-in-out infinite; }
+    @keyframes hb-swap { 0%,55% {opacity:0;} 65%,92% {opacity:1;} 96%,100% {opacity:0;} }
+    @keyframes hbt { 0%,18% {opacity:0; transform:translateY(8px);} 25%,38% {opacity:1; transform:translateY(0);} 45%,100% {opacity:0; transform:translateY(0);} }
+    @keyframes hbc { 0%,18% {opacity:0; transform:translate(28px,18px) scale(1);} 25%,32% {opacity:1; transform:translate(0,0) scale(1);} 36% {opacity:1; transform:translate(0,-2px) scale(.78);} 43%,100% {opacity:0; transform:translate(0,0) scale(1);} }
+    @keyframes hbf { 0%,33% {opacity:0; transform:scale(.5);} 38%,44% {opacity:1; transform:scale(1.2);} 50%,100% {opacity:0; transform:scale(1);} }
+    @keyframes hbpdf { 0%,42% {opacity:0; transform:translateY(-40%) scale(.7);} 52%,88% {opacity:1; transform:translateY(-50%) scale(1);} 96%,100% {opacity:0; transform:translateY(-50%) scale(1);} }
+    @media (prefers-reduced-motion:reduce){ .hb-cursor,.hb-tooltip,.hb-flash,.hb-pdf-card { animation:none; } .hb-pdf-card { opacity:1; transform:translateY(-50%) scale(1); } }
+
+    /* Phone mockup (overlapping right side of laptop) */
+    .phone {
+      position: absolute;
+      bottom: -10px;
+      right: -10px;
+      width: 130px;
+      filter: drop-shadow(0 20px 36px rgba(15,23,42,0.25));
+      z-index: 2;
+    }
+    .phone-frame {
+      background: #0f172a;
+      border-radius: 22px;
+      padding: 7px 4px;
+      border: 1.5px solid #1f2937;
+    }
+    .phone-screen {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 9 / 16;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .phone-statusbar {
+      height: 14px;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      font-size: 7px;
+      color: #475569;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .phone-content {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background: #f8fafc;
+    }
+    .phone-content .property-title {
+      font-size: 7px;
+      padding: 5px 7px;
+      background: var(--navy);
+      color: white;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .phone-content .property-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+      object-position: top center;
+    }
+    .phone-content .property-info {
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: white;
+    }
+    .phone-content .property-price {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--orange);
+      letter-spacing: -0.02em;
+    }
+    .phone-content .property-meta {
+      display: flex;
+      gap: 4px;
+      font-size: 6px;
+      color: #475569;
+      font-weight: 700;
+    }
+    .phone-content .property-meta span {
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+    .phone-band {
+      padding: 5px 7px;
+      background: linear-gradient(90deg, #fff7ed, #fef3c7);
+      border-top: 1px solid #fde68a;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .phone-band-logo {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: var(--orange);
+      color: white;
+      font-size: 6px;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .phone-band-text {
+      font-size: 6.5px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.2;
+    }
+
+    /* Stats */
+    .stats {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      background: white;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .stat {
+      padding: 18px;
+      border-right: 1px solid var(--line);
+    }
+    .stat:last-child { border-right: 0; }
+    .stat strong { display: block; font-size: 24px; color: var(--navy); line-height: 1.2; font-weight: 900; }
+    .stat strong span { color: var(--orange); font-size: 34px; }
+    .stat p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+
+    section { padding: 78px 0; }
+
+    .section-head {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 38px;
+    }
+    .section-head h2 {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 3.6vw, 40px);
+      line-height: 1.3;
+      letter-spacing: -0.03em;
+      color: var(--navy);
+      font-weight: 900;
+    }
+    .section-head p { color: var(--muted); margin: 0; }
+
+    /* Compatibility (supported sites) */
+    .sites { background: var(--navy-bg); }
+    .site-tags {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 28px;
+      max-width: 1080px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .site-tag {
+      background: white;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid #bae6fd;
+      box-shadow: 0 4px 14px rgba(13,77,107,0.06);
+      font-weight: 900;
+      color: var(--navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
+      font-size: 15px;
+      min-height: 84px;
+    }
+    .site-tag .badge-ok,
+    .site-tag .badge-coming {
+      color: white;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+    .site-tag .badge-ok { background: #10b981; }
+    .site-tag .badge-coming { background: #94a3b8; }
+
+    /* サイト実画面プレビュー */
+    .site-preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 40px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .site-preview {
+      margin: 0;
+      background: #ffffff;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 14px 36px rgba(15,23,42,0.10);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .site-preview:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 48px rgba(15,23,42,0.14);
+    }
+    .site-preview img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .site-preview figcaption {
+      padding: 16px 22px 20px;
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.7;
+      border-top: 1px solid #e5e7eb;
+    }
+    .site-preview figcaption strong {
+      color: var(--navy);
+      font-weight: 900;
+    }
+    @media (max-width: 760px) {
+      .site-preview-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        margin-top: 28px;
+      }
+      .site-preview figcaption {
+        padding: 14px 18px 16px;
+        font-size: 13px;
+      }
+    }
+    @media (max-width: 960px) {
+      .site-tags { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .site-tags { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Features */
+    .features { background: var(--bg); }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+    .card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 18px 46px rgba(15,23,42,0.06);
+    }
+    .icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: var(--orange-bg);
+      color: var(--orange);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+    .card h3 { margin: 0 0 8px; color: var(--navy); font-size: 17px; font-weight: 900; }
+    .card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+    /* Steps */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .step-number {
+      display: inline-flex;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      background: var(--orange);
+      font-weight: 900;
+      margin-bottom: 14px;
+      font-size: 18px;
+    }
+    /* 絵コンテ入りステップカード */
+    .step-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(15,23,42,0.06);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .step-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(15,23,42,0.10);
+    }
+    .step-card .step-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--line);
+    }
+    .step-card .step-body {
+      padding: 20px 22px 22px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-card .step-body h3 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+    .step-card .step-body p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    /* (正直不動産アピールセクションは帯に既に書いてあるので削除) */
+
+    /* Pricing */
+    .pricing { background: var(--bg); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+      align-items: stretch;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .price-card {
+      position: relative;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 54px rgba(15,23,42,0.06);
+      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+      animation: float-card 4s ease-in-out infinite;
+      will-change: transform;
+    }
+    /* 浮遊アニメの位相をズラして自然な揺れに */
+    .price-card:nth-child(1) { animation-delay: 0s; }
+    .price-card:nth-child(3) { animation-delay: -2s; }
+    .price-card.recommended {
+      border: 3px solid var(--orange);
+      box-shadow: 0 30px 70px rgba(217,119,6,0.16);
+      animation: float-card-reco 4s ease-in-out infinite, glow-pulse 2.4s ease-in-out infinite;
+    }
+    /* 通常カード: ふわふわ浮遊 */
+    @keyframes float-card {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+    /* 推奨カード: 一段上で浮遊 */
+    @keyframes float-card-reco {
+      0%, 100% { transform: translateY(-12px); }
+      50%      { transform: translateY(-20px); }
+    }
+    /* 推奨カード: オレンジ枠パルス発光 */
+    @keyframes glow-pulse {
+      0%, 100% {
+        box-shadow: 0 30px 70px rgba(217,119,6,0.16), 0 0 0 0 rgba(217,119,6,0);
+      }
+      50% {
+        box-shadow: 0 30px 70px rgba(217,119,6,0.22), 0 0 0 10px rgba(217,119,6,0.18);
+      }
+    }
+    /* デスクトップでのホバーエフェクト */
+    @media (hover: hover) {
+      .price-card:hover {
+        animation: none;
+        transform: scale(1.05);
+        border-color: var(--orange);
+        box-shadow:
+          0 0 0 5px rgba(217,119,6,0.22),
+          0 36px 80px rgba(217,119,6,0.28);
+      }
+      .price-card.recommended:hover {
+        animation: none;
+        transform: translateY(-14px) scale(1.05);
+        border-color: var(--orange);
+        box-shadow:
+          0 0 0 6px rgba(217,119,6,0.34),
+          0 40px 90px rgba(217,119,6,0.38);
+      }
+    }
+    /* スマホ タップ時の反応 */
+    .price-card:active {
+      animation: none;
+      transform: scale(0.96);
+      border-color: var(--orange);
+      box-shadow:
+        0 0 0 5px rgba(217,119,6,0.28),
+        0 24px 56px rgba(217,119,6,0.24);
+    }
+    .price-card.recommended:active {
+      animation: none;
+      transform: translateY(-12px) scale(0.96);
+      box-shadow:
+        0 0 0 6px rgba(217,119,6,0.38),
+        0 30px 66px rgba(217,119,6,0.32);
+    }
+    /* スクロール出現アニメ: 下からぽよんバウンス */
+    @keyframes pop-in {
+      0%   { transform: translateY(60px) scale(0.85); opacity: 0; }
+      60%  { transform: translateY(-10px) scale(1.06); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    @keyframes pop-in-reco {
+      0%   { transform: translateY(60px) scale(0.85); opacity: 0; }
+      60%  { transform: translateY(-24px) scale(1.06); opacity: 1; }
+      100% { transform: translateY(-12px) scale(1); opacity: 1; }
+    }
+    .price-card.in-view {
+      animation: pop-in 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .price-card.recommended.in-view {
+      animation: pop-in-reco 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    /* 出現時の時間差（左→中央→右の順で登場） */
+    .price-card:nth-child(1).in-view { animation-delay: 0s; }
+    .price-card:nth-child(2).in-view { animation-delay: 0.15s; }
+    .price-card:nth-child(3).in-view { animation-delay: 0.30s; }
+    .badge {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--orange);
+      color: white;
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+    .price-card h3 { margin: 0 0 10px; font-size: 22px; color: var(--navy); font-weight: 900; }
+    .monthly { font-size: 44px; font-weight: 950; color: var(--navy); margin: 12px 0; letter-spacing: -0.03em; }
+    .monthly small { font-size: 14px; color: var(--muted); font-weight: 700; }
+    .check-list { padding: 0; margin: 18px 0 24px; list-style: none; display: grid; gap: 10px; color: #475569; font-size: 14px; }
+    .check-list li::before { content: "✓"; color: var(--teal); font-weight: 900; margin-right: 8px; }
+
+    /* プラン補助情報 */
+    .plan-target {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .plan-perday {
+      font-size: 13px;
+      color: var(--muted);
+      margin: -8px 0 14px;
+      line-height: 1.5;
+    }
+    .plan-count {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 14px 0 0;
+    }
+    .plan-count-label {
+      font-size: 13px;
+      color: var(--navy);
+      font-weight: 800;
+    }
+    .plan-count-label strong {
+      font-size: 20px;
+      color: var(--orange);
+      margin: 0 2px;
+    }
+    .plan-count-bar {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    .plan-count-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange), var(--orange-light));
+      border-radius: 999px;
+    }
+    .plan-count-help {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* FAQ */
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    details {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 22px;
+      transition: box-shadow .2s ease;
+    }
+    details[open] {
+      box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 900;
+      color: var(--navy);
+      line-height: 1.5;
+      font-size: 16px;
+      list-style: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::before {
+      content: "Q";
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      background: var(--orange);
+      color: white;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    details p {
+      color: #475569;
+      margin: 14px 0 0 36px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    /* CTA */
+    .cta {
+      padding: 68px 0;
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      color: white;
+    }
+    .cta-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 30px;
+    }
+    @media (max-width: 760px) {
+      .cta-inner { grid-template-columns: 1fr; gap: 22px; text-align: center; }
+      .cta h2, .cta p { text-align: center; }
+      .cta .btn { width: 100%; }
+    }
+    .cta h2 {
+      font-size: clamp(24px, 3.4vw, 40px);
+      line-height: 1.3;
+      margin: 0 0 12px;
+      letter-spacing: -0.02em;
+      font-weight: 900;
+    }
+    @media (max-width: 640px) {
+      .cta h2 { font-size: 22px; line-height: 1.45; letter-spacing: 0; }
+    }
+    .cta p { margin: 0; opacity: .92; }
+    .cta .btn { background: var(--orange); color: white; box-shadow: 0 20px 48px rgba(217,119,6,0.36); }
+
+    /* Contact */
+    .contact-layout {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    .contact-note {
+      background: linear-gradient(180deg, var(--navy-bg), #ffffff);
+      border: 1px solid #bae6fd;
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 18px 46px rgba(13,77,107,0.08);
+    }
+    .contact-note h2 {
+      font-size: 24px;
+      color: var(--navy);
+      margin: 16px 0 12px;
+      line-height: 1.4;
+      font-weight: 900;
+    }
+    .contact-note ul {
+      padding: 0;
+      list-style: none;
+      margin: 22px 0 0;
+      display: grid;
+      gap: 10px;
+      color: #334155;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .contact-note li::before {
+      content: "✓";
+      color: var(--teal);
+      font-weight: 900;
+      margin-right: 8px;
+    }
+    .form-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 24px 70px rgba(15,23,42,0.08);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .field { display: grid; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    label {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--navy);
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border .2s ease, box-shadow .2s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 4px rgba(217,119,6,0.12);
+    }
+    textarea { min-height: 130px; resize: vertical; }
+    .required { color: #ef4444; margin-left: 4px; }
+    .form-help { margin: 14px 0 0; color: var(--muted); font-size: 12px; }
+    .contact-status {
+      margin: 14px 0 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .contact-status.success { color: #059669; }
+    .contact-status.error { color: #dc2626; }
+
+    /* Sister */
+    .sister-section{background:#f9fafb;padding:60px 0;border-top:1px solid var(--line)}
+    .sister-eyebrow-line{text-align:center;margin-bottom:24px}
+    .sister-eyebrow-line .eyebrow{display:inline-block;background:var(--navy);color:#fff;padding:5px 14px;border-radius:999px;font-size:11px;letter-spacing:.25em;font-weight:900;border:0}
+    .sister-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center;margin:0 auto}
+    .sister-tile{display:block;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(13,77,107,.16);transition:transform .25s ease,box-shadow .25s ease}
+    .sister-tile:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(13,77,107,.26)}
+    .sister-tile img{display:block;width:100%;height:auto}
+
+    /* Footer */
+    .footer {
+      padding: 38px 0;
+      background: #0f172a;
+      color: #cbd5e1;
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .footer a { color: #cbd5e1; }
+    .footer a:hover { color: white; }
+    .footer .links a { margin-right: 14px; }
+
+    .mobile-menu { display: none; }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .nav, .header-actions .btn-ghost { display: none; }
+      .mobile-menu { display: inline-flex; }
+      .hero-grid, .demo-body, .cta-inner, .contact-layout { grid-template-columns: 1fr; }
+      .demo-body { gap: 48px; }
+      .arrow-badge { margin: 0 auto; transform: rotate(90deg); }
+      .stats-grid, .feature-grid, .pricing-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr 1fr; }
+      /* ヒーロー: バリュー 4→2 列に */
+      .value-strip { grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 16px; }
+      .hero-ribbon { top: 14px; right: 14px; padding: 10px 14px; }
+      .hero-ribbon .ribbon-top { font-size: 9px; letter-spacing: 0.1em; }
+      .hero-ribbon .ribbon-main { font-size: 14px; }
+      .hero-ribbon .ribbon-main strong { font-size: 20px; }
+      .ba-label { font-size: 11px; padding: 3px 9px; }
+      .ba-label.before { left: 4%; }
+      .ba-label.after { right: 6%; }
+      /* モバイルでは推奨カードも通常カードと同じ高さで浮遊（パルス発光は維持） */
+      .price-card.recommended {
+        animation: float-card 4s ease-in-out infinite, glow-pulse 2.4s ease-in-out infinite;
+      }
+      .price-card.recommended.in-view {
+        animation: pop-in 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .sister-grid { grid-template-columns: 1fr; gap: 16px; }
+    }
+    @media (max-width: 640px) {
+      .container { width: min(100% - 28px, 1120px); }
+      .header-inner { height: 60px; gap: 6px; }
+      /* スマホ: ロゴをコンパクトに (被り防止) */
+      .logo { min-width: 0; flex-shrink: 1; }
+      .logo img { width: 28px; height: 28px; }
+      .logo span.brand { font-size: 13px; letter-spacing: 0; }
+      .logo small { display: none; }
+      /* スマホ: CTA ボタンをコンパクトに */
+      .header-actions { gap: 6px; flex-shrink: 0; }
+      .header-actions .btn-primary {
+        font-size: 12px;
+        padding: 0 12px;
+        min-height: 38px;
+        border-radius: 8px;
+      }
+      .btn-login { font-size: 11px; padding: 0 8px; height: 34px; }
+      .mobile-menu {
+        padding: 0 10px;
+        min-height: 38px;
+        font-size: 12px;
+      }
+      .top-strip { font-size: 11px; padding: 9px 0; line-height: 1.4; }
+      .top-strip .tag { font-size: 10px; padding: 2px 8px; margin-right: 6px; }
+      /* スマホ: ヒーロー画像を画面端まで広げて一体感を出す */
+      .hero {
+        padding: 0;
+        background: none;
+      }
+      .hero > .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+      }
+      .hero-image-wrap img,
+      .hero-image-wrap picture {
+        border-radius: 0;
+      }
+      .hero-actions .btn { width: 100%; }
+      /* ヒーロー: 価格カードを縦組みに */
+      .price-hero-card {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 18px;
+      }
+      .price-hero-left {
+        border-right: 0;
+        border-bottom: 1px dashed #fcd34d;
+        padding: 0 0 14px;
+      }
+      .price-hero-num .num { font-size: 48px; }
+      /* セキュリティバナー: 縦組み */
+      .security-strip {
+        font-size: 12px;
+        padding: 10px 14px;
+        gap: 10px;
+        line-height: 1.4;
+      }
+      .security-strip strong { display: block; margin-bottom: 2px; }
+      .stats-grid, .feature-grid, .pricing-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr; }
+      .stat { border-right: 0; border-bottom: 1px solid var(--line); }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 380px) {
+      /* 極小スマホ: ロゴ文字非表示 (アイコンのみ)、ボタンも更にコンパクト */
+      .logo span.brand { display: none; }
+      .header-actions .btn-primary { font-size: 11px; padding: 0 10px; }
+      .header-actions .btn-primary::after { content: ""; }
+      .btn-login { font-size: 10px; padding: 0 7px; height: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- モバイル専用案内バナー (PC専用通知 + リマインダー登録) -->
+  <section id="mobileNotice" class="mobile-notice" hidden>
+    <div class="container mn-inner">
+      <div class="mn-text">
+        <strong>帯替えGO‼︎ は PC の Chrome 専用です</strong><br>
+        <small>スマホでは動作しないため、PC でご利用ください。下記にメールアドレスをご登録いただくと「あとで PC で続ける」リンクをお送りします。</small>
+      </div>
+      <form id="remindForm" class="mn-form" autocomplete="on">
+        <input type="email" name="email" id="remindEmail" placeholder="you@example.com" required autocomplete="email">
+        <input type="text" name="website" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true">
+        <button type="submit" id="remindBtn">PC で続けるリンクを送る</button>
+      </form>
+      <div id="remindMsg" class="mn-msg" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="#" class="logo" aria-label="帯替えGO ホーム">
+        <img src="/icons/icon-128.png" alt="帯替えGO‼︎">
+        <span><span class="brand">帯替えGO‼︎</span><small>OBIGAE GO</small></span>
+      </a>
+
+      <nav class="nav" aria-label="メインナビゲーション">
+        <a href="#sites">対応サイト</a>
+        <a href="#features">機能</a>
+        <a href="#flow">使い方</a>
+        <a href="#pricing">料金</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://app.obigae-go.com/manual" target="_blank" rel="noopener">マニュアル</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="btn-login" href="https://app.obigae-go.com/" target="_blank" rel="noopener">ログイン</a>
+        <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener">無料で試してみる →</a>
+        <button class="btn btn-secondary mobile-menu" type="button" aria-label="メニューを開く">MENU</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ヒーロー (1枚画像版) -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-image-wrap">
+          <picture>
+            <source media="(max-width: 760px)" srcset="/illust/hero-v2-mobile.png">
+            <img src="/illust/hero-v2-pc.png"
+                 alt="帯替えGO‼︎ - 他社図面を、3秒で自社図面へ。月額990円〜（税込）/ サービス公開記念14日間無料体験"
+                 loading="eager" fetchpriority="high">
+          </picture>
+          <!-- 画像全体をインストールへの入口に (ボタン位置のズレ解消のため個別リンクは廃止) -->
+          <a class="hero-cta-hit backdrop" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" aria-label="14日間 無料で試してみる (Chromeに追加)"></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="container stats-grid">
+        <div class="stat"><strong><span>1</span>クリック</strong><p>新タブも開かず即変換</p></div>
+        <div class="stat"><strong>対応 <span>3</span>サイト</strong><p>ATBB・REINS・イタンジBB</p></div>
+        <div class="stat"><strong>賃貸・売買 <span>両対応</span></strong><p>業務全般をカバー</p></div>
+        <div class="stat"><strong><span>14</span>日間 無料</strong><p>クレカ登録不要</p></div>
+      </div>
+    </div>
+
+    <!-- Compatibility / Sites -->
+    <section id="sites" class="sites">
+      <div class="container">
+        <div class="section-head">
+          <h2>主要な業者間流通サイトに自動対応。</h2>
+          <p>普段使っている画面のまま、物件カードに「📥 帯付き」ボタンが追加されます。</p>
+        </div>
+        <div class="site-tags">
+          <span class="site-tag">ATBB <span class="badge-ok">対応中</span></span>
+          <span class="site-tag">REINS <span class="badge-ok">対応中</span></span>
+          <span class="site-tag">イタンジBB <span class="badge-ok">対応中</span></span>
+          <span class="site-tag">いえらぶBB <span class="badge-coming">準備中</span></span>
+          <span class="site-tag">いい生活スクエア <span class="badge-coming">準備中</span></span>
+        </div>
+        <!-- 実画面プレビュー (ATBB / REINS) -->
+        <div class="site-preview-grid">
+          <figure class="site-preview">
+            <img src="/illust/site-atbb.png" alt="ATBB の物件一覧に『帯付きDL』ボタンが自動追加されたイメージ" loading="lazy">
+            <figcaption>ATBB の物件詳細一覧。<strong>各カードに「帯付きDL」ボタン</strong>が自動追加されます。</figcaption>
+          </figure>
+          <figure class="site-preview">
+            <img src="/illust/site-reins.png" alt="REINS の賃貸検索結果一覧に『帯付き』ボタンが自動追加されたイメージ" loading="lazy">
+            <figcaption>REINS の賃貸検索結果一覧。<strong>1クリックで自社帯入りPDF</strong>が完成します。</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-head">
+          <h2>営業マンが本当に欲しかった機能、全部入り。</h2>
+          <p>業者間サイトに常駐、1クリックで自社帯。複数物件の結合PDFや目隠しシールまで。</p>
+        </div>
+        <div class="feature-grid">
+          <article class="card"><div class="icon">🌐</div><h3>業者サイト直結</h3><p>検索画面に「📥 帯付き」ボタンが自動表示。普段の業務フローを止めません。</p></article>
+          <article class="card"><div class="icon">⚡</div><h3>1クリック・新タブなし</h3><p>裏で帯付き図面を生成してエディタへ。お客様を待たせる時間が消えます。</p></article>
+          <article class="card"><div class="icon">🎯</div><h3>元の帯を自動マスク</h3><p>他社帯を白塗りし、自社帯を正確に焼き込み。透けて見える事故を防止。</p></article>
+          <article class="card"><div class="icon">🖼️</div><h3>PDFも画像も対応</h3><p>JPEG・PNG・PDF を自動判定して 1 ページ PDF にまとめます。</p></article>
+          <article class="card"><div class="icon">📚</div><h3>複数物件を結合PDFに</h3><p>カート式に貯めて、まとめて 1 ファイルへ。お客様への "1通" にも最適。</p></article>
+          <article class="card"><div class="icon">✂️</div><h3>目隠しシール機能</h3><p>オーナー情報など、お客様の目に触れさせたくない部分を白塗りで隠せます。</p></article>
+          <article class="card"><div class="icon">🏷️</div><h3>担当者別の帯を切替</h3><p>担当者ごとの帯画像を登録可能。店舗全体で同じ品質を保てます。</p></article>
+          <article class="card"><div class="icon">🗂️</div><h3>物件名で自動命名</h3><p>「無題.pdf」事故を防ぎ、保存ファイルが整理しやすくなります。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flow / Steps -->
+    <section id="flow">
+      <div class="container">
+        <div class="section-head">
+          <h2>使い方は、たった 3 ステップ。</h2>
+          <p>業者間サイトから離れない設計。新人スタッフでも迷いません。</p>
+        </div>
+        <div class="steps-grid">
+          <article class="step-card">
+            <img class="step-image" src="/illust/flow-step-1.png" alt="STEP 1: 業者間サイトの物件カードに表示される『帯付き』ボタンをワンクリック" loading="lazy">
+            <div class="step-body">
+              <h3>業者間サイトで「帯付き」をクリック</h3>
+              <p>ATBB・REINS・イタンジBB の物件カードに「📥 帯付き」ボタンが自動表示。サイトを離れず、ワンクリックで処理スタート！</p>
+            </div>
+          </article>
+          <article class="step-card">
+            <img class="step-image" src="/illust/flow-step-2.png" alt="STEP 2: 帯替え君エディタが自動で起動し、自社帯入りPDFに変換された図面を表示" loading="lazy">
+            <div class="step-body">
+              <h3>帯替え君エディタで自動表示・内容確認</h3>
+              <p>エディタが自動で起動し、自社帯に貼り替えられた図面を即プレビュー。白塗りや目隠しシール、担当者帯の切替も自由自在。</p>
+            </div>
+          </article>
+          <article class="step-card">
+            <img class="step-image" src="/illust/flow-step-3.png" alt="STEP 3: わずか3秒で変換完了。PDFでダウンロード or 保存" loading="lazy">
+            <div class="step-body">
+              <h3>保存 or PDFダウンロード（完成！）</h3>
+              <p>「保存」ボタンを押すだけで、自社帯入りPDFがダウンロード完了。わずか3秒で完成！すぐにお客様へお渡しいただけます。</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="pricing">
+      <div class="container">
+        <div class="section-head">
+          <h2>料金プラン</h2>
+          <p>営業マンの人数で選ぶだけ。まずは 14 日間 無料でお試しください。</p>
+        </div>
+
+        <div class="pricing-grid">
+          <article class="price-card">
+            <h3>個人プラン</h3>
+            <p>一人営業マン・個人事業主向け</p>
+            <div class="monthly">¥990<small>/ 月（税込）</small></div>
+            <ul class="check-list">
+              <li>50 件まで / 月</li>
+              <li>超過 ¥11 / 件（税込）</li>
+              <li>全機能フル開放</li>
+              <li>クレカ不要の 14 日間無料</li>
+            </ul>
+            <a class="btn btn-secondary" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" style="width:100%">無料で試してみる（14日間無料体験）</a>
+          </article>
+          <article class="price-card recommended">
+            <div class="badge">店舗 おすすめ</div>
+            <h3>店舗プラン</h3>
+            <p>複数営業マン・店舗利用向け</p>
+            <div class="monthly">¥2,970<small>/ 月（税込）</small></div>
+            <ul class="check-list">
+              <li>300 件まで / 月</li>
+              <li>超過 ¥11 / 件（税込）</li>
+              <li>担当者別の帯を切替可</li>
+              <li>店舗全体で品質統一</li>
+            </ul>
+            <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" style="width:100%">無料で試してみる（14日間無料体験）</a>
+          </article>
+        </div>
+
+        <p style="text-align:center; margin-top:24px; color:var(--muted); font-size:13px">
+          11 名以上の店舗・FC 運営・エンタープライズ契約のご相談は <a href="mailto:info@obigae-go.com" style="color:var(--navy); font-weight:700">info@obigae-go.com</a> まで。
+        </p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">よくあるご質問</span>
+          <h2>FAQ</h2>
+        </div>
+        <div class="faq-grid">
+          <details>
+            <summary>どんなサイトに対応していますか？</summary>
+            <p>ATBB / REINS / イタンジBB に対応済み。いえらぶBB / いい生活スクエア も順次対応予定です。</p>
+          </details>
+          <details>
+            <summary>アプリのインストールが必要ですか？</summary>
+            <p>Chrome に拡張機能をインストールするだけ。業者サイトを開けば自動で「📥 帯付き」ボタンが表示されます。</p>
+          </details>
+          <details>
+            <summary>自社の帯はどう登録するんですか？</summary>
+            <p>拡張機能アイコンから設定画面を開き、帯画像を 1 回アップロードするだけ。担当者ごとの複数登録も可能です。</p>
+          </details>
+          <details>
+            <summary>帯がない場合はどうなりますか？</summary>
+            <p>ご安心ください。初回登録特典として、Claude AI と現役不動産プロがお客様専用の特製オリジナル帯 (¥10,000 相当) を無料デザインプレゼントしております。ヒアリングから 1 営業日で納品いたします。</p>
+          </details>
+          <details>
+            <summary>業者サイトのログイン情報は送信されますか？</summary>
+            <p>いいえ、一切送信されません。拡張機能はお使いの Chrome 上で完結する設計で、ID・パスワード・セッション情報は弊社サーバーを経由しません。</p>
+          </details>
+          <details>
+            <summary>個人で契約できますか？</summary>
+            <p>個人クレカで契約 OK、会社契約は不要です。店舗導入の場合は店舗プランがおトクです。</p>
+          </details>
+          <details>
+            <summary>50 件を超えたらどうなりますか？</summary>
+            <p>引き続き利用可。51 件目以降は 1 件あたり ¥11（税込）が翌月初旬に加算請求されます。</p>
+          </details>
+          <details>
+            <summary>利用件数はどのタイミングでカウントされますか？</summary>
+            <p>業者間サイトで「📥 帯付き」ボタンを押した時点で 1 件カウントされます。エディタで微調整して再保存しても 2 重カウントはされません（DL 1 回 = 1 件）。なお、エディタを開いただけ・帯位置を動かしただけ・保存せずに閉じた場合もカウントされません。</p>
+          </details>
+          <details>
+            <summary>個人プランと店舗プランの違いは？</summary>
+            <p>機能は完全に同じ。違いは件数と料金です。個人は 50 件、店舗は 300 件まで込みです。</p>
+          </details>
+          <details>
+            <summary>解約はいつでもできますか？</summary>
+            <p>いつでもキャンセル可能。月の途中で解約しても月末まで利用可。日割り返金はありません。</p>
+          </details>
+          <details>
+            <summary>Chrome 以外でも使えますか？</summary>
+            <p>現時点では Chrome および Chromium ベースの Brave、Edge 等のみ対応。Safari / Firefox は未対応です。</p>
+          </details>
+          <details>
+            <summary>業者サイトの仕様変更で動かなくなることは？</summary>
+            <p>あります。発生時は速やかにアップデート対応し、Chrome Web Store 経由で自動配信します。</p>
+          </details>
+          <details>
+            <summary>複数店舗・FC 運営です。エンタープライズ契約は？</summary>
+            <p>info@obigae-go.com までご相談ください。</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- 姉妹サービス -->
+    <section class="sister-section">
+      <div class="container">
+        <div class="sister-eyebrow-line"><span class="eyebrow">SISTER SERVICE / 姉妹サービス</span></div>
+        <div class="sister-grid">
+          <a class="sister-tile" href="https://mitsumori-go.com/" target="_blank" rel="noopener" aria-label="見積りGO!! — 募集図面を撮るだけでAIが入居費用見積書を自動作成">
+            <img src="/icons/sister-mitsumori-banner.png?v=2" alt="見積りGO!! — 写真から5秒、AIが入居費用見積書を自動作成。賃貸営業マン専用。" loading="lazy">
+          </a>
+          <a class="sister-tile" href="https://mogo-dx.com/kensaku-go/" target="_blank" rel="noopener" aria-label="検索GO!! — 物件名かURLで5サイトを横断検索。元付業者をワンクリックで特定">
+            <img src="/icons/kensaku-go-banner.png" alt="検索GO!! — 不動産仲介会社専用の検索システム。レインズ・ATBB・イタンジBB・いい生活Square・いえらぶBBを横断し元付業者をワンクリックで検索。" loading="lazy">
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 最後の CTA -->
+    <section class="cta">
+      <div class="container cta-inner">
+        <div>
+          <h2>営業をやっていて、本当に<br>ほしかったもの。</h2>
+          <p>毎日の帯替え作業を消して、お客様の本質と向き合う時間を取り戻しましょう。</p>
+        </div>
+        <a class="btn" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener">無料で試してみる → 14日間 無料体験</a>
+      </div>
+    </section>
+
+    <!-- お問い合わせ -->
+    <section id="contact">
+      <div class="container contact-layout">
+        <div class="contact-note">
+          <span class="eyebrow">お問い合わせ / オンライン打合せ</span>
+          <h2>ご相談・オンライン打合せ<br>希望の方はこちらから</h2>
+          <p style="color:#475569; margin:0;">フォーム送信後、担当者より 1〜2 営業日以内にオンライン打合せの日程調整・導入相談についてご返信いたします。</p>
+          <ul>
+            <li>クレジットカード登録不要</li>
+            <li>オンライン打合せ 完全無料</li>
+            <li>店舗・法人ご利用 相談歓迎</li>
+            <li>特製オリジナル帯デザインも無料プレゼント中</li>
+          </ul>
+        </div>
+
+        <form id="contact-form" class="form-card">
+          <div class="form-grid">
+            <div class="field">
+              <label for="name">お名前 (任意)</label>
+              <input id="name" name="name" type="text" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="email">メールアドレス<span class="required">*</span></label>
+              <input id="email" name="email" type="email" required autocomplete="email">
+            </div>
+            <div class="field">
+              <label for="company">会社名 (任意)</label>
+              <input id="company" name="company" type="text" autocomplete="organization">
+            </div>
+            <div class="field">
+              <label for="type">お問い合わせ種別</label>
+              <select id="type" name="type">
+                <option>オンライン打合せ希望</option>
+                <option>サービス全般</option>
+                <option>プラン・料金相談</option>
+                <option>店舗プラン・法人契約</option>
+                <option>新サイト対応リクエスト</option>
+                <option>特製オリジナル帯デザイン希望</option>
+                <option>不具合報告</option>
+                <option>取材・PR</option>
+                <option>その他</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="message">お問い合わせ内容<span class="required">*</span></label>
+              <textarea id="message" name="message" required placeholder="例：個人プランを 14 日間無料で試したいです。"></textarea>
+            </div>
+            <div style="position:absolute;left:-9999px" aria-hidden="true">
+              <label>Website (do not fill)<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
+          </div>
+          <label style="display:flex; align-items:center; gap:8px; margin-top:14px; font-weight:600">
+            <input type="checkbox" name="consent" required style="width:auto">
+            <a href="/legal/privacy.html" target="_blank" style="color:var(--navy); text-decoration:underline">プライバシーポリシー</a> に同意します
+          </label>
+          <button id="contact-submit-btn" class="btn btn-navy" type="submit" style="width:100%; margin-top:16px;">送信する →</button>
+          <p id="contact-status" class="contact-status"></p>
+          <p class="form-help">うまく送信できない場合は <a href="mailto:info@obigae-go.com" style="color:var(--navy); font-weight:700">info@obigae-go.com</a> まで直接ご連絡ください。</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="logo"><img src="/icons/icon-128.png" alt="" style="width:32px;height:32px;border-radius:8px"><span style="color:white"><span class="brand">帯替えGO‼︎</span><small style="color:#94a3b8">OBIGAE GO</small></span></div>
+      <div class="links">
+        <a href="https://mogo-dx.com/" target="_blank" rel="noopener">MOGO（運営ブランド）</a>
+        <a href="/legal/terms.html">利用規約</a>
+        <a href="/legal/privacy.html">プライバシーポリシー</a>
+        <a href="/legal/tokushoho.html">特商法表記</a>
+        <a href="#contact">お問い合わせ</a>
+      </div>
+      <div>© 2026 MOGO<br>帯替えGO‼︎ 運営事務局</div>
+    </div>
+  </footer>
+
+  <script>
+    // モバイル検知 → 「PC専用」案内バナー表示 + メールリマインダー送信
+    (function(){
+      const banner = document.getElementById('mobileNotice');
+      if (!banner) return;
+      // モバイル判定: タッチデバイス & 画面幅 ≤ 800px
+      const isMobile = (
+        ('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
+        window.matchMedia('(max-width: 800px)').matches
+      );
+      if (!isMobile) return;
+      banner.hidden = false;
+
+      const form = document.getElementById('remindForm');
+      const emailEl = document.getElementById('remindEmail');
+      const btn = document.getElementById('remindBtn');
+      const msg = document.getElementById('remindMsg');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = (emailEl.value || '').trim();
+        if (!email) return;
+        btn.disabled = true;
+        btn.textContent = '送信中...';
+        msg.className = 'mn-msg show';
+        msg.textContent = '送信中...';
+        try {
+          const res = await fetch('https://app.obigae-go.com/api/obigae/remind-me-later', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, website: form.website.value || '' }),
+          });
+          const body = await res.json();
+          if (!res.ok) throw new Error(body?.error?.message || 'http ' + res.status);
+          msg.className = 'mn-msg show success';
+          msg.innerHTML = '送信完了。受信箱をご確認ください（迷惑メールフォルダもチェック推奨）。PC の Chrome で開いてご導入ください。';
+          btn.textContent = '送信済み';
+          emailEl.disabled = true;
+        } catch (err) {
+          msg.className = 'mn-msg show error';
+          msg.textContent = 'エラー: ' + (err.message || err) + ' / info@obigae-go.com まで直接ご連絡ください。';
+          btn.disabled = false;
+          btn.textContent = 'PC で続けるリンクを送る';
+        }
+      });
+    })();
+
+    // 料金プランカードのスクロール出現アニメ (1回だけ発火、終了後にクラス削除)
+    (function(){
+      const cards = document.querySelectorAll('.price-card');
+      if (!cards.length || !('IntersectionObserver' in window)) return;
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            el.classList.add('in-view');
+            el.addEventListener('animationend', () => {
+              el.classList.remove('in-view');
+            }, { once: true });
+            observer.unobserve(el);
+          }
+        });
+      }, { threshold: 0.3 });
+      cards.forEach(card => observer.observe(card));
+    })();
+
+    // モバイルメニュー
+    const menuButton = document.querySelector('.mobile-menu');
+    const nav = document.querySelector('.nav');
+    menuButton?.addEventListener('click', () => {
+      const isOpen = nav.style.display === 'flex';
+      if (isOpen) {
+        nav.style.display = '';
+        return;
+      }
+      nav.style.display = 'flex';
+      nav.style.position = 'absolute';
+      nav.style.top = '62px';
+      nav.style.left = '14px';
+      nav.style.right = '14px';
+      nav.style.flexDirection = 'column';
+      nav.style.alignItems = 'flex-start';
+      nav.style.padding = '20px';
+      nav.style.background = 'white';
+      nav.style.border = '1px solid #e2e8f0';
+      nav.style.borderRadius = '14px';
+      nav.style.boxShadow = '0 20px 50px rgba(15,23,42,0.12)';
+      nav.style.gap = '14px';
+    });
+
+    // お問い合わせフォーム送信
+    (function(){
+      const form = document.getElementById('contact-form');
+      if (!form) return;
+      const btn = document.getElementById('contact-submit-btn');
+      const status = document.getElementById('contact-status');
+      const API = '/api/contact';
+
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        status.textContent = '';
+        status.className = 'contact-status';
+
+        const email = (form.email.value || '').trim();
+        const message = (form.message.value || '').trim();
+        if (!email || !email.includes('@')) {
+          status.className = 'contact-status error';
+          status.textContent = 'メールアドレスをご確認ください。';
+          return;
+        }
+        if (!message || message.length < 5) {
+          status.className = 'contact-status error';
+          status.textContent = 'お問い合わせ内容を 5 文字以上ご入力ください。';
+          return;
+        }
+
+        const data = {
+          name: form.name.value || '',
+          email: email,
+          company: form.company.value || '',
+          type: form.type.value || '',
+          message: message,
+          source: 'lp-v2',
+          website: form.website?.value || '',
+        };
+
+        btn.disabled = true;
+        btn.textContent = '送信中...';
+        try {
+          const res = await fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          const json = await res.json().catch(() => ({}));
+          if (res.ok && json.ok) {
+            status.className = 'contact-status success';
+            status.textContent = '✅ お問い合わせを受け付けました。1〜2 営業日以内にご返信いたします。';
+            form.reset();
+          } else {
+            status.className = 'contact-status error';
+            status.textContent = (json && json.error && json.error.message) || '送信に失敗しました。お手数ですが再度お試しください。';
+          }
+        } catch (err) {
+          status.className = 'contact-status error';
+          status.textContent = 'ネットワークエラー: ' + (err.message || String(err));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '送信する →';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
