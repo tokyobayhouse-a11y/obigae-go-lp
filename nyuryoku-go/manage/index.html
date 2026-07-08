@@ -374,10 +374,11 @@
 
   // ===== 表示ヘルパー =====
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
-  // サイトを開く系は必ず「生の<a href target=_blank>」で作る(JSで開かない)。
-  // window.open(第3引数あり)はポップアップ扱いでChromeにブロックされ「押しても飛ばない」実害が出た
-  // (寺島さん報告2026-07-08)。生のリンクならブラウザ標準の動きなのでブロックされない。
-  // クリック時のコピー・トーストはハンドラで足すだけにして、preventDefaultしない。
+  // ⚠️ATBB・レインズは「新しいタブで開く」をしない(2026-07-08確定)。実地検証の結果:
+  //   ・ATBB=検索メニュー直URLはポップアップブロックで白画面/トップURLは404 → 着地先が存在しない
+  //   ・レインズ=新タブはログイン画面。2枚目でログインすると作業中タブのセッションを蹴る恐れ(E2171系)
+  //   物出中は両サイトとも開いているはずなので、正解=「物件番号をコピー→開いている画面の番号検索に貼り付け」。
+  //   イタンジだけは物件ページの恒久URLがあるため直リンクする。
   function yen(n){
     if(typeof n!=="number"||!isFinite(n)) return '<span style="color:var(--gray-400);font-size:11.5px;">—</span>';
     if(n>=10000){ var man=(n/10000); var t=(man%1===0)?man.toFixed(0):man.toFixed(1); return t+'<span class="man">万円</span>'; }
@@ -504,7 +505,7 @@
     var appStatus = p.application_status || (p.application ? "申込" : "");
     var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
     var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
-    var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(押すと物件名をコピーしてサイトを開きます)"><span class="find-cap">写真を探す</span><a class="find-btn" data-site="atbb" href="https://atbb.athome.co.jp/front-web/mainservlet/bfcm003s201" target="_blank" rel="noopener">ATBB</a><a class="find-btn" data-site="reins" href="https://system.reins.jp/" target="_blank" rel="noopener">レインズ</a></div>':'';
+    var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。押すと物件名をコピーするので、開いているATBB/レインズの検索に貼り付けて他サイトの写真を確認できます"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
     // 物件名リンク: イタンジは物件ページへ直リンク可。ATBB・レインズはセッション制のため保存URLを
     // 後から開いても物件ページに着地できない(エラー/トップに落ちる)。そこでクリック=物件番号を
     // コピーしてサイトを開く方式にする(番号検索に貼り付ければ最短で同じ物件に着地。寺島さん報告2026-07-08)。
@@ -512,8 +513,7 @@
     if(!/^\d{8,}$/.test(jumpNo)) jumpNo="";
     var nameLink;
     if(p.source==="atbb"||p.source==="reins"){
-      var entryUrl=(p.source==="atbb")?"https://atbb.athome.co.jp/front-web/mainservlet/bfcm003s201":"https://system.reins.jp/";
-      nameLink='<a href="'+entryUrl+'" target="_blank" rel="noopener" class="njump" title="業者間サイトの仕組み上、この物件ページへ直接は飛べません。クリックで'+(jumpNo?"物件番号":"物件名")+'をコピーして'+(p.source==="atbb"?"ATBBの物件検索メニュー":"レインズ")+'を開きます(番号検索に貼り付け)">'+esc(p.name||"(物件名なし)")+'</a>';
+      nameLink='<a href="#" class="njump" title="'+(p.source==="atbb"?"ATBB":"レインズ")+'は仕組み上この物件ページへ直接飛べません。クリックで'+(jumpNo?"物件番号":"物件名")+'をコピーするので、開いている'+(p.source==="atbb"?"ATBB":"レインズ")+'の「物件番号検索」に貼り付けてください">'+esc(p.name||"(物件名なし)")+'</a>';
     }else{
       nameLink='<a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>';
     }
@@ -560,22 +560,24 @@
       api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; si.closest("td").classList.toggle("low", val!=null && val<=33); toast("SUUMO点数を保存"); })
         .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
     });
-    // 写真を他サイトで探す: 開くのは生リンク(href)に任せ、ここでは物件名コピー+案内だけ(半自動・Phase A)
+    // 写真を他サイトで探す: 物件名をコピーするだけ(タブは開かない。冒頭の⚠️参照)
     Array.prototype.forEach.call(tr.querySelectorAll(".find-btn"), function(fb){
       fb.addEventListener("click", function(){
         var nm=p.name||"";
         try{ navigator.clipboard.writeText(nm); }catch(e){}
-        toast("「"+nm+"」をコピーしました。開いたサイトの検索欄に貼り付けて写真を確認してください");
+        var site=fb.getAttribute("data-site")==="atbb"?"ATBB":"レインズ";
+        toast("物件名「"+nm+"」をコピーしました。開いている"+site+"の検索に貼り付けて(⌘V)、写真があるか確認してください", false, 5000);
       });
     });
-    // 物件名(ATBB・レインズ): 開くのは生リンクに任せ、ここでは物件番号コピー+案内だけ(直リンク不可のため)
+    // 物件名(ATBB・レインズ): 物件番号をコピーするだけ(タブは開かない。冒頭の⚠️参照)
     var nj=tr.querySelector("a.njump");
     if(nj){
-      nj.addEventListener("click", function(){
+      nj.addEventListener("click", function(ev){
+        ev.preventDefault();
         var key=jumpNo||p.name||"";
         try{ navigator.clipboard.writeText(key); }catch(e){}
         var lab=(jumpNo?"物件番号「":"物件名「")+key+"」";
-        toast(lab+"をコピーしました。開いた"+(p.source==="atbb"?"ATBB":"レインズ")+"の「物件番号検索」に貼り付けてください");
+        toast(lab+"をコピーしました。開いている"+(p.source==="atbb"?"ATBB":"レインズ")+"の「物件番号検索」に貼り付けて検索してください(⌘V)", false, 5000);
       });
     }
     // 申込／掲載不可(プルダウン)。どちらも「反映対象から外す＋行グレー」=applicationに写す(サーバ側でも導出)。
@@ -675,9 +677,9 @@
 
   // ===== トースト =====
   var toastT;
-  function toast(msg, isErr){
+  function toast(msg, isErr, ms){
     var t=$("toast"); t.textContent=msg; t.className="toast show"+(isErr?" err":"");
-    clearTimeout(toastT); toastT=setTimeout(function(){ t.className="toast"; }, 2200);
+    clearTimeout(toastT); toastT=setTimeout(function(){ t.className="toast"; }, ms||2200);
   }
 
   // ===== 確認モーダル =====
