@@ -374,11 +374,20 @@
 
   // ===== 表示ヘルパー =====
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
-  // ⚠️ATBB・レインズは「新しいタブで開く」をしない(2026-07-08確定)。実地検証の結果:
-  //   ・ATBB=検索メニュー直URLはポップアップブロックで白画面/トップURLは404 → 着地先が存在しない
-  //   ・レインズ=新タブはログイン画面。2枚目でログインすると作業中タブのセッションを蹴る恐れ(E2171系)
-  //   物出中は両サイトとも開いているはずなので、正解=「物件番号をコピー→開いている画面の番号検索に貼り付け」。
-  //   イタンジだけは物件ページの恒久URLがあるため直リンクする。
+  // ⚠️ATBB・レインズを「新しいタブで開いて案内」はしない(2026-07-08実測: ATBB=メニュー直URLが
+  //   ポップアップブロックで白画面・トップは404/レインズ=ログイン画面+2枚目ログインは作業タブを蹴る恐れ)。
+  // 正解=入力GO拡張への「ジャンプ」依頼(0.16.72以降): 拡張が開いているATBB/レインズのタブを自動走行して
+  //   その物件まで連れて行く。拡張が居ない/古い時は従来どおり保存リンクの直リンク(作業中セッションなら開ける)。
+  var EXT_ID = localStorage.getItem("nyuryokuGoExtId") || "lmpciiaimdmdknhbappbcbmddpilooba";
+  var extJumpOk = false;
+  try {
+    if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage(EXT_ID, { type: "PING" }, function (r) {
+        void chrome.runtime.lastError; // 拡張なし・旧版のときのエラーを握りつぶす(=従来リンクのまま)
+        extJumpOk = !!(r && r.ok);
+      });
+    }
+  } catch (e) {}
   function yen(n){
     if(typeof n!=="number"||!isFinite(n)) return '<span style="color:var(--gray-400);font-size:11.5px;">—</span>';
     if(n>=10000){ var man=(n/10000); var t=(man%1===0)?man.toFixed(0):man.toFixed(1); return t+'<span class="man">万円</span>'; }
@@ -510,10 +519,15 @@
     var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
     var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
     var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。押すと物件名をコピーするので、開いているATBB/レインズの検索に貼り付けて他サイトの写真を確認できます"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
-    // 物件名リンク=保存した元ページへの直リンク(従来どおり)。イタンジは常に開ける。
-    // ATBB・レインズはサイトの仕組み上「そのサイトで作業中(ログイン+直後)」なら開けるが、
-    // セッションが冷えるとシステムエラーになる(2026-07-08実測)。恒久解は拡張連携での自動番号検索(検討中)。
-    var nameLink='<a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>';
+    // 物件名リンク: イタンジ=物件ページへの直リンク(常に開ける)。
+    // ATBB・レインズ=入力GO拡張(0.16.72+)が居れば「開いているタブを自動走行して物件へジャンプ」、
+    // 居なければ従来どおり保存リンクの直リンク(そのサイトで作業中なら開ける・冷えるとシステムエラー)。
+    var nameLink;
+    if(p.source==="atbb"||p.source==="reins"){
+      nameLink='<a class="nlink" href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener" title="クリック: 入力GO拡張が、開いている'+(p.source==="atbb"?"ATBB":"レインズ")+'でこの物件を検索して表示します(拡張が無い場合は保存リンクをそのまま開きます)">'+esc(p.name||"(物件名なし)")+'</a>';
+    }else{
+      nameLink='<a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>';
+    }
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
     tr.innerHTML =
@@ -566,6 +580,23 @@
         toast("物件名「"+nm+"」をコピーしました。開いている"+site+"の検索に貼り付けて(⌘V)、写真があるか確認してください", false, 5000);
       });
     });
+    // ジャンプ(0.16.72): 拡張が居れば、開いているATBB/レインズをこの物件まで自動走行させる(居なければ従来リンク)
+    var na=tr.querySelector("a.nlink");
+    if(na){
+      na.addEventListener("click", function(ev){
+        if(!extJumpOk) return; // 拡張なし・旧版 → hrefの従来リンクにそのまま任せる
+        var no=(String(p.source_url||"").split("#")[1]||"").trim();
+        if(p.source==="reins" && !/^\d{12}$/.test(no)) return; // レインズは物件番号が要る。無ければ従来リンク
+        ev.preventDefault();
+        toast("開いている"+(p.source==="atbb"?"ATBB":"レインズ")+"でこの物件を検索しています…(そのタブに切り替わります)", false, 4000);
+        try{
+          chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:p.source, bkkn:no, name:p.name||"" }, function(r){
+            void chrome.runtime.lastError;
+            if(!(r&&r.ok)) toast((r&&r.error)||"入力GO拡張に接続できませんでした", true, 6000);
+          });
+        }catch(e){ toast("入力GO拡張に接続できませんでした", true, 5000); }
+      });
+    }
     // 申込／掲載不可(プルダウン)。どちらも「反映対象から外す＋行グレー」=applicationに写す(サーバ側でも導出)。
     var apsel=tr.querySelector('select[data-f=application_status]');
     if(apsel){
