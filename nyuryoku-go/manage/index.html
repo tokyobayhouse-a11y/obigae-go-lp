@@ -374,6 +374,12 @@
 
   // ===== 表示ヘルパー =====
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+  // 新しいタブで開く。window.open(第3引数あり)はポップアップ扱いでChromeにブロックされ
+  // 「押しても飛ばない」になるため(寺島さん報告2026-07-08)、リンククリック相当で開く。
+  function openTab(url){
+    var a=document.createElement("a"); a.href=url; a.target="_blank"; a.rel="noopener";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
   function yen(n){
     if(typeof n!=="number"||!isFinite(n)) return '<span style="color:var(--gray-400);font-size:11.5px;">—</span>';
     if(n>=10000){ var man=(n/10000); var t=(man%1===0)?man.toFixed(0):man.toFixed(1); return t+'<span class="man">万円</span>'; }
@@ -501,10 +507,21 @@
     var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
     var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
     var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(押すと物件名をコピーしてサイトを開きます)"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
+    // 物件名リンク: イタンジは物件ページへ直リンク可。ATBB・レインズはセッション制のため保存URLを
+    // 後から開いても物件ページに着地できない(エラー/トップに落ちる)。そこでクリック=物件番号を
+    // コピーしてサイトを開く方式にする(番号検索に貼り付ければ最短で同じ物件に着地。寺島さん報告2026-07-08)。
+    var jumpNo=(String(p.source_url||"").split("#")[1]||"").trim();
+    if(!/^\d{8,}$/.test(jumpNo)) jumpNo="";
+    var nameLink;
+    if(p.source==="atbb"||p.source==="reins"){
+      nameLink='<a href="#" class="njump" title="業者間サイトの仕組み上、この物件ページへ直接は飛べません。クリックで'+(jumpNo?"物件番号":"物件名")+'をコピーして'+(p.source==="atbb"?"ATBBの物件検索メニュー":"レインズ")+'を開きます(番号検索に貼り付け)">'+esc(p.name||"(物件名なし)")+'</a>';
+    }else{
+      nameLink='<a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>';
+    }
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
     tr.innerHTML =
-      '<td class="c-name"><a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>'+
+      '<td class="c-name">'+nameLink+
         (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+
         (p.zumen_url?'<a class="zlink" href="'+esc(p.zumen_url)+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
       '<td>'+srcBadge(p.source)+'</td>'+
@@ -550,10 +567,26 @@
         var nm=p.name||"";
         try{ navigator.clipboard.writeText(nm); }catch(e){}
         toast("「"+nm+"」をコピーしました。開いたサイトの検索欄に貼り付けて写真を確認してください");
-        var url=fb.getAttribute("data-site")==="atbb" ? "https://atbb.athome.co.jp/" : "https://system.reins.jp/";
-        window.open(url, "_blank", "noopener");
+        openTab(fb.getAttribute("data-site")==="atbb" ? "https://atbb.athome.co.jp/front-web/mainservlet/bfcm003s201" : "https://system.reins.jp/");
       });
     });
+    // 物件名(ATBB・レインズ): 物件番号をコピーしてサイトを開く(直リンク不可のため)
+    var nj=tr.querySelector("a.njump");
+    if(nj){
+      nj.addEventListener("click", function(ev){
+        ev.preventDefault();
+        var key=jumpNo||p.name||"";
+        try{ navigator.clipboard.writeText(key); }catch(e){}
+        var lab=(jumpNo?"物件番号「":"物件名「")+key+"」";
+        if(p.source==="atbb"){
+          toast(lab+"をコピーしました。開いたATBBの「物件番号検索」に貼り付けてください");
+          openTab("https://atbb.athome.co.jp/front-web/mainservlet/bfcm003s201");
+        }else{
+          toast(lab+"をコピーしました。レインズの「物件番号検索」に貼り付けてください");
+          openTab("https://system.reins.jp/");
+        }
+      });
+    }
     // 申込／掲載不可(プルダウン)。どちらも「反映対象から外す＋行グレー」=applicationに写す(サーバ側でも導出)。
     var apsel=tr.querySelector('select[data-f=application_status]');
     if(apsel){
