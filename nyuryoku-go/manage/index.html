@@ -148,7 +148,7 @@
   /* 写真を他サイトで探す(Phase A・寺島さん要望2026-07-02): 写真なし/33点以下の物件に表示。押すと物件名をコピーして対象サイトを開く */
   .find-wrap{margin-top:4px;display:flex;flex-direction:column;gap:3px;align-items:stretch;}
   .find-cap{font-size:8.5px;color:var(--gray-500);font-weight:900;text-align:center;}
-  .find-btn{height:20px;font-size:9px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#4a6b8a;border-radius:5px;cursor:pointer;padding:0 3px;line-height:1;}
+  .find-btn{height:20px;font-size:9px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#4a6b8a;border-radius:5px;cursor:pointer;padding:0 3px;line-height:1;display:inline-flex;align-items:center;text-decoration:none;}
   .find-btn:hover{border-color:var(--navy);color:var(--navy);background:var(--gray-50);}
   /* 反映結果(要手動/エラー)の表示。一括反映のエラー物件と理由が管理画面で一目で分かる(渡辺さん要望2026-06-30) */
   .rres{margin-top:4px;border-radius:5px;padding:3px 5px;font-size:10px;font-weight:900;line-height:1.35;}
@@ -374,12 +374,10 @@
 
   // ===== 表示ヘルパー =====
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
-  // 新しいタブで開く。window.open(第3引数あり)はポップアップ扱いでChromeにブロックされ
-  // 「押しても飛ばない」になるため(寺島さん報告2026-07-08)、リンククリック相当で開く。
-  function openTab(url){
-    var a=document.createElement("a"); a.href=url; a.target="_blank"; a.rel="noopener";
-    document.body.appendChild(a); a.click(); a.remove();
-  }
+  // サイトを開く系は必ず「生の<a href target=_blank>」で作る(JSで開かない)。
+  // window.open(第3引数あり)はポップアップ扱いでChromeにブロックされ「押しても飛ばない」実害が出た
+  // (寺島さん報告2026-07-08)。生のリンクならブラウザ標準の動きなのでブロックされない。
+  // クリック時のコピー・トーストはハンドラで足すだけにして、preventDefaultしない。
   function yen(n){
     if(typeof n!=="number"||!isFinite(n)) return '<span style="color:var(--gray-400);font-size:11.5px;">—</span>';
     if(n>=10000){ var man=(n/10000); var t=(man%1===0)?man.toFixed(0):man.toFixed(1); return t+'<span class="man">万円</span>'; }
@@ -506,7 +504,7 @@
     var appStatus = p.application_status || (p.application ? "申込" : "");
     var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
     var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
-    var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(押すと物件名をコピーしてサイトを開きます)"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
+    var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(押すと物件名をコピーしてサイトを開きます)"><span class="find-cap">写真を探す</span><a class="find-btn" data-site="atbb" href="https://atbb.athome.co.jp/front-web/mainservlet/bfcm003s201" target="_blank" rel="noopener">ATBB</a><a class="find-btn" data-site="reins" href="https://system.reins.jp/" target="_blank" rel="noopener">レインズ</a></div>':'';
     // 物件名リンク: イタンジは物件ページへ直リンク可。ATBB・レインズはセッション制のため保存URLを
     // 後から開いても物件ページに着地できない(エラー/トップに落ちる)。そこでクリック=物件番号を
     // コピーしてサイトを開く方式にする(番号検索に貼り付ければ最短で同じ物件に着地。寺島さん報告2026-07-08)。
@@ -514,7 +512,8 @@
     if(!/^\d{8,}$/.test(jumpNo)) jumpNo="";
     var nameLink;
     if(p.source==="atbb"||p.source==="reins"){
-      nameLink='<a href="#" class="njump" title="業者間サイトの仕組み上、この物件ページへ直接は飛べません。クリックで'+(jumpNo?"物件番号":"物件名")+'をコピーして'+(p.source==="atbb"?"ATBBの物件検索メニュー":"レインズ")+'を開きます(番号検索に貼り付け)">'+esc(p.name||"(物件名なし)")+'</a>';
+      var entryUrl=(p.source==="atbb")?"https://atbb.athome.co.jp/front-web/mainservlet/bfcm003s201":"https://system.reins.jp/";
+      nameLink='<a href="'+entryUrl+'" target="_blank" rel="noopener" class="njump" title="業者間サイトの仕組み上、この物件ページへ直接は飛べません。クリックで'+(jumpNo?"物件番号":"物件名")+'をコピーして'+(p.source==="atbb"?"ATBBの物件検索メニュー":"レインズ")+'を開きます(番号検索に貼り付け)">'+esc(p.name||"(物件名なし)")+'</a>';
     }else{
       nameLink='<a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>';
     }
@@ -561,30 +560,22 @@
       api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; si.closest("td").classList.toggle("low", val!=null && val<=33); toast("SUUMO点数を保存"); })
         .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
     });
-    // 写真を他サイトで探す: 物件名をコピーして対象サイトを開く(貼り付けて検索する半自動・Phase A)
+    // 写真を他サイトで探す: 開くのは生リンク(href)に任せ、ここでは物件名コピー+案内だけ(半自動・Phase A)
     Array.prototype.forEach.call(tr.querySelectorAll(".find-btn"), function(fb){
       fb.addEventListener("click", function(){
         var nm=p.name||"";
         try{ navigator.clipboard.writeText(nm); }catch(e){}
         toast("「"+nm+"」をコピーしました。開いたサイトの検索欄に貼り付けて写真を確認してください");
-        openTab(fb.getAttribute("data-site")==="atbb" ? "https://atbb.athome.co.jp/front-web/mainservlet/bfcm003s201" : "https://system.reins.jp/");
       });
     });
-    // 物件名(ATBB・レインズ): 物件番号をコピーしてサイトを開く(直リンク不可のため)
+    // 物件名(ATBB・レインズ): 開くのは生リンクに任せ、ここでは物件番号コピー+案内だけ(直リンク不可のため)
     var nj=tr.querySelector("a.njump");
     if(nj){
-      nj.addEventListener("click", function(ev){
-        ev.preventDefault();
+      nj.addEventListener("click", function(){
         var key=jumpNo||p.name||"";
         try{ navigator.clipboard.writeText(key); }catch(e){}
         var lab=(jumpNo?"物件番号「":"物件名「")+key+"」";
-        if(p.source==="atbb"){
-          toast(lab+"をコピーしました。開いたATBBの「物件番号検索」に貼り付けてください");
-          openTab("https://atbb.athome.co.jp/front-web/mainservlet/bfcm003s201");
-        }else{
-          toast(lab+"をコピーしました。レインズの「物件番号検索」に貼り付けてください");
-          openTab("https://system.reins.jp/");
-        }
+        toast(lab+"をコピーしました。開いた"+(p.source==="atbb"?"ATBB":"レインズ")+"の「物件番号検索」に貼り付けてください");
       });
     }
     // 申込／掲載不可(プルダウン)。どちらも「反映対象から外す＋行グレー」=applicationに写す(サーバ側でも導出)。
