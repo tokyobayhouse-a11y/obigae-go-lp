@@ -457,6 +457,9 @@
   function isCollapsed(key){ return (key in collapsedState) ? collapsedState[key] : (key!=="未反映"); }
 
   function render(){
+    // 再描画はtbodyを一度空にするため、ページが一瞬短くなりスクロールが先頭へ飛ぶ。
+    // 位置を控えて描き終わりに戻す(グループ折りたたみ時に上へ戻される件・寺島さん報告2026-07-08)
+    var sy=window.scrollY;
     updateSortUI();
     var f=filter.trim().toLowerCase();
     var list = !f ? rows : rows.filter(function(p){
@@ -485,6 +488,7 @@
         resizeMemo(tr.querySelector('textarea[data-f=verify_note]'));
       });
     });
+    window.scrollTo(0, sy);
   }
 
   function buildRow(p){
