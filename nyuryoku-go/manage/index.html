@@ -50,6 +50,8 @@
   .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 8px 18px rgba(12,74,104,.14);}
   .btn.primary:hover{background:var(--navy-light);}
   .updated{font-size:12px;color:var(--gray-500);font-weight:750;}
+  .flt{height:34px;border:1px solid var(--line-strong);border-radius:8px;padding:0 8px;font-size:12px;font-weight:800;color:var(--gray-700);background:#fff;box-shadow:var(--shadow-sm);cursor:pointer;}
+  .flt:focus{border-color:var(--accent);outline:none;}
 
   /* テーブル */
   .wrap{max-width:none;margin:12px auto 60px;padding:0 18px;}
@@ -275,6 +277,17 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="text" id="search" placeholder="物件名・所在地・元付で絞り込み">
       </span>
+      <select id="fltApply" class="flt" title="申込／掲載不可で絞り込み">
+        <option value="">申込/掲載不可: 全て</option>
+        <option value="none">未設定のみ</option>
+        <option value="申込">申込のみ</option>
+        <option value="掲載不可">掲載不可のみ</option>
+      </select>
+      <select id="fltVac" class="flt" title="空き確認で絞り込み">
+        <option value="">空き確認: 全て</option>
+        <option value="1">済のみ</option>
+        <option value="0">未のみ</option>
+      </select>
       <button class="btn primary" id="btnReload"><span id="reloadIcon">↻</span> 更新</button>
       <span class="updated" id="updated"></span>
     </div>
@@ -341,6 +354,8 @@
   var token = localStorage.getItem(TOKEN_KEY) || "";
   var rows = [];               // サーバーから取得した全物件
   var filter = "";             // 検索語
+  var fltApply = "";           // 申込/掲載不可の絞り込み(""=全て/none=未設定/申込/掲載不可)
+  var fltVac = "";             // 空き確認の絞り込み(""=全て/1=済/0=未)
   var sortKey = "imported_at"; // 並べ替えの基準列
   var sortDir = "desc";        // "asc"(昇順) | "desc"(降順)
   var STR_SORT = {name:1, source:1, agent_company:1, assignee:1}; // 文字列で並べ替える列(他は数値/日付)
@@ -474,6 +489,11 @@
     var list = !f ? rows : rows.filter(function(p){
       return [p.name,p.address,p.agent_company].some(function(v){ return String(v||"").toLowerCase().indexOf(f)>=0; });
     });
+    // 申込/掲載不可・空き確認での絞り込み(渡辺さん要望2026-07-08)
+    if(fltApply==="none") list=list.filter(function(p){ return !(p.application_status||(p.application?"申込":"")); });
+    else if(fltApply) list=list.filter(function(p){ return (p.application_status||(p.application?"申込":""))===fltApply; });
+    if(fltVac==="1") list=list.filter(function(p){ return !!p.vacancy_check; });
+    else if(fltVac==="0") list=list.filter(function(p){ return !p.vacancy_check; });
     // 右上の件数=未反映(反映日が入っていない)の数だけ(寺島さん要望2026-07-08。絞り込み中は絞り込んだ中の未反映数)
     $("count").textContent = list.filter(function(p){ return !dayKey(p.reflected_at); }).length;
     var tb=$("tbody"); tb.innerHTML="";
@@ -722,6 +742,8 @@
   $("btnSettings").addEventListener("click", function(){ openGate(); });
   $("btnReload").addEventListener("click", load);
   $("search").addEventListener("input", function(e){ filter=e.target.value; render(); });
+  $("fltApply").addEventListener("change", function(e){ fltApply=e.target.value; render(); });
+  $("fltVac").addEventListener("change", function(e){ fltVac=e.target.value; render(); });
   // 並べ替え(見出しクリック=同じ列なら昇順/降順を切替、別の列なら名前は昇順・他は降順から)
   Array.prototype.forEach.call(document.querySelectorAll('th.sortable'), function(th){
     th.addEventListener("click", function(){
