@@ -510,17 +510,10 @@
     var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
     var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
     var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。押すと物件名をコピーするので、開いているATBB/レインズの検索に貼り付けて他サイトの写真を確認できます"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
-    // 物件名リンク: イタンジは物件ページへ直リンク可。ATBB・レインズはセッション制のため保存URLを
-    // 後から開いても物件ページに着地できない(エラー/トップに落ちる)。そこでクリック=物件番号を
-    // コピーしてサイトを開く方式にする(番号検索に貼り付ければ最短で同じ物件に着地。寺島さん報告2026-07-08)。
-    var jumpNo=(String(p.source_url||"").split("#")[1]||"").trim();
-    if(!/^\d{8,}$/.test(jumpNo)) jumpNo="";
-    var nameLink;
-    if(p.source==="atbb"||p.source==="reins"){
-      nameLink='<a href="#" class="njump" title="'+(p.source==="atbb"?"ATBB":"レインズ")+'は仕組み上この物件ページへ直接飛べません。クリックで'+(jumpNo?"物件番号":"物件名")+'をコピーするので、開いている'+(p.source==="atbb"?"ATBB":"レインズ")+'の「物件番号検索」に貼り付けてください">'+esc(p.name||"(物件名なし)")+'</a>';
-    }else{
-      nameLink='<a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>';
-    }
+    // 物件名リンク=保存した元ページへの直リンク(従来どおり)。イタンジは常に開ける。
+    // ATBB・レインズはサイトの仕組み上「そのサイトで作業中(ログイン+直後)」なら開けるが、
+    // セッションが冷えるとシステムエラーになる(2026-07-08実測)。恒久解は拡張連携での自動番号検索(検討中)。
+    var nameLink='<a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>';
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
     tr.innerHTML =
@@ -573,17 +566,6 @@
         toast("物件名「"+nm+"」をコピーしました。開いている"+site+"の検索に貼り付けて(⌘V)、写真があるか確認してください", false, 5000);
       });
     });
-    // 物件名(ATBB・レインズ): 物件番号をコピーするだけ(タブは開かない。冒頭の⚠️参照)
-    var nj=tr.querySelector("a.njump");
-    if(nj){
-      nj.addEventListener("click", function(ev){
-        ev.preventDefault();
-        var key=jumpNo||p.name||"";
-        try{ navigator.clipboard.writeText(key); }catch(e){}
-        var lab=(jumpNo?"物件番号「":"物件名「")+key+"」";
-        toast(lab+"をコピーしました。開いている"+(p.source==="atbb"?"ATBB":"レインズ")+"の「物件番号検索」に貼り付けて検索してください(⌘V)", false, 5000);
-      });
-    }
     // 申込／掲載不可(プルダウン)。どちらも「反映対象から外す＋行グレー」=applicationに写す(サーバ側でも導出)。
     var apsel=tr.querySelector('select[data-f=application_status]');
     if(apsel){
