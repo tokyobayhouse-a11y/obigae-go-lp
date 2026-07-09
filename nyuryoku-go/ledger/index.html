@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>修正台帳 | 入力GO!!</title>
+<link rel="icon" type="image/png" href="../manage/nyuryoku_go_icon128.png">
+<style>
+  :root{
+    --navy:#0C4A68; --accent:#FFA704;
+    --gray-50:#fbfcfd; --gray-100:#f7f8fa; --gray-300:#dce3ea; --gray-500:#667382; --gray-700:#2f3f4f; --gray-900:#17212b;
+    --ok:#11985D; --ok-bg:#e7f7ef; --warn:#b45309; --warn-bg:#fff3de; --hold:#5b6470; --hold-bg:#eef1f4;
+    --spec:#276ef1; --spec-bg:#eaf2ff; --watch:#8a5a00; --watch-bg:#fdf6e3;
+    --line:#d9e1e8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",system-ui,sans-serif;color:var(--gray-900);background:var(--gray-100);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .topbar{background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--line);box-shadow:inset 0 -3px 0 var(--accent);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar h1{font-size:17px;font-weight:900;color:var(--navy);}
+  .topbar .sub{font-size:12px;color:var(--gray-500);font-weight:700;}
+  .topbar a{margin-left:auto;font-size:12px;font-weight:800;color:var(--navy);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff;}
+  .wrap{max-width:1080px;margin:16px auto 80px;padding:0 16px;}
+  .legend{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:var(--gray-700);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .note{background:var(--warn-bg);border:1px solid #f2d9a6;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#7a4a00;font-weight:700;}
+  h2{font-size:15px;font-weight:900;color:var(--navy);margin:22px 0 8px;padding-left:10px;border-left:4px solid var(--accent);}
+  table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  th{background:#f4f6f8;font-size:11.5px;color:#263a4a;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);}
+  td{padding:9px 10px;border-bottom:1px solid #eef2f5;vertical-align:top;font-size:13px;}
+  tr:last-child td{border-bottom:0;}
+  td.item{font-weight:800;width:26%;}
+  td.st{width:12%;white-space:nowrap;}
+  td.ver{width:9%;white-space:nowrap;color:var(--gray-500);font-weight:700;font-size:12px;}
+  .b{display:inline-block;font-size:11px;font-weight:900;border-radius:6px;padding:2px 8px;white-space:nowrap;}
+  .b.ok{color:var(--ok);background:var(--ok-bg);}
+  .b.rate{color:var(--warn);background:var(--warn-bg);}
+  .b.hold{color:var(--hold);background:var(--hold-bg);}
+  .b.spec{color:var(--spec);background:var(--spec-bg);}
+  .b.watch{color:var(--watch);background:var(--watch-bg);}
+  .muted{color:var(--gray-500);font-size:12px;}
+  @media (max-width:640px){ td.item{width:auto;} table{font-size:12px;} }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>入力GO!! 修正台帳</h1>
+    <span class="sub">検証メモ→対応状況の一覧（症状から引く）｜最終更新 2026-07-09</span>
+    <a href="../manage/">物出管理へ戻る</a>
+  </div>
+  <div class="wrap">
+    <div class="legend">
+      状態の見方：
+      <span class="b ok">直った</span>=修正済み（版数付き）
+      <span class="b rate">読み取り率</span>=仕組みは正常・AIが図面により見落とす層（2段階読みで改善中）
+      <span class="b hold">保留</span>=理由があって未着手（理由を記載）
+      <span class="b spec">仕様</span>=直さないと決めたもの
+      <span class="b watch">経過観察</span>=対策済みだが再発を監視中
+    </div>
+    <div class="note">渡辺さんへ：検証メモを書く前にここを見ると「既に対応済み／保留中／仕様」が分かります。載っていない症状・「直った」なのに再発した症状は、ぜひ検証メモに書いてください（再発の記載が一番助かります）。</div>
+
+    <h2>図面AIの抽出（設備・条件）</h2>
+    <table>
+      <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
+      <tr><td class="item">バルコニー・洗面所独立・下足入・防犯カメラ・WIC等の見落とし</td><td class="st"><span class="b rate">読み取り率</span></td><td class="ver">0.16.74</td><td>読み取りの仕組み自体は正常（取れている物件もある）。図面により見落とすため、応答の上限拡大＋「条件・設備だけを聞き直す2段階読み」を導入。以後も漏れが続く物件はメモに残してください</td></tr>
+      <tr><td class="item">ペット不可・楽器不可・事務所不可などの入居条件</td><td class="st"><span class="b rate">読み取り率</span></td><td class="ver">0.16.73→74</td><td>図面の条件をアドマスの条件ボタンに反映する配管は0.16.73で完成。取りこぼしは2段階読み（0.16.74）で回収</td></tr>
+      <tr><td class="item">保証会社利用必須</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>図面の「保証会社必須／加入要」→保証人欄「不要＋保証会社利用が必要」を自動入力（推定印付き）</td></tr>
+      <tr><td class="item">フリーレント</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>「フリーレントNヶ月」が読めたら あり＋期間＋単位 を自動入力。期間が読めない時は案内のみ</td></tr>
+      <tr><td class="item">エアコン台数（2台以上）</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>AIは台数を読むようになったが、アドマス側の台数欄が未確認のため反映先がない（次回実画面採取で対応）</td></tr>
+      <tr><td class="item">古い取込にAI改善が届かない（7/07以前のレインズ・ATBB）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>反映時にDrive保存済みの図面PDFから読み直す仕組みを追加。※図面GASの更新（寺島さん作業）後に有効</td></tr>
+    </table>
+
+    <h2>礼金・費用</h2>
+    <table>
+      <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
+      <tr><td class="item">礼金なしなのに1ヶ月で登録される</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>真因は「コピーして部屋追加」でコピー元の礼金が残ること。「なし」も明示で上書きするよう変更（敷金・保証金も）</td></tr>
+      <tr><td class="item">礼金2ヶ月（正しくは1ヶ月）※ヒューリック雪が谷</td><td class="st"><span class="b spec">仕様</span></td><td class="ver">—</td><td>ATBB掲載データ自体が2ヶ月だった。ツールでは直せない＝元データの確認案件</td></tr>
+      <tr><td class="item">室内清掃費用の時期</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>清掃・退室系は指定が無ければ「退去時」を既定に</td></tr>
+      <tr><td class="item">元付会社名が31文字以上で連携エラー</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>30文字に自動で切り詰め＋案内表示</td></tr>
+    </table>
+
+    <h2>現況・入居時期・契約</h2>
+    <table>
+      <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
+      <tr><td class="item">居住中→空き予定にしてほしい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>アドマスに「居住中」の選択肢は無いため、居住中・賃貸中は「空き予定」で入力</td></tr>
+      <tr><td class="item">現況が空白でも即時入居なら空室に</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>現況は毎回必ず書く方式に（コピー残り対策も兼ねる）</td></tr>
+      <tr><td class="item">旬区分が「---」のままSUUMOエラー</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>日付がある時も日から旬（1〜10=上旬／11〜20=中旬／21〜=下旬）を自動選択</td></tr>
+      <tr><td class="item">新築のまま築13ヶ月超で連携エラー</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>築13ヶ月以上は「中古」を自動選択。築13ヶ月未満だけは画面で選択（新築か未入居か機械では判断不可）</td></tr>
+      <tr><td class="item">定期借家が普通借家で登録される</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>レインズの「建物賃貸借区分」・特記事項・図面からも定借を判定。期間も建物賃貸借期間から取得</td></tr>
+    </table>
+
+    <h2>交通（駅）</h2>
+    <table>
+      <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
+      <tr><td class="item">同じ駅名の別路線が入らない（中延など）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>重複禁止を「同一路線＋同一駅」だけに変更</td></tr>
+      <tr><td class="item">交通が3駅埋まらない（レインズ）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>住所から座標を割り出して近隣駅を自動補完。選び方は「駅名が被らない組を優先→枠が余れば同名駅の別路線」。3駅に届かない物件は案内を表示</td></tr>
+      <tr><td class="item">バス便の交通</td><td class="st"><span class="b spec">仕様</span></td><td class="ver">—</td><td>自動入力せず手動案内（バス路線・停留所の選択は自動化対象外）</td></tr>
+    </table>
+
+    <h2>写真・画像</h2>
+    <table>
+      <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
+      <tr><td class="item">コンビニ等、物件と無関係な写真が登録される</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>AIが「物件外の写真」と判定したら登録をスキップ</td></tr>
+      <tr><td class="item">画像種別の重複でSUUMO33点</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>種別を決める時に「まだ使っていない種別」を優先</td></tr>
+      <tr><td class="item">自室写真があるのに別部屋の写真がコピーされる</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>自室写真が6枚以上あればコピーを引き継がない</td></tr>
+      <tr><td class="item">ATBBに画像があるのに登録されない（数日前の取込）</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>写真URLの有効期限切れが原因。反映直前の再取得はイタンジのみ実装済み。ATBB版は今後対応</td></tr>
+      <tr><td class="item">レインズの室内写真を必ず登録してほしい</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>そもそも取込時に室内写真を控えられているかの調査から（次回対応）</td></tr>
+      <tr><td class="item">別部屋コピー写真にキャプション「※別部屋参考写真です。」</td><td class="st"><span class="b hold">保留</span></td><td class="ver">0.16.75予定</td><td>キャプション欄の場所は特定済み。どの写真がコピー由来かを見分ける仕組みと合わせて実装予定</td></tr>
+      <tr><td class="item">居室（リビング）の見分け精度</td><td class="st"><span class="b watch">経過観察</span></td><td class="ver">0.16.73</td><td>見分けの指示を強化済み。再発したらメモに物件名を残してください</td></tr>
+      <tr><td class="item">画像コピーが間取り図しか来ない／部屋番号完全一致のみにしたい</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>実際の挙動の調査から（アドマスのコピー機能側の仕様確認が必要）</td></tr>
+    </table>
+
+    <h2>部屋番号・建物判定・入力の流れ</h2>
+    <table>
+      <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
+      <tr><td class="item">部屋番号が読めないと全部手入力になる</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>FE-601型の切り出し＋番号不明でもフォームまで進んで他項目を入力。埋められない項目だけ残して「下書き保存」または「仕上げ待ち」（入力済み画面を開いたまま停止）</td></tr>
+      <tr><td class="item">既存建物があるのに新規登録され重複建物ができる</td><td class="st"><span class="b watch">経過観察</span></td><td class="ver">0.16.73</td><td>表記ゆれ（全角半角・空白）での再検索を追加。ミ・リバー→エクレールと再発歴があるため監視中。再発したら必ずメモへ</td></tr>
+      <tr><td class="item">エラーで止まった時に通知がほしい</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>通知先（LINE・メール等）を決めてから実装（寺島さん確認待ち）</td></tr>
+    </table>
+
+    <h2>管理画面・その他</h2>
+    <table>
+      <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
+      <tr><td class="item">掲載チェックがアドマスの掲載指示に反映されない</td><td class="st"><span class="b watch">経過観察</span></td><td class="ver">—</td><td>仕組み上は「反映する前にチェック」なら連動する設計（配線確認済み）。反映の後にチェックした場合は次の反映まで届かない。<b>操作の順番（チェック→反映だったか）を教えてください</b></td></tr>
+      <tr><td class="item">申込／掲載不可・空き確認で絞り込みたい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/08</td><td>ツールバーに絞り込みを追加済み</td></tr>
+      <tr><td class="item">SUUMO競合数で入力の優先順位を付けたい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/09</td><td>「競合数を数える」ボタン＋「SUUMO競合」列（クリックで少ない順）</td></tr>
+      <tr><td class="item">写真を探すでイタンジも／ボタンでサイトに飛びたい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/09</td><td>ATBB=押すだけで自動検索（拡張連携）。イタンジボタン追加（物件名コピー式）。レインズの名前検索だけは未対応（保留）</td></tr>
+      <tr><td class="item">図面が無い時にインフォシートを見たい・保存したい</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>ATBBインフォシート画面の仕組み確認が必要（PDF化の経路が未確認）</td></tr>
+    </table>
+
+    <p class="muted" style="margin-top:18px;">この台帳は Claude が検証メモ対応のたびに更新します。「直った」の版がまだ配信前のこともあります（拡張の自動更新は数時間・管理画面は再読み込みで反映）。</p>
+  </div>
+</body>
+</html>

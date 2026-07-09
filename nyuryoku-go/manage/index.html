@@ -45,7 +45,7 @@
   .search input{width:100%;height:36px;padding:0 12px 0 36px;border:1px solid var(--line-strong);border-radius:8px;font-size:13px;background:#fff;color:var(--gray-900);outline:none;box-shadow:var(--shadow-sm);}
   .search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,167,4,.16);}
   .search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--gray-400);}
-  .btn{height:34px;border:1px solid var(--line);background:#fff;color:var(--gray-700);border-radius:8px;padding:0 12px;font-size:12px;font-weight:850;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;box-shadow:var(--shadow-sm);}
+  .btn{height:34px;border:1px solid var(--line);background:#fff;color:var(--gray-700);border-radius:8px;padding:0 12px;font-size:12px;font-weight:850;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;box-shadow:var(--shadow-sm);text-decoration:none;}
   .btn:hover{background:var(--gray-50);}
   .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 8px 18px rgba(12,74,104,.14);}
   .btn.primary:hover{background:var(--navy-light);}
@@ -258,6 +258,7 @@
       </span>
       <span class="spacer"></span>
       <span class="company" id="companyLabel"></span>
+      <a class="btn" href="../ledger/" title="検証メモへの対応状況を症状から引ける一覧(直った/保留/仕様)">修正台帳</a>
       <button class="btn" id="btnSettings" title="合言葉を変更">設定</button>
     </div>
   </div>
