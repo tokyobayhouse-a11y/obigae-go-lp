@@ -51,6 +51,11 @@
   .btn.primary:hover{background:var(--navy-light);}
   .updated{font-size:12px;color:var(--gray-500);font-weight:750;}
   .flt{height:34px;border:1px solid var(--line-strong);border-radius:8px;padding:0 8px;font-size:12px;font-weight:800;color:var(--gray-700);background:#fff;box-shadow:var(--shadow-sm);cursor:pointer;}
+  td.rivals{text-align:center;}
+  td.rivals .rv{font-weight:900;font-size:14px;}
+  td.rivals .rv0{color:var(--ok);}
+  td.rivals a{text-decoration:none;}
+  td.rivals a:hover .rv{text-decoration:underline;}
   .flt:focus{border-color:var(--accent);outline:none;}
 
   /* テーブル */
@@ -58,23 +63,24 @@
   /* overflow:hidden だと祖先がクリップ枠になり thead の sticky が効かない(前回「1行目が隠れる」で外した原因)。visibleにして角丸はth側で再現 */
   .card{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:visible;box-shadow:none;}
   table{width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0;}
-  th:nth-child(1),td:nth-child(1){width:14%;}
+  th:nth-child(1),td:nth-child(1){width:12.5%;}
   th:nth-child(2),td:nth-child(2){width:5.5%;}
   th:nth-child(3),td:nth-child(3){width:5%;}
   th:nth-child(4),td:nth-child(4){width:4%;}
   th:nth-child(5),td:nth-child(5){width:8%;}
   th:nth-child(6),td:nth-child(6){width:6%;}
   th:nth-child(7),td:nth-child(7){width:5%;}
-  th:nth-child(8),td:nth-child(8){width:3.5%;}
+  th:nth-child(8),td:nth-child(8){width:4.5%;}   /* SUUMO競合(2026-07-09追加) */
   th:nth-child(9),td:nth-child(9){width:3.5%;}
-  th:nth-child(10),td:nth-child(10){width:11%;}
-  th:nth-child(11),td:nth-child(11){width:6%;}
-  th:nth-child(12),td:nth-child(12){width:3.5%;}
-  th:nth-child(13),td:nth-child(13){width:4.5%;}
-  th:nth-child(14),td:nth-child(14){width:6.5%;}
+  th:nth-child(10),td:nth-child(10){width:3.5%;}
+  th:nth-child(11),td:nth-child(11){width:10%;}
+  th:nth-child(12),td:nth-child(12){width:6%;}
+  th:nth-child(13),td:nth-child(13){width:3.5%;}
+  th:nth-child(14),td:nth-child(14){width:4.5%;}
   th:nth-child(15),td:nth-child(15){width:6.5%;}
-  th:nth-child(16),td:nth-child(16){width:5.5%;}
-  th:nth-child(17),td:nth-child(17){width:3%;}
+  th:nth-child(16),td:nth-child(16){width:6.5%;}
+  th:nth-child(17),td:nth-child(17){width:5.5%;}
+  th:nth-child(18),td:nth-child(18){width:3%;}
   /* 担当者プルダウン */
   .assignee select{width:100%;border:1px solid var(--line);border-radius:6px;padding:5px 4px;font-size:11.5px;background:var(--gray-50);color:#243240;font-weight:700;cursor:pointer;}
   .assignee select:focus{border-color:var(--accent);background:#fff;outline:none;}
@@ -288,6 +294,7 @@
         <option value="1">済のみ</option>
         <option value="0">未のみ</option>
       </select>
+      <button class="btn" id="btnRivals" title="未反映の物件について、SUUMOで同条件(賃料+面積一致)の掲載が何件あるかを数えます。競合が少ない順に入力する優先順位付けに使います">競合数を数える</button>
       <button class="btn primary" id="btnReload"><span id="reloadIcon">↻</span> 更新</button>
       <span class="updated" id="updated"></span>
     </div>
@@ -305,6 +312,7 @@
               <th class="sortable" data-sort="agent_company">元付業者<span class="ar"></span></th>
               <th class="sortable" data-sort="assignee">担当者<span class="ar"></span></th>
               <th class="sortable" data-sort="suumo_score">SUUMO<br>点数<span class="ar"></span></th>
+              <th class="sortable" data-sort="suumo_rivals" title="SUUMOで同条件(賃料+面積)の掲載件数。クリックで少ない順に並び替え→上から入力">SUUMO<br>競合<span class="ar"></span></th>
               <th class="chk">空き<br>確認</th>
               <th class="applysel-th">申込／<br>掲載不可</th>
               <th>掲載（許可が取れた媒体）</th>
@@ -505,7 +513,7 @@
       var collapsed=isCollapsed(g.key);
       var htr=document.createElement("tr");
       htr.className="grp"+(g.key==="未反映"?" grp-unrefl":"");
-      htr.innerHTML='<td colspan="18"><span class="caret">'+(collapsed?"▶":"▼")+'</span>'+esc(g.label)+'<span class="grp-n">'+g.items.length+'件</span></td>';
+      htr.innerHTML='<td colspan="19"><span class="caret">'+(collapsed?"▶":"▼")+'</span>'+esc(g.label)+'<span class="grp-n">'+g.items.length+'件</span></td>';
       htr.addEventListener("click", function(){ collapsedState[g.key]=!isCollapsed(g.key); render(); });
       tb.appendChild(htr);
       if(collapsed) return;
@@ -548,6 +556,15 @@
     }else{
       nameLink='<a href="'+esc(p.source_url||"#")+'" target="_blank" rel="noopener">'+esc(p.name||"(物件名なし)")+'</a>';
     }
+    // SUUMO競合(少ない順に入力する優先順位付け・2026-07-09)。リンク=SUUMOの該当建物ページ
+    var rvNote=esc(p.suumo_rivals_note||"未計測(ツールバーの「競合数を数える」を押してください)");
+    var rivalsHtml;
+    if(p.suumo_rivals==null){
+      rivalsHtml='<span class="none" title="'+rvNote+'">—</span>';
+    }else{
+      var rvInner='<span class="rv'+(p.suumo_rivals===0?' rv0':'')+'" title="'+rvNote+'">'+p.suumo_rivals+'</span>';
+      rivalsHtml = p.suumo_rivals_url ? '<a href="'+esc(p.suumo_rivals_url)+'" target="_blank" rel="noopener" title="'+rvNote+' (クリックでSUUMOの該当建物を開く)">'+rvInner+'</a>' : rvInner;
+    }
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
     tr.innerHTML =
@@ -560,6 +577,7 @@
       '<td class="agent">'+esc(p.agent_company||"—")+(p.agent_contact?'<div class="tel">'+esc(p.agent_contact)+'</div>':'')+'</td>'+
       '<td class="assignee"><select data-f="assignee"><option value="">—</option>'+STAFF.map(function(s){return '<option'+(p.assignee===s?" selected":"")+'>'+esc(s)+'</option>';}).join('')+'</select></td>'+
       '<td class="score'+(p.suumo_score!=null && p.suumo_score<=33 ? ' low':'')+'"><input type="number" data-f="suumo_score" value="'+(p.suumo_score==null?"":p.suumo_score)+'" placeholder="—" min="0" max="100">'+findHtml+'</td>'+
+      '<td class="rivals">'+rivalsHtml+'</td>'+
       '<td class="chk"><input type="checkbox" data-f="vacancy_check"'+(p.vacancy_check?" checked":"")+'></td>'+
       '<td class="applysel"><select data-f="application_status"><option value="">—</option><option value="申込"'+(appStatus==="申込"?" selected":"")+'>申込</option><option value="掲載不可"'+(appStatus==="掲載不可"?" selected":"")+'>掲載不可</option></select></td>'+
       '<td class="portals"><div class="pt-wrap">'+ptHtml+'</div></td>'+
@@ -744,6 +762,27 @@
   $("search").addEventListener("input", function(e){ filter=e.target.value; render(); });
   $("fltApply").addEventListener("change", function(e){ fltApply=e.target.value; render(); });
   $("fltVac").addEventListener("change", function(e){ fltVac=e.target.value; render(); });
+  // 競合数を数える: 未反映・未計測の物件を4件ずつサーバーに数えさせ、残り0まで繰り返す(2026-07-09)
+  var rivalsRunning=false;
+  $("btnRivals").addEventListener("click", function(){
+    if(rivalsRunning) return;
+    rivalsRunning=true;
+    var b=$("btnRivals"); b.disabled=true; b.textContent="数えています…";
+    var step=function(){
+      api("count_rivals",{limit:4}).then(function(j){
+        var rem=(j&&j.remaining)||0;
+        b.textContent="数えています… 残り"+rem+"件";
+        if(rem>0 && j.processed>0){ step(); return; }
+        b.textContent="競合数を数える"; b.disabled=false; rivalsRunning=false;
+        toast("競合数を更新しました。「SUUMO競合」列をクリックすると少ない順に並びます", false, 5000);
+        load();
+      }).catch(function(e){
+        b.textContent="競合数を数える"; b.disabled=false; rivalsRunning=false;
+        toast(e.message||"競合数の取得に失敗しました", true);
+      });
+    };
+    step();
+  });
   // 並べ替え(見出しクリック=同じ列なら昇順/降順を切替、別の列なら名前は昇順・他は降順から)
   Array.prototype.forEach.call(document.querySelectorAll('th.sortable'), function(th){
     th.addEventListener("click", function(){
