@@ -546,7 +546,7 @@
     var appStatus = p.application_status || (p.application ? "申込" : "");
     var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
     var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
-    var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。押すと物件名をコピーするので、開いているATBB/レインズの検索に貼り付けて他サイトの写真を確認できます"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button></div>':'';
+    var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(ATBB=拡張が開いているタブで自動検索/レインズ・イタンジ=物件名をコピーして貼り付け)"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button><button type="button" class="find-btn" data-site="itandi">イタンジ</button></div>':'';
     // 物件名リンク: イタンジ=物件ページへの直リンク(常に開ける)。
     // ATBB・レインズ=入力GO拡張(0.16.72+)が居れば「開いているタブを自動走行して物件へジャンプ」、
     // 居なければ従来どおり保存リンクの直リンク(そのサイトで作業中なら開ける・冷えるとシステムエラー)。
@@ -609,12 +609,24 @@
       api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; si.closest("td").classList.toggle("low", val!=null && val<=33); toast("SUUMO点数を保存"); })
         .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
     });
-    // 写真を他サイトで探す: 物件名をコピーするだけ(タブは開かない。冒頭の⚠️参照)
+    // 写真を他サイトで探す: ATBBは拡張のジャンプ(開いているタブでフリーワード自動検索)、
+    // レインズ・イタンジは物件名コピー(渡辺さん検証メモ2026-07-09 イタンジ追加+ボタンで遷移したい)
     Array.prototype.forEach.call(tr.querySelectorAll(".find-btn"), function(fb){
       fb.addEventListener("click", function(){
         var nm=p.name||"";
+        var siteKey=fb.getAttribute("data-site");
+        if(siteKey==="atbb" && extJumpOk){
+          toast("開いているATBBで「"+nm+"」を検索しています…(そのタブに切り替わります)", false, 4000);
+          try{
+            chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:"atbb", bkkn:"", name:nm }, function(r){
+              void chrome.runtime.lastError;
+              if(!(r&&r.ok)) toast((r&&r.error)||"入力GO拡張に接続できませんでした", true, 6000);
+            });
+          }catch(e){ toast("入力GO拡張に接続できませんでした", true, 5000); }
+          return;
+        }
         try{ navigator.clipboard.writeText(nm); }catch(e){}
-        var site=fb.getAttribute("data-site")==="atbb"?"ATBB":"レインズ";
+        var site=siteKey==="atbb"?"ATBB":(siteKey==="itandi"?"イタンジ":"レインズ");
         toast("物件名「"+nm+"」をコピーしました。開いている"+site+"の検索に貼り付けて(⌘V)、写真があるか確認してください", false, 5000);
       });
     });
