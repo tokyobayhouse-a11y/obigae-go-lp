@@ -44,7 +44,7 @@
 <body>
   <div class="topbar">
     <h1>入力GO!! 修正台帳</h1>
-    <span class="sub">検証メモ→対応状況の一覧（症状から引く）｜最終更新 2026-07-09</span>
+    <span class="sub">検証メモ→対応状況の一覧（症状から引く）｜最終更新 2026-07-10</span>
     <a href="../manage/">物出管理へ戻る</a>
   </div>
   <div class="wrap">
@@ -123,6 +123,9 @@
       <tr><td class="item">掲載チェックがアドマスの掲載指示に反映されない</td><td class="st"><span class="b watch">経過観察</span></td><td class="ver">—</td><td>仕組み上は「反映する前にチェック」なら連動する設計（配線確認済み）。反映の後にチェックした場合は次の反映まで届かない。<b>操作の順番（チェック→反映だったか）を教えてください</b></td></tr>
       <tr><td class="item">申込／掲載不可・空き確認で絞り込みたい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/08</td><td>ツールバーに絞り込みを追加済み</td></tr>
       <tr><td class="item">SUUMO競合数で入力の優先順位を付けたい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/09</td><td>「競合数を数える」ボタン＋「SUUMO競合」列（クリックで少ない順）</td></tr>
+      <tr><td class="item">競合数：手で検索すればHITするのに「—」になる（角部屋付きの物件名）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/10</td><td>「クレール西蒲田 203 角部屋」型の名前から建物名を切り出せていなかった。角部屋等の説明語を除いて検索するよう修正（該当9件はすべて数え直し済み）</td></tr>
+      <tr><td class="item">競合数：SUUMOに募集があるのに「特定できず」（アルカディア西大井）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/10</td><td>SUUMO物件ライブラリー（建物DB）に未収録の建物だった。未収録の場合はSUUMO賃貸の検索で数えるフォールバックを追加（注記に「賃貸検索より」と出ます）</td></tr>
+      <tr><td class="item">競合数：住所が名前の物件（戸建て等）が「—」</td><td class="st"><span class="b spec">仕様</span></td><td class="ver">7/10</td><td>建物名が無い物件はSUUMOの建物検索に乗らないため対象外。注記を「建物名のない物件のため対象外」に変更（目視で確認してください）</td></tr>
       <tr><td class="item">写真を探すでイタンジも／ボタンでサイトに飛びたい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/09</td><td>ATBB=押すだけで自動検索（拡張連携）。イタンジボタン追加（物件名コピー式）。レインズの名前検索だけは未対応（保留）</td></tr>
       <tr><td class="item">図面が無い時にインフォシートを見たい・保存したい</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>ATBBインフォシート画面の仕組み確認が必要（PDF化の経路が未確認）</td></tr>
     </table>
