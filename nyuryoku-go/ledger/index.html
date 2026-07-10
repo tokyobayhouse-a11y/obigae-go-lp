@@ -68,7 +68,8 @@
       <tr><td class="item">バルコニー・洗面所独立・下足入・防犯カメラ・WIC等の見落とし</td><td class="st"><span class="b rate">読み取り率</span></td><td class="ver">0.16.74</td><td>読み取りの仕組み自体は正常（取れている物件もある）。図面により見落とすため、応答の上限拡大＋「条件・設備だけを聞き直す2段階読み」を導入。以後も漏れが続く物件はメモに残してください</td></tr>
       <tr><td class="item">ペット不可・楽器不可・事務所不可などの入居条件</td><td class="st"><span class="b rate">読み取り率</span></td><td class="ver">0.16.73→74</td><td>図面の条件をアドマスの条件ボタンに反映する配管は0.16.73で完成。取りこぼしは2段階読み（0.16.74）で回収</td></tr>
       <tr><td class="item">保証会社利用必須</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>図面の「保証会社必須／加入要」→保証人欄「不要＋保証会社利用が必要」を自動入力（推定印付き）</td></tr>
-      <tr><td class="item">フリーレント</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>「フリーレントNヶ月」が読めたら あり＋期間＋単位 を自動入力。期間が読めない時は案内のみ</td></tr>
+      <tr><td class="item">フリーレント無いのに選択されていた（7/10・11件）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.77</td><td>原因は7/09導入の「2段階読み」でAIが例文を丸写しする幻覚。プロンプトを厳格化し、さらにフリーレントの自動入力は「元データに記載がある時だけ」に限定（図面AI由来は案内のみ）。<b>登録済み15件は手直しをお願いしています</b></td></tr>
+      <tr><td class="item">ペット相談可が不可に／ピアノ相談可なのに楽器不可（7/10）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.77</td><td>同じ幻覚が原因。対策＝「相談」と「不可」が両方見つかった時は相談を優先。ピアノ相談・可の物件では「楽器不可」を入れない</td></tr>
       <tr><td class="item">エアコン台数（2台以上）</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>AIは台数を読むようになったが、アドマス側の台数欄が未確認のため反映先がない（次回実画面採取で対応）</td></tr>
       <tr><td class="item">古い取込にAI改善が届かない（7/07以前のレインズ・ATBB）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>反映時にDrive保存済みの図面PDFから読み直す仕組みを追加。※図面GASの更新（寺島さん作業）後に有効</td></tr>
     </table>
@@ -90,6 +91,7 @@
       <tr><td class="item">旬区分が「---」のままSUUMOエラー</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>日付がある時も日から旬（1〜10=上旬／11〜20=中旬／21〜=下旬）を自動選択</td></tr>
       <tr><td class="item">新築のまま築13ヶ月超で連携エラー</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>築13ヶ月以上は「中古」を自動選択。築13ヶ月未満だけは画面で選択（新築か未入居か機械では判断不可）</td></tr>
       <tr><td class="item">定期借家が普通借家で登録される</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>レインズの「建物賃貸借区分」・特記事項・図面からも定借を判定。期間も建物賃貸借期間から取得</td></tr>
+      <tr><td class="item">定借期間「24年」（正しくは2年）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.77</td><td>元データが「24ヶ月」で単位が噛み合っていなかった。12の倍数の月数は年に換算（24ヶ月→2年）</td></tr>
     </table>
 
     <h2>交通（駅）</h2>
@@ -110,7 +112,8 @@
       <tr><td class="item">レインズの室内写真を必ず登録してほしい</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>そもそも取込時に室内写真を控えられているかの調査から（次回対応）</td></tr>
       <tr><td class="item">別部屋コピー写真にキャプション「※別部屋参考写真です。」</td><td class="st"><span class="b hold">保留</span></td><td class="ver">0.16.75予定</td><td>キャプション欄の場所は特定済み。どの写真がコピー由来かを見分ける仕組みと合わせて実装予定</td></tr>
       <tr><td class="item">居室（リビング）の見分け精度</td><td class="st"><span class="b watch">経過観察</span></td><td class="ver">0.16.73</td><td>見分けの指示を強化済み。再発したらメモに物件名を残してください</td></tr>
-      <tr><td class="item">外観写真のナンバープレートを自動マスキング（現在手動）</td><td class="st"><span class="b hold">保留</span></td><td class="ver">0.16.77候補</td><td>設計合意済み：透かし写真登録の途中でAIがプレート位置を検出→広めにぼかし→透かし。登録前の目視確認は残す（完全自動の保証はしない方針）。次の検証メモ対応とまとめて実装予定</td></tr>
+      <tr><td class="item">外観写真のナンバープレートを自動マスキング（現在手動）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.77</td><td>透かし写真登録の途中でAIがプレート位置を検出し、一回り広くモザイク→透かし→登録。何箇所マスキングしたか結果に表示。<b>検出漏れはあり得るため登録前の目視確認は従来どおり必須</b></td></tr>
+      <tr><td class="item">画像分類の調整3件（リビング優先・3点ユニット写真→バス・トイレ内洗面→トイレ）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.77</td><td>①居室がリビングか洋室か迷う時はリビング優先（重複する時は洋室側を部屋画像_その他へ＝加点枠の節約）②バス・トイレ・洗面同室の写真はバス ③便器が主役の写真は洗面台が写っていてもトイレ</td></tr>
       <tr><td class="item">画像コピーが間取り図しか来ない／部屋番号完全一致のみにしたい</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>実際の挙動の調査から（アドマスのコピー機能側の仕様確認が必要）</td></tr>
     </table>
 
@@ -119,6 +122,7 @@
       <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
       <tr><td class="item">部屋番号が読めないと全部手入力になる</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>FE-601型の切り出し＋番号不明でもフォームまで進んで他項目を入力。埋められない項目だけ残して「下書き保存」または「仕上げ待ち」（入力済み画面を開いたまま停止）</td></tr>
       <tr><td class="item">既存建物があるのに新規登録され重複建物ができる</td><td class="st"><span class="b watch">経過観察</span></td><td class="ver">0.16.73</td><td>表記ゆれ（全角半角・空白）での再検索を追加。ミ・リバー→エクレールと再発歴があるため監視中。再発したら必ずメモへ</td></tr>
+      <tr><td class="item">貸家（戸建て）の面積・種別が入らない</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.77</td><td>面積は建物面積から入れる対象に「貸家」を追加。種別も「貸家→戸建」の対応を追加</td></tr>
       <tr><td class="item">一括反映の完了・停止をポップアップで知らせてほしい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.75</td><td>Macの通知（右上）で「完了（◯/◯件・要手動◯件）」「仕上げ待ちで停止」「ログイン切れで停止」「エラーで停止」を通知。通知クリックで一括反映のタブに戻ります（0.16.75公開済み）。※MacのシステムがChromeの通知を許可している必要あり（システム設定→通知→Google Chrome）</td></tr>
     </table>
 
