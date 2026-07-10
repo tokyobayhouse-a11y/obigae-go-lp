@@ -56,6 +56,10 @@
       <span class="b spec">仕様</span>=直さないと決めたもの
       <span class="b watch">経過観察</span>=対策済みだが再発を監視中
     </div>
+    <div class="legend" style="margin-top:-6px;">
+      現在の配信版：<b>入力GO!! 0.16.75</b>／<b>検索GO!! 1.2.1</b>（2026-07-10公開）
+      <span class="muted">拡張の自動更新は数時間かかります。急ぐ場合は chrome://extensions で各拡張の「更新」。</span>
+    </div>
     <div class="note">渡辺さんへ：検証メモを書く前にここを見ると「既に対応済み／保留中／仕様」が分かります。載っていない症状・「直った」なのに再発した症状は、ぜひ検証メモに書いてください（再発の記載が一番助かります）。</div>
 
     <h2>図面AIの抽出（設備・条件）</h2>
@@ -114,7 +118,7 @@
       <tr><th>項目</th><th>状態</th><th>版</th><th>内容</th></tr>
       <tr><td class="item">部屋番号が読めないと全部手入力になる</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.73</td><td>FE-601型の切り出し＋番号不明でもフォームまで進んで他項目を入力。埋められない項目だけ残して「下書き保存」または「仕上げ待ち」（入力済み画面を開いたまま停止）</td></tr>
       <tr><td class="item">既存建物があるのに新規登録され重複建物ができる</td><td class="st"><span class="b watch">経過観察</span></td><td class="ver">0.16.73</td><td>表記ゆれ（全角半角・空白）での再検索を追加。ミ・リバー→エクレールと再発歴があるため監視中。再発したら必ずメモへ</td></tr>
-      <tr><td class="item">一括反映の完了・停止をポップアップで知らせてほしい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.75</td><td>Macの通知（右上）で「完了（◯/◯件・要手動◯件）」「仕上げ待ちで停止」「ログイン切れで停止」「エラーで停止」を通知。通知クリックで一括反映のタブに戻ります。※MacのシステムがChromeの通知を許可している必要あり</td></tr>
+      <tr><td class="item">一括反映の完了・停止をポップアップで知らせてほしい</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.75</td><td>Macの通知（右上）で「完了（◯/◯件・要手動◯件）」「仕上げ待ちで停止」「ログイン切れで停止」「エラーで停止」を通知。通知クリックで一括反映のタブに戻ります（0.16.75公開済み）。※MacのシステムがChromeの通知を許可している必要あり（システム設定→通知→Google Chrome）</td></tr>
     </table>
 
     <h2>管理画面・その他</h2>
@@ -126,7 +130,7 @@
       <tr><td class="item">競合数：手で検索すればHITするのに「—」になる（角部屋付きの物件名）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/10</td><td>「クレール西蒲田 203 角部屋」型の名前から建物名を切り出せていなかった。角部屋等の説明語を除いて検索するよう修正（該当9件はすべて数え直し済み）</td></tr>
       <tr><td class="item">競合数：SUUMOに募集があるのに「特定できず」（アルカディア西大井）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/10</td><td>SUUMO物件ライブラリー（建物DB）に未収録の建物だった。未収録の場合はSUUMO賃貸の検索で数えるフォールバックを追加（注記に「賃貸検索より」と出ます）</td></tr>
       <tr><td class="item">競合数：住所が名前の物件（戸建て等）が「—」</td><td class="st"><span class="b spec">仕様</span></td><td class="ver">7/10</td><td>建物名が無い物件はSUUMOの建物検索に乗らないため対象外。注記を「建物名のない物件のため対象外」に変更（目視で確認してください）</td></tr>
-      <tr><td class="item">写真を探すのリンクが機能しない（ATBB/レインズ/イタンジ）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/10</td><td>3ボタンとも検索GOに直結：押すと検索GOがそのサイトを自動検索し、HITした物件ページが前面に開きます（写真がその場で見られる）。※各PCの検索GOをv1.2.1に更新すると有効。未更新の間はATBB=入力GOの自動検索／他=建物名コピーで動作</td></tr>
+      <tr><td class="item">写真を探すのリンクが機能しない（ATBB/レインズ/イタンジ）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">7/10</td><td>3ボタンとも検索GOに直結：押すと検索GOがそのサイトを自動検索し、HITした物件ページが前面に開きます（写真がその場で見られる）。※検索GO v1.2.1は公開済み（自動更新後に有効）。未更新の間はATBB=入力GOの自動検索／他=建物名コピーで動作</td></tr>
       <tr><td class="item">図面が無い時にインフォシートを見たい・保存したい</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>ATBBインフォシート画面の仕組み確認が必要（PDF化の経路が未確認）</td></tr>
     </table>
 
