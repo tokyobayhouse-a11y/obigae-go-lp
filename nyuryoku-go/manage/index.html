@@ -403,6 +403,16 @@
   // 正解=入力GO拡張への「ジャンプ」依頼(0.16.72以降): 拡張が開いているATBB/レインズのタブを自動走行して
   //   その物件まで連れて行く。拡張が居ない/古い時は従来どおり保存リンクの直リンク(作業中セッションなら開ける)。
   var EXT_ID = localStorage.getItem("nyuryokuGoExtId") || "lmpciiaimdmdknhbappbcbmddpilooba";
+  // 検索GO(ヒットチェッカー)連携: 検索GOのcontent scriptがpostMessageで自分のIDを名乗る(v1.2.1+)。
+  // 「写真を探す」ボタンはこのIDへ単サイト検索を依頼し、HITした物件ページが自動で前面に開く。
+  var kensakuGoId = "";
+  var kensakuGoVer = "";
+  window.addEventListener("message", function(ev){
+    if(ev.origin !== window.location.origin) return;
+    if(ev.data && ev.data.__kensaku_go__ && ev.data.id){ kensakuGoId = String(ev.data.id); kensakuGoVer = String(ev.data.version||""); }
+  });
+  try{ window.postMessage({ __kensaku_go_who__: true }, window.location.origin); }catch(e){}
+  setTimeout(function(){ try{ window.postMessage({ __kensaku_go_who__: true }, window.location.origin); }catch(e){} }, 1500);
   var extJumpOk = false;
   try {
     if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
@@ -610,14 +620,29 @@
       api("update",{ id:p.id, patch:{ suumo_score: val } }).then(function(){ p.suumo_score=val; si.closest("td").classList.toggle("low", val!=null && val<=33); toast("SUUMO点数を保存"); })
         .catch(function(e){ si.value=(p.suumo_score==null?"":p.suumo_score); toast(e.message||"保存に失敗", true); });
     });
-    // 写真を他サイトで探す: ATBBは拡張のジャンプ(開いているタブでフリーワード自動検索)、
-    // レインズ・イタンジは物件名コピー(渡辺さん検証メモ2026-07-09 イタンジ追加+ボタンで遷移したい)
+    // 写真を他サイトで探す(2026-07-10 検索GO連携): ①検索GO(v1.2.1+)がいれば単サイト検索を依頼
+    // →HITした物件ページが自動で前面に開く ②検索GOがいなければATBBは入力GOのジャンプ ③最後は名前コピー
     Array.prototype.forEach.call(tr.querySelectorAll(".find-btn"), function(fb){
       fb.addEventListener("click", function(){
         var nm=p.name||"";
+        // 検索は建物名で行う(部屋番号・カナ・角部屋等を除く)
+        var bldg=nm.split(/部屋番号/)[0].replace(/[（(][ァ-ヶー・\s]+[）)]/g," ").replace(/(角部屋|角住戸|中部屋|中住戸|端部屋|最上階|最下階)/g," ").replace(/\s+/g," ").trim();
+        var bm=bldg.match(/^(.{2,}?)[\s　]+([0-9０-９A-Za-zＡ-Ｚａ-ｚ\-－]{1,8})$/);
+        if(bm && /[0-9０-９]/.test(bm[2])) bldg=bm[1].trim();
         var siteKey=fb.getAttribute("data-site");
+        var siteName=siteKey==="atbb"?"ATBB":(siteKey==="itandi"?"イタンジ":"レインズ");
+        if(kensakuGoId){
+          toast("検索GOが"+siteName+"で「"+bldg+"」を検索しています…HITすると物件ページが前面に開きます(20秒ほど)", false, 6000);
+          try{
+            chrome.runtime.sendMessage(kensakuGoId, { type:"KENSAKU_SEARCH", site:siteKey, keyword:bldg }, function(r){
+              void chrome.runtime.lastError;
+              if(!(r&&r.ok)) toast((r&&r.error)||"検索GOに接続できませんでした", true, 6000);
+            });
+          }catch(e){ toast("検索GOに接続できませんでした", true, 5000); }
+          return;
+        }
         if(siteKey==="atbb" && extJumpOk){
-          toast("開いているATBBで「"+nm+"」を検索しています…(そのタブに切り替わります)", false, 4000);
+          toast("開いているATBBで「"+bldg+"」を検索しています…(そのタブに切り替わります)", false, 4000);
           try{
             chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:"atbb", bkkn:"", name:nm }, function(r){
               void chrome.runtime.lastError;
@@ -626,9 +651,8 @@
           }catch(e){ toast("入力GO拡張に接続できませんでした", true, 5000); }
           return;
         }
-        try{ navigator.clipboard.writeText(nm); }catch(e){}
-        var site=siteKey==="atbb"?"ATBB":(siteKey==="itandi"?"イタンジ":"レインズ");
-        toast("物件名「"+nm+"」をコピーしました。開いている"+site+"の検索に貼り付けて(⌘V)、写真があるか確認してください", false, 5000);
+        try{ navigator.clipboard.writeText(bldg); }catch(e){}
+        toast("建物名「"+bldg+"」をコピーしました。開いている"+siteName+"の検索に貼り付けて(⌘V)、写真があるか確認してください(検索GOを最新にすると全自動になります)", false, 6000);
       });
     });
     // ジャンプ(0.16.72): 拡張が居れば、開いているATBB/レインズをこの物件まで自動走行させる(居なければ従来リンク)
