@@ -52,6 +52,11 @@
   .updated{font-size:12px;color:var(--gray-500);font-weight:750;}
   .flt{height:34px;border:1px solid var(--line-strong);border-radius:8px;padding:0 8px;font-size:12px;font-weight:800;color:var(--gray-700);background:#fff;box-shadow:var(--shadow-sm);cursor:pointer;}
   td.rivals{text-align:center;}
+  .drag{display:inline-flex;align-items:center;justify-content:center;width:14px;height:20px;margin-right:5px;color:var(--gray-400);cursor:grab;vertical-align:middle;border-radius:4px;}
+  .drag:hover{color:var(--navy);background:var(--gray-100);}
+  .drag:active{cursor:grabbing;}
+  tr.drag-over td{box-shadow:inset 0 3px 0 var(--accent);}
+  tr.dragging td{opacity:.45;}
   td.rivals .rv{font-weight:900;font-size:14px;}
   td.rivals .rv0{color:var(--ok);}
   td.rivals a{text-decoration:none;}
@@ -295,6 +300,7 @@
         <option value="1">済のみ</option>
         <option value="0">未のみ</option>
       </select>
+      <button class="btn" id="btnManual" title="ドラッグ&ドロップで並べた手動の順番に切り替えます(列見出しをクリックすると通常の並び替えに戻ります)">手動順</button>
       <button class="btn" id="btnRivals" title="未反映の物件について、SUUMOで同条件(賃料+面積一致)の掲載が何件あるかを数えます。競合が少ない順に入力する優先順位付けに使います">競合数を数える</button>
       <button class="btn primary" id="btnReload"><span id="reloadIcon">↻</span> 更新</button>
       <span class="updated" id="updated"></span>
@@ -459,6 +465,15 @@
   }
   // 並べ替え(数値・日付は未設定を常に末尾、物件名は日本語順)
   function sortList(arr){
+    if(sortKey==="manual"){
+      // 手動順: sort_order昇順。未設定(新規取込)は一番上に取込の新しい順で置く→ドラッグで差し込める
+      return arr.slice().sort(function(a,b){
+        var av=(a.sort_order==null), bv=(b.sort_order==null);
+        if(av&&bv){ var ta=a.imported_at?new Date(a.imported_at).getTime():0, tb=b.imported_at?new Date(b.imported_at).getTime():0; return tb-ta; }
+        if(av) return -1; if(bv) return 1;
+        return a.sort_order-b.sort_order;
+      });
+    }
     var dir = sortDir==="asc" ? 1 : -1;
     return arr.slice().sort(function(a,b){
       if(STR_SORT[sortKey]){
@@ -579,7 +594,7 @@
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
     tr.innerHTML =
-      '<td class="c-name">'+nameLink+
+      '<td class="c-name">'+(p.reflected_at?'':'<span class="drag" draggable="true" title="ドラッグで並び替え(離した位置に入ります)"><svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="6" cy="2" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="6" cy="7" r="1.3"/><circle cx="2" cy="12" r="1.3"/><circle cx="6" cy="12" r="1.3"/></svg></span>')+nameLink+
         (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+
         (p.zumen_url?'<a class="zlink" href="'+esc(p.zumen_url)+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
       '<td>'+srcBadge(p.source)+'</td>'+
@@ -740,6 +755,34 @@
         .catch(function(e){ vi.value=p.verify_note||""; resizeMemo(vi); toast(e.message||"保存に失敗", true); });
     });
     // 削除(カスタム確認モーダル)
+    // 行の並び替え(ドラッグ&ドロップ・未反映のみ・寺島さん要望2026-07-10)
+    // 初回ドラッグで「その時の見た目の順」をsort_orderに確定してから移動を適用=列ソートで作った並びを土台に微調整できる
+    if(!p.reflected_at){
+      var grip=tr.querySelector(".drag");
+      if(grip){
+        grip.addEventListener("dragstart", function(ev){
+          dragPid=p.id;
+          tr.classList.add("dragging");
+          try{ ev.dataTransfer.setData("text/plain", String(p.id)); ev.dataTransfer.effectAllowed="move"; }catch(e){}
+        });
+        grip.addEventListener("dragend", function(){ tr.classList.remove("dragging"); document.querySelectorAll("tr.drag-over").forEach(function(t){t.classList.remove("drag-over");}); });
+      }
+      tr.addEventListener("dragover", function(ev){
+        if(!dragPid || dragPid===p.id) return;
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect="move";
+        tr.classList.add("drag-over");
+      });
+      tr.addEventListener("dragleave", function(){ tr.classList.remove("drag-over"); });
+      tr.addEventListener("drop", function(ev){
+        ev.preventDefault();
+        tr.classList.remove("drag-over");
+        if(!dragPid || dragPid===p.id) return;
+        moveRowBefore(dragPid, p.id);
+        dragPid=null;
+      });
+    }
+
     tr.querySelector(".del").addEventListener("click", function(){
       confirmDialog('「'+(p.name||"この物件")+'」を削除します。よろしいですか？').then(function(ok){
         if(!ok) return;
@@ -799,6 +842,49 @@
   $("search").addEventListener("input", function(e){ filter=e.target.value; render(); });
   $("fltApply").addEventListener("change", function(e){ fltApply=e.target.value; render(); });
   $("fltVac").addEventListener("change", function(e){ fltVac=e.target.value; render(); });
+  // ===== 行の並び替え(手動順) =====
+  // 初回のドラッグで「その時の見た目の順」を10,20,30…とsort_orderへ確定(=列ソートの並びを土台にできる)。
+  // 以後の移動は前後の中間値を振るだけ(全行の書き直し不要)。保存はSupabase(sort_order列)。
+  function ensureManualOrder(){
+    if(sortKey==="manual") return Promise.resolve();
+    var v=10, jobs=[];
+    lastUnreflOrder.forEach(function(p){
+      p.sort_order=v;
+      jobs.push(api("update",{ id:p.id, patch:{ sort_order:v } }).catch(function(){}));
+      v+=10;
+    });
+    sortKey="manual"; sortDir="asc";
+    return Promise.all(jobs);
+  }
+  function moveRowBefore(dragId, targetId){
+    var src=rows.find(function(r){return r.id===dragId;});
+    var dst=rows.find(function(r){return r.id===targetId;});
+    if(!src||!dst||src.reflected_at||dst.reflected_at) return;
+    ensureManualOrder().then(function(){
+      // 手動順での現在列(未反映のみ)を作り、dstの直前に入る値を計算
+      var seq=rows.filter(function(r){return !r.reflected_at && r.id!==src.id;}).sort(function(a,b){
+        var av=(a.sort_order==null), bv=(b.sort_order==null);
+        if(av&&bv) return 0; if(av) return -1; if(bv) return 1;
+        return a.sort_order-b.sort_order;
+      });
+      var idx=seq.findIndex(function(r){return r.id===dst.id;});
+      var after=(idx>0)?seq[idx-1]:null;
+      var lo=after&&after.sort_order!=null?after.sort_order:((dst.sort_order!=null?dst.sort_order:10)-20);
+      var hi=dst.sort_order!=null?dst.sort_order:(lo+20);
+      var nv=(lo+hi)/2;
+      src.sort_order=nv;
+      render();
+      api("update",{ id:src.id, patch:{ sort_order:nv } })
+        .then(function(){ toast("並び順を保存しました(手動順)"); })
+        .catch(function(e){ toast(e.message||"並び順の保存に失敗", true); });
+    });
+  }
+  $("btnManual").addEventListener("click", function(){
+    var has=rows.some(function(r){ return !r.reflected_at && r.sort_order!=null; });
+    if(!has){ toast("まだ手動の並びがありません。行の左端のつまみをドラッグすると手動順になります", false, 5000); return; }
+    sortKey="manual"; sortDir="asc"; render();
+    toast("手動順で表示しています(列見出しクリックで通常の並び替えに戻ります)");
+  });
   // 競合数を数える: 未反映・未計測の物件を4件ずつサーバーに数えさせ、残り0まで繰り返す(2026-07-09)
   var rivalsRunning=false;
   $("btnRivals").addEventListener("click", function(){
