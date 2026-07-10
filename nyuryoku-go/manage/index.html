@@ -371,7 +371,7 @@
   var filter = "";             // 検索語
   var fltApply = "";           // 申込/掲載不可の絞り込み(""=全て/none=未設定/申込/掲載不可)
   var fltVac = "";             // 空き確認の絞り込み(""=全て/1=済/0=未)
-  var sortKey = "imported_at"; // 並べ替えの基準列
+  var sortKey = localStorage.getItem("admas_sort_manual")==="1" ? "manual" : "imported_at"; // 並べ替えの基準列(手動順は記憶して次回も維持)
   var sortDir = "desc";        // "asc"(昇順) | "desc"(降順)
   var STR_SORT = {name:1, source:1, agent_company:1, assignee:1}; // 文字列で並べ替える列(他は数値/日付)
   // 担当者プルダウンの選択肢(アドマスの担当者プルダウンと一致・transform §16bが名前→user_idに変換)
@@ -854,6 +854,7 @@
       v+=10;
     });
     sortKey="manual"; sortDir="asc";
+    try{ localStorage.setItem("admas_sort_manual","1"); }catch(e){}
     return Promise.all(jobs);
   }
   function moveRowBefore(dragId, targetId){
@@ -882,7 +883,9 @@
   $("btnManual").addEventListener("click", function(){
     var has=rows.some(function(r){ return !r.reflected_at && r.sort_order!=null; });
     if(!has){ toast("まだ手動の並びがありません。行の左端のつまみをドラッグすると手動順になります", false, 5000); return; }
-    sortKey="manual"; sortDir="asc"; render();
+    sortKey="manual"; sortDir="asc";
+    try{ localStorage.setItem("admas_sort_manual","1"); }catch(e){}
+    render();
     toast("手動順で表示しています(列見出しクリックで通常の並び替えに戻ります)");
   });
   // 競合数を数える: 未反映・未計測の物件を4件ずつサーバーに数えさせ、残り0まで繰り返す(2026-07-09)
@@ -911,7 +914,7 @@
     th.addEventListener("click", function(){
       var k=th.getAttribute("data-sort");
       if(sortKey===k){ sortDir = sortDir==="asc"?"desc":"asc"; }
-      else { sortKey=k; sortDir = STR_SORT[k]?"asc":"desc"; }
+      else { try{ localStorage.removeItem("admas_sort_manual"); }catch(e){} sortKey=k; sortDir = STR_SORT[k]?"asc":"desc"; }
       render();
     });
   });
