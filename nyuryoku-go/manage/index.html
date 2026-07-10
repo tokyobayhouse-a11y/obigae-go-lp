@@ -370,6 +370,8 @@
   var rows = [];               // サーバーから取得した全物件
   var filter = "";             // 検索語
   var fltApply = "";           // 申込/掲載不可の絞り込み(""=全て/none=未設定/申込/掲載不可)
+  var lastUnreflOrder = [];    // 未反映グループの現在の表示順(render毎に更新・手動順の初期化に使う)
+  var dragPid = null;          // ドラッグ中の物件id
   var fltVac = "";             // 空き確認の絞り込み(""=全て/1=済/0=未)
   var sortKey = localStorage.getItem("admas_sort_manual")==="1" ? "manual" : "imported_at"; // 並べ替えの基準列(手動順は記憶して次回も維持)
   var sortDir = "desc";        // "asc"(昇順) | "desc"(降順)
@@ -535,6 +537,7 @@
     if(rows.length===0){ $("table").style.display="none"; $("empty").style.display="block"; return; }
     $("empty").style.display="none"; $("table").style.display="table";
 
+    lastUnreflOrder = []; // 未反映グループの現在の表示順(手動順への切替時にこの順を確定させる)
     groupByReflected(list).forEach(function(g){
       var collapsed=isCollapsed(g.key);
       var htr=document.createElement("tr");
@@ -544,6 +547,7 @@
       tb.appendChild(htr);
       if(collapsed) return;
       sortList(g.items).forEach(function(p){
+        if(g.key==="未反映") lastUnreflOrder.push(p);
         var tr=buildRow(p);
         tb.appendChild(tr);
         resizeMemo(tr.querySelector('textarea[data-f=memo]'));
