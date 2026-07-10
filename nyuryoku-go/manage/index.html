@@ -113,6 +113,8 @@
   tbody tr.grp:hover td{background:#dde7ee;}
   tbody tr.grp.grp-unrefl td{background:#fff3de;color:#7a4a00;}
   tbody tr.grp.grp-unrefl:hover td{background:#ffe9c6;}
+  tbody tr.grp.grp-old td{background:#f3f5f8;color:#5a6b7a;font-weight:700;}
+  tbody tr.grp.grp-old:hover td{background:#e9edf2;}
   tbody tr.grp .caret{display:inline-block;width:16px;color:inherit;}
   tbody tr.grp .grp-n{color:var(--gray-500);font-weight:700;font-size:11px;margin-left:8px;}
   .c-name{padding-left:11px!important;}
@@ -502,6 +504,7 @@
   // ===== 描画 =====
   // ===== 反映日グループ(未反映を上に、反映日ごとに新しい順・折りたたみ) =====
   var collapsedState = {}; // key -> true(畳む)/false(開く)。未設定はデフォルト(未反映=開く/反映日=畳む)
+  var oldOpen = false;     // 古い反映済みグループのまとめ行を開いているか(開き直すたびに畳んだ状態へ戻す)
   function dayKey(iso){
     if(!iso) return null; var d=new Date(iso); if(isNaN(d)) return null;
     return d.getFullYear()+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+("0"+d.getDate()).slice(-2);
@@ -538,7 +541,7 @@
     $("empty").style.display="none"; $("table").style.display="table";
 
     lastUnreflOrder = []; // 未反映グループの現在の表示順(手動順への切替時にこの順を確定させる)
-    groupByReflected(list).forEach(function(g){
+    function renderGroup(g){
       var collapsed=isCollapsed(g.key);
       var htr=document.createElement("tr");
       htr.className="grp"+(g.key==="未反映"?" grp-unrefl":"");
@@ -554,7 +557,30 @@
         resizeMemo(tr.querySelector('textarea[data-f=list_memo]'));
         resizeMemo(tr.querySelector('textarea[data-f=verify_note]'));
       });
-    });
+    }
+    // 直近3日分より古い反映済みグループは1本のまとめ行に(たまって見にくい件・寺島さん要望2026-07-11)。
+    // 検索・絞り込み中は結果を隠さないため全グループ表示
+    var groups = groupByReflected(list);
+    var oldGroups = [];
+    if(!f && !fltApply && !fltVac){
+      var dated = groups.filter(function(g){ return g.key!=="未反映"; });
+      if(dated.length >= 5){ // まとめ対象が2グループ以上できる時だけ
+        oldGroups = dated.slice(3);
+        groups = groups.filter(function(g){ return oldGroups.indexOf(g)<0; });
+      }
+    }
+    groups.forEach(renderGroup);
+    if(oldGroups.length){
+      var oldCount = oldGroups.reduce(function(s,g){ return s+g.items.length; },0);
+      var md = function(k){ return k.replace(/^\d{4}\//,""); };
+      var range = md(oldGroups[oldGroups.length-1].key)+"〜"+md(oldGroups[0].key);
+      var otr=document.createElement("tr");
+      otr.className="grp grp-old";
+      otr.innerHTML='<td colspan="19"><span class="caret">'+(oldOpen?"▼":"▶")+'</span>それ以前の反映済み<span class="grp-n">'+oldCount+'件（'+range+'）'+(oldOpen?"　クリックでまとめる":"")+'</span></td>';
+      otr.addEventListener("click", function(){ oldOpen=!oldOpen; render(); });
+      tb.appendChild(otr);
+      if(oldOpen) oldGroups.forEach(renderGroup);
+    }
     window.scrollTo(0, sy);
   }
 
