@@ -1618,6 +1618,130 @@
       </div>
     </div>
 
+    <!-- Try: その場で帯替え体験 (2026-07-12追加・GA4イベント band_demo_* で計測) -->
+    <section id="try" class="try-demo">
+      <div class="container">
+        <div class="section-head">
+          <h2>まずは、この場で帯替えを体験。</h2>
+          <p>下のサンプル図面の帯（下部の会社欄）を、ボタン1つで自社の帯に差し替えてみてください。</p>
+        </div>
+        <div class="demo-wrap">
+          <div class="demo-sheet" id="demoSheet" aria-label="サンプル募集図面">
+            <div class="ds-head">
+              <span class="ds-badge">賃貸マンション</span>
+              <span class="ds-title">グッドハイツ品川 302号室</span>
+            </div>
+            <div class="ds-body">
+              <div class="ds-photo" aria-hidden="true">
+                <div class="ds-room">
+                  <div class="ds-room-l"></div>
+                  <div class="ds-room-r">
+                    <div class="ds-room-r1"></div>
+                    <div class="ds-room-r2"></div>
+                  </div>
+                </div>
+                <span class="ds-photo-label">間取図 1LDK</span>
+              </div>
+              <table class="ds-table" aria-hidden="true">
+                <tr><th>賃料</th><td>12.8万円</td></tr>
+                <tr><th>管理費</th><td>8,000円</td></tr>
+                <tr><th>敷/礼</th><td>1ヶ月/1ヶ月</td></tr>
+                <tr><th>面積</th><td>40.2㎡</td></tr>
+                <tr><th>駅徒歩</th><td>品川駅 8分</td></tr>
+              </table>
+            </div>
+            <div class="ds-band-slot">
+              <div class="ds-band ds-band-other" id="bandOther">
+                <span class="dsb-name">ライバル不動産株式会社</span>
+                <span class="dsb-info">TEL 03-0000-0000｜東京都◯◯区…</span>
+              </div>
+              <div class="ds-band ds-band-mine" id="bandMine" aria-hidden="true">
+                <span class="dsb-name">あなたの会社の帯がここに</span>
+                <span class="dsb-info">TEL・ロゴ・免許番号もそのまま反映</span>
+              </div>
+            </div>
+          </div>
+          <div class="demo-side">
+            <button class="btn btn-primary demo-btn" id="demoBtn" type="button">▶ 自社の帯に差し替える</button>
+            <p class="demo-result" id="demoResult" hidden>✅ <strong id="demoTime">0.0秒</strong>で完了。実際の拡張機能も、この速さでPDFに焼き込みます。</p>
+            <div class="demo-after" id="demoAfter" hidden>
+              <a class="btn btn-navy" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" id="demoCta">実際のPDFで試す（14日間無料）</a>
+              <button class="demo-replay" id="demoReplay" type="button">もう一度見る</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <style>
+      .try-demo { padding: 46px 0 40px; background: var(--orange-bg); }
+      .demo-wrap { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,0.8fr); gap: 28px; align-items: center; max-width: 900px; margin: 0 auto; }
+      @media (max-width: 760px) { .demo-wrap { grid-template-columns: 1fr; } }
+      .demo-sheet { background: #fff; border: 1px solid #d8dee6; border-radius: 10px; box-shadow: 0 8px 24px rgba(13,77,107,.10); padding: 14px 14px 0; overflow: hidden; }
+      .ds-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 2px solid var(--navy); }
+      .ds-badge { background: var(--navy); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+      .ds-title { font-weight: 800; font-size: 14px; color: #1c2530; }
+      .ds-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 0; }
+      .ds-photo { position: relative; background: #f1f5f8; border: 1px solid #e0e6ec; border-radius: 6px; min-height: 110px; display: flex; align-items: center; justify-content: center; }
+      .ds-room { display: flex; gap: 3px; width: 70%; height: 72px; }
+      .ds-room-l { flex: 1.4; background: #fff; border: 2px solid #9fb4c4; border-radius: 2px; }
+      .ds-room-r { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+      .ds-room-r1 { flex: 1; background: #fff; border: 2px solid #9fb4c4; border-radius: 2px; }
+      .ds-room-r2 { flex: 1; background: #e4ecf2; border: 2px solid #9fb4c4; border-radius: 2px; }
+      .ds-photo-label { position: absolute; bottom: 4px; right: 8px; font-size: 10px; color: #7c8b98; }
+      .ds-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+      .ds-table th { background: #eef3f7; color: #33475a; font-weight: 700; text-align: left; padding: 4px 8px; border: 1px solid #dfe6ec; width: 42%; }
+      .ds-table td { padding: 4px 8px; border: 1px solid #dfe6ec; color: #1c2530; font-variant-numeric: tabular-nums; }
+      .ds-band-slot { position: relative; height: 54px; margin: 0 -14px; overflow: hidden; }
+      .ds-band { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 16px; transition: transform .55s cubic-bezier(.2,.8,.2,1), opacity .4s ease; }
+      .dsb-name { font-weight: 800; font-size: 13.5px; color: #fff; }
+      .dsb-info { font-size: 10.5px; color: rgba(255,255,255,.85); }
+      .ds-band-other { background: #b3352b; }
+      .ds-band-mine { background: var(--navy); transform: translateX(101%); }
+      .demo-sheet.swapped .ds-band-other { transform: translateX(-101%); opacity: .3; }
+      .demo-sheet.swapped .ds-band-mine { transform: translateX(0); }
+      .demo-side { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+      .demo-btn { background: var(--orange); color: #fff; font-size: 15.5px; box-shadow: 0 6px 16px rgba(217,119,6,.35); }
+      .demo-btn:hover { background: #c56a05; }
+      .demo-result { font-size: 13.5px; color: #1c2530; margin: 0; }
+      .demo-result strong { color: var(--orange); font-size: 17px; }
+      .demo-after { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+      .demo-after .btn-navy { background: var(--navy); color: #fff; }
+      .demo-replay { background: none; border: none; color: var(--navy-light); font-size: 12.5px; cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit; }
+    </style>
+    <script>
+      (function () {
+        var btn = document.getElementById('demoBtn');
+        var sheet = document.getElementById('demoSheet');
+        var result = document.getElementById('demoResult');
+        var timeEl = document.getElementById('demoTime');
+        var after = document.getElementById('demoAfter');
+        var replay = document.getElementById('demoReplay');
+        var cta = document.getElementById('demoCta');
+        if (!btn || !sheet) return;
+        function track(name) { try { if (window.gtag) gtag('event', name); } catch (e) {} }
+        btn.addEventListener('click', function () {
+          var t0 = performance.now();
+          sheet.classList.add('swapped');
+          track('band_demo_try');
+          setTimeout(function () {
+            var sec = ((performance.now() - t0) / 1000).toFixed(1);
+            timeEl.textContent = sec + '秒';
+            result.hidden = false;
+            after.hidden = false;
+            btn.style.display = 'none';
+          }, 600);
+        });
+        replay.addEventListener('click', function () {
+          sheet.classList.remove('swapped');
+          result.hidden = true;
+          after.hidden = true;
+          btn.style.display = '';
+          track('band_demo_replay');
+        });
+        cta.addEventListener('click', function () { track('band_demo_cta'); });
+      })();
+    </script>
+
     <!-- Compatibility / Sites -->
     <section id="sites" class="sites">
       <div class="container">
