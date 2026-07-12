@@ -1621,124 +1621,52 @@
     <!-- Try: その場で帯替え体験 (2026-07-12追加・GA4イベント band_demo_* で計測) -->
     <section id="try" class="try-demo">
       <div class="container">
-        <div class="section-head">
-          <h2>まずは、この場で帯替えを体験。</h2>
-          <p>下のサンプル図面の帯（下部の会社欄）を、ボタン1つで自社の帯に差し替えてみてください。</p>
+        <h2 class="try-title">実際の帯替え、ご覧ください。</h2>
+        <p class="try-lead">ATBBの検索結果で「帯付きDL」をワンクリック。あとは自動で、自社帯付きの募集図面が出来上がります。<br /><span class="try-note">※実際の操作画面の録画です（他社物件の情報部分はモザイク加工）</span></p>
+        <div class="demo-video-wrap">
+          <video id="demoVideo" src="assets/demo/obigae_demo.mp4" poster="assets/demo/obigae_demo_poster.jpg" autoplay muted loop playsinline preload="metadata"></video>
         </div>
-        <div class="demo-wrap">
-          <div class="demo-sheet" id="demoSheet" aria-label="サンプル募集図面">
-            <div class="ds-head">
-              <span class="ds-badge">賃貸マンション</span>
-              <span class="ds-title">グッドハイツ品川 302号室</span>
-            </div>
-            <div class="ds-body">
-              <div class="ds-photo" aria-hidden="true">
-                <div class="ds-room">
-                  <div class="ds-room-l"></div>
-                  <div class="ds-room-r">
-                    <div class="ds-room-r1"></div>
-                    <div class="ds-room-r2"></div>
-                  </div>
-                </div>
-                <span class="ds-photo-label">間取図 1LDK</span>
-              </div>
-              <table class="ds-table" aria-hidden="true">
-                <tr><th>賃料</th><td>12.8万円</td></tr>
-                <tr><th>管理費</th><td>8,000円</td></tr>
-                <tr><th>敷/礼</th><td>1ヶ月/1ヶ月</td></tr>
-                <tr><th>面積</th><td>40.2㎡</td></tr>
-                <tr><th>駅徒歩</th><td>品川駅 8分</td></tr>
-              </table>
-            </div>
-            <div class="ds-band-slot">
-              <div class="ds-band ds-band-other" id="bandOther">
-                <span class="dsb-name">ライバル不動産株式会社</span>
-                <span class="dsb-info">TEL 03-0000-0000｜東京都◯◯区…</span>
-              </div>
-              <div class="ds-band ds-band-mine" id="bandMine" aria-hidden="true">
-                <span class="dsb-name">あなたの会社の帯がここに</span>
-                <span class="dsb-info">TEL・ロゴ・免許番号もそのまま反映</span>
-              </div>
-            </div>
-          </div>
-          <div class="demo-side">
-            <button class="btn btn-primary demo-btn" id="demoBtn" type="button">▶ 自社の帯に差し替える</button>
-            <p class="demo-result" id="demoResult" hidden>差し替え完了（イメージ）。実際の拡張機能では、業者間サイトの物件カードから<strong>最短3秒</strong>で自社帯入りPDFができます。</p>
-            <div class="demo-after" id="demoAfter" hidden>
-              <a class="btn btn-navy" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" id="demoCta">実際のPDFで試す（14日間無料）</a>
-              <button class="demo-replay" id="demoReplay" type="button">もう一度見る</button>
-            </div>
-          </div>
+        <ol class="demo-steps">
+          <li><strong>1. ワンクリック</strong><span>物件カードの「帯付きDL」を押すだけ</span></li>
+          <li><strong>2. 自動で取得</strong><span>図面PDFの取り込みは全自動</span></li>
+          <li><strong>3. 自社帯で完成</strong><span>TEL・ロゴ・QR入りの帯が自動フィット</span></li>
+        </ol>
+        <div class="demo-after">
+          <a class="btn btn-navy" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" id="demoCta">自分の物件で試す（14日間無料）</a>
         </div>
       </div>
     </section>
     <style>
-      .try-demo { padding: 46px 0 40px; background: var(--orange-bg); }
-      .try-demo [hidden] { display: none !important; }
-      .demo-wrap { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,0.8fr); gap: 28px; align-items: center; max-width: 900px; margin: 0 auto; }
-      @media (max-width: 760px) { .demo-wrap { grid-template-columns: 1fr; } }
-      .demo-sheet { background: #fff; border: 1px solid #d8dee6; border-radius: 10px; box-shadow: 0 8px 24px rgba(13,77,107,.10); padding: 14px 14px 0; overflow: hidden; }
-      .ds-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 2px solid var(--navy); }
-      .ds-badge { background: var(--navy); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
-      .ds-title { font-weight: 800; font-size: 14px; color: #1c2530; }
-      .ds-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 0; }
-      .ds-photo { position: relative; background: #f1f5f8; border: 1px solid #e0e6ec; border-radius: 6px; min-height: 110px; display: flex; align-items: center; justify-content: center; }
-      .ds-room { display: flex; gap: 3px; width: 70%; height: 72px; }
-      .ds-room-l { flex: 1.4; background: #fff; border: 2px solid #9fb4c4; border-radius: 2px; }
-      .ds-room-r { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-      .ds-room-r1 { flex: 1; background: #fff; border: 2px solid #9fb4c4; border-radius: 2px; }
-      .ds-room-r2 { flex: 1; background: #e4ecf2; border: 2px solid #9fb4c4; border-radius: 2px; }
-      .ds-photo-label { position: absolute; bottom: 4px; right: 8px; font-size: 10px; color: #7c8b98; }
-      .ds-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-      .ds-table th { background: #eef3f7; color: #33475a; font-weight: 700; text-align: left; padding: 4px 8px; border: 1px solid #dfe6ec; width: 42%; }
-      .ds-table td { padding: 4px 8px; border: 1px solid #dfe6ec; color: #1c2530; font-variant-numeric: tabular-nums; }
-      .ds-band-slot { position: relative; height: 54px; margin: 0 -14px; overflow: hidden; }
-      .ds-band { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 16px; transition: transform .55s cubic-bezier(.2,.8,.2,1), opacity .4s ease; }
-      .dsb-name { font-weight: 800; font-size: 13.5px; color: #fff; }
-      .dsb-info { font-size: 10.5px; color: rgba(255,255,255,.85); }
-      .ds-band-other { background: #b3352b; }
-      .ds-band-mine { background: var(--navy); transform: translateX(101%); }
-      .demo-sheet.swapped .ds-band-other { transform: translateX(-101%); opacity: .3; }
-      .demo-sheet.swapped .ds-band-mine { transform: translateX(0); }
-      .demo-side { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
-      .demo-btn { background: var(--orange); color: #fff; font-size: 15.5px; box-shadow: 0 6px 16px rgba(217,119,6,.35); }
-      .demo-btn:hover { background: #c56a05; }
-      .demo-result { font-size: 13.5px; color: #1c2530; margin: 0; }
-      .demo-result strong { color: var(--orange); font-size: 17px; }
-      .demo-after { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+      .try-demo { padding: 46px 0 44px; background: var(--orange-bg); }
+      .try-title { text-align: center; color: var(--navy); font-size: 30px; margin: 0 0 14px; }
+      .try-lead { text-align: center; color: #445; font-size: 15px; line-height: 1.9; margin: 0 auto 26px; max-width: 700px; }
+      .try-note { font-size: 12.5px; color: #889; }
+      .demo-video-wrap { max-width: 860px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(13,77,107,.16); border: 1px solid #d8dee6; background: #fff; }
+      .demo-video-wrap video { display: block; width: 100%; height: auto; }
+      .demo-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 860px; margin: 22px auto 0; padding: 0; list-style: none; }
+      .demo-steps li { background: #fff; border: 1px solid #eadfce; border-radius: 10px; padding: 14px 16px; }
+      .demo-steps strong { display: block; color: var(--navy); font-size: 15px; margin-bottom: 4px; }
+      .demo-steps span { color: #667; font-size: 13px; line-height: 1.6; }
+      @media (max-width: 760px) { .demo-steps { grid-template-columns: 1fr; } .try-title { font-size: 24px; } }
+      .demo-after { display: flex; justify-content: center; margin-top: 26px; }
       .demo-after .btn-navy { background: var(--navy); color: #fff; }
-      .demo-replay { background: none; border: none; color: var(--navy-light); font-size: 12.5px; cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit; }
     </style>
     <script>
       (function () {
-        var btn = document.getElementById('demoBtn');
-        var sheet = document.getElementById('demoSheet');
-        var result = document.getElementById('demoResult');
-        var after = document.getElementById('demoAfter');
-        var replay = document.getElementById('demoReplay');
+        var video = document.getElementById('demoVideo');
         var cta = document.getElementById('demoCta');
-        if (!btn || !sheet) return;
         function track(name) { try { if (window.gtag) gtag('event', name); } catch (e) {} }
-        btn.addEventListener('click', function () {
-          sheet.classList.add('swapped');
-          track('band_demo_try');
-          setTimeout(function () {
-            result.hidden = false;
-            after.hidden = false;
-            btn.style.display = 'none';
-          }, 600);
-        });
-        replay.addEventListener('click', function () {
-          sheet.classList.remove('swapped');
-          result.hidden = true;
-          after.hidden = true;
-          btn.style.display = '';
-          track('band_demo_replay');
-        });
-        cta.addEventListener('click', function () { track('band_demo_cta'); });
+        if (video) {
+          var seen = false;
+          video.addEventListener('play', function () {
+            if (seen) return;
+            seen = true;
+            track('band_demo_video_play');
+          });
+        }
+        if (cta) cta.addEventListener('click', function () { track('band_demo_cta'); });
       })();
     </script>
-
     <!-- Compatibility / Sites -->
     <section id="sites" class="sites">
       <div class="container">
