@@ -1663,7 +1663,7 @@
           </div>
           <div class="demo-side">
             <button class="btn btn-primary demo-btn" id="demoBtn" type="button">▶ 自社の帯に差し替える</button>
-            <p class="demo-result" id="demoResult" hidden>✅ <strong id="demoTime">0.0秒</strong>で完了。実際の拡張機能も、この速さでPDFに焼き込みます。</p>
+            <p class="demo-result" id="demoResult" hidden>差し替え完了（イメージ）。実際の拡張機能では、業者間サイトの物件カードから<strong>最短3秒</strong>で自社帯入りPDFができます。</p>
             <div class="demo-after" id="demoAfter" hidden>
               <a class="btn btn-navy" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" id="demoCta">実際のPDFで試す（14日間無料）</a>
               <button class="demo-replay" id="demoReplay" type="button">もう一度見る</button>
@@ -1714,19 +1714,15 @@
         var btn = document.getElementById('demoBtn');
         var sheet = document.getElementById('demoSheet');
         var result = document.getElementById('demoResult');
-        var timeEl = document.getElementById('demoTime');
         var after = document.getElementById('demoAfter');
         var replay = document.getElementById('demoReplay');
         var cta = document.getElementById('demoCta');
         if (!btn || !sheet) return;
         function track(name) { try { if (window.gtag) gtag('event', name); } catch (e) {} }
         btn.addEventListener('click', function () {
-          var t0 = performance.now();
           sheet.classList.add('swapped');
           track('band_demo_try');
           setTimeout(function () {
-            var sec = ((performance.now() - t0) / 1000).toFixed(1);
-            timeEl.textContent = sec + '秒';
             result.hidden = false;
             after.hidden = false;
             btn.style.display = 'none';
