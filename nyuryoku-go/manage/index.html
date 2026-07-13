@@ -376,9 +376,10 @@
   var dragPid = null;          // ドラッグ中の物件id
   // ドラッグ中は画面の上端・下端に近づくと自動スクロール(ドラッグ中はホイールが効かないブラウザ仕様のため・寺島さん要望2026-07-11)
   // 端に近いほど速く。requestAnimationFrameループはドラッグ中だけ回る
-  var dragScrollV = 0, dragScrollOn = false;
+  var dragScrollV = 0, dragScrollOn = false, dragScrollAt = 0;
   function dragScrollTick(){
     if(!dragScrollV){ dragScrollOn=false; return; }
+    dragScrollAt=performance.now();
     window.scrollBy(0, dragScrollV);
     requestAnimationFrame(dragScrollTick);
   }
@@ -388,7 +389,9 @@
     if(y<EDGE) dragScrollV=-Math.ceil((EDGE-y)/EDGE*MAX);
     else if(y>h-EDGE) dragScrollV=Math.ceil((y-(h-EDGE))/EDGE*MAX);
     else dragScrollV=0;
-    if(dragScrollV && !dragScrollOn){ dragScrollOn=true; requestAnimationFrame(dragScrollTick); }
+    if(dragScrollV && !dragScrollOn){ dragScrollOn=true; dragScrollAt=performance.now(); requestAnimationFrame(dragScrollTick); }
+    // rAFが止まる環境(タブ非表示・省電力等)ではdragoverの周期発火で直接スクロール(粗いが動く)
+    else if(dragScrollV && performance.now()-dragScrollAt>250) window.scrollBy(0, dragScrollV*8);
   });
   document.addEventListener("dragend", function(){ dragScrollV=0; });
   document.addEventListener("drop", function(){ dragScrollV=0; });
