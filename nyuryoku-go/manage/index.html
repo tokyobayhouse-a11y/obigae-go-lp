@@ -115,6 +115,8 @@
   tbody tr.grp.grp-unrefl:hover td{background:#ffe9c6;}
   tbody tr.grp.grp-old td{background:#f3f5f8;color:#5a6b7a;font-weight:700;}
   tbody tr.grp.grp-old:hover td{background:#e9edf2;}
+  .rres{cursor:pointer;}
+  #modalMsg{white-space:pre-wrap;overflow-wrap:anywhere;}
   .mk-refl{display:block;margin-top:4px;padding:3px 8px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;color:var(--navy);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .mk-refl:hover{background:#eef4f9;}
   .mk-unrefl{display:block;margin-top:4px;padding:0;border:none;background:none;color:var(--gray-500);font-size:10.5px;cursor:pointer;text-decoration:underline;white-space:nowrap;}
@@ -839,6 +841,11 @@
       });
     }
 
+    // 反映結果(エラー等)はクリックで全文表示(列内では切れて読めないため)
+    var rresEl=tr.querySelector(".rres");
+    if(rresEl) rresEl.addEventListener("click", function(){
+      infoDialog((p.reflect_result||"")+(p.note?"\n\n"+p.note:""));
+    });
     // 反映済みへ手動移動/未反映へ戻す(自動入力エラー→手動仕上げした物件の置き場・渡辺さん要望2026-07-13)
     var mkR=tr.querySelector(".mk-refl");
     if(mkR) mkR.addEventListener("click", function(){
@@ -896,6 +903,16 @@
   }
 
   // ===== 確認モーダル =====
+  // 情報表示だけのダイアログ(OKのみ)。エラー全文の表示に使う(列内では切れて読めない・渡辺さん検証メモ2026-07-13)
+  function infoDialog(msg){
+    return new Promise(function(resolve){
+      $("modalMsg").textContent = msg;
+      $("modalBg").className = "modal-bg show";
+      var c=$("modalCancel"), prev=c.style.display;
+      c.style.display="none";
+      $("modalOk").onclick = function(){ $("modalBg").className="modal-bg"; c.style.display=prev; $("modalOk").onclick=null; resolve(); };
+    });
+  }
   function confirmDialog(msg){
     return new Promise(function(resolve){
       $("modalMsg").textContent = msg;
