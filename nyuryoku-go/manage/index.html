@@ -374,6 +374,24 @@
   var fltApply = "";           // 申込/掲載不可の絞り込み(""=全て/none=未設定/申込/掲載不可)
   var lastUnreflOrder = [];    // 未反映グループの現在の表示順(render毎に更新・手動順の初期化に使う)
   var dragPid = null;          // ドラッグ中の物件id
+  // ドラッグ中は画面の上端・下端に近づくと自動スクロール(ドラッグ中はホイールが効かないブラウザ仕様のため・寺島さん要望2026-07-11)
+  // 端に近いほど速く。requestAnimationFrameループはドラッグ中だけ回る
+  var dragScrollV = 0, dragScrollOn = false;
+  function dragScrollTick(){
+    if(!dragScrollV){ dragScrollOn=false; return; }
+    window.scrollBy(0, dragScrollV);
+    requestAnimationFrame(dragScrollTick);
+  }
+  document.addEventListener("dragover", function(ev){
+    if(!dragPid){ dragScrollV=0; return; } // 行ドラッグ中だけ(ファイルのドラッグ等では動かさない)
+    var EDGE=110, MAX=24, y=ev.clientY, h=window.innerHeight;
+    if(y<EDGE) dragScrollV=-Math.ceil((EDGE-y)/EDGE*MAX);
+    else if(y>h-EDGE) dragScrollV=Math.ceil((y-(h-EDGE))/EDGE*MAX);
+    else dragScrollV=0;
+    if(dragScrollV && !dragScrollOn){ dragScrollOn=true; requestAnimationFrame(dragScrollTick); }
+  });
+  document.addEventListener("dragend", function(){ dragScrollV=0; });
+  document.addEventListener("drop", function(){ dragScrollV=0; });
   var fltVac = "";             // 空き確認の絞り込み(""=全て/1=済/0=未)
   var sortKey = localStorage.getItem("admas_sort_manual")==="1" ? "manual" : "imported_at"; // 並べ替えの基準列(手動順は記憶して次回も維持)
   var sortDir = "desc";        // "asc"(昇順) | "desc"(降順)
@@ -795,7 +813,7 @@
           tr.classList.add("dragging");
           try{ ev.dataTransfer.setData("text/plain", String(p.id)); ev.dataTransfer.effectAllowed="move"; }catch(e){}
         });
-        grip.addEventListener("dragend", function(){ tr.classList.remove("dragging"); document.querySelectorAll("tr.drag-over").forEach(function(t){t.classList.remove("drag-over");}); });
+        grip.addEventListener("dragend", function(){ dragPid=null; tr.classList.remove("dragging"); document.querySelectorAll("tr.drag-over").forEach(function(t){t.classList.remove("drag-over");}); });
       }
       tr.addEventListener("dragover", function(ev){
         if(!dragPid || dragPid===p.id) return;
