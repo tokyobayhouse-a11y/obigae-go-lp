@@ -849,7 +849,7 @@
     // 反映済みへ手動移動/未反映へ戻す(自動入力エラー→手動仕上げした物件の置き場・渡辺さん要望2026-07-13)
     var mkR=tr.querySelector(".mk-refl");
     if(mkR) mkR.addEventListener("click", function(){
-      confirmDialog('「'+(p.name||"この物件")+'」を反映済みに移動します。よろしいですか？').then(function(ok){
+      confirmDialog('「'+(p.name||"この物件")+'」を反映済みに移動します。よろしいですか？', '反映済みにする').then(function(ok){
         if(!ok) return;
         var now=new Date().toISOString();
         api("update",{ id:p.id, patch:{ reflected_at: now, reflect_result: "手動仕上げ" } }).then(function(){
@@ -859,7 +859,7 @@
     });
     var mkU=tr.querySelector(".mk-unrefl");
     if(mkU) mkU.addEventListener("click", function(){
-      confirmDialog('「'+(p.name||"この物件")+'」を未反映に戻します。よろしいですか？').then(function(ok){
+      confirmDialog('「'+(p.name||"この物件")+'」を未反映に戻します。よろしいですか？', '未反映に戻す').then(function(ok){
         if(!ok) return;
         var patch={ reflected_at: null };
         if(p.reflect_result==="手動仕上げ") patch.reflect_result=null; // 元からのエラー記録は消さない
@@ -869,7 +869,7 @@
       });
     });
     tr.querySelector(".del").addEventListener("click", function(){
-      confirmDialog('「'+(p.name||"この物件")+'」を削除します。よろしいですか？').then(function(ok){
+      confirmDialog('「'+(p.name||"この物件")+'」を削除します。よろしいですか？', '削除する', true).then(function(ok){
         if(!ok) return;
         api("delete",{ id:p.id }).then(function(){
           rows=rows.filter(function(x){ return x.id!==p.id; }); render(); toast("削除しました");
@@ -907,18 +907,27 @@
   function infoDialog(msg){
     return new Promise(function(resolve){
       $("modalMsg").textContent = msg;
+      var ok=$("modalOk");
+      ok.textContent = "閉じる";
+      ok.className = "btn";
       $("modalBg").className = "modal-bg show";
       var c=$("modalCancel"), prev=c.style.display;
       c.style.display="none";
-      $("modalOk").onclick = function(){ $("modalBg").className="modal-bg"; c.style.display=prev; $("modalOk").onclick=null; resolve(); };
+      ok.onclick = function(){ $("modalBg").className="modal-bg"; c.style.display=prev; ok.onclick=null; resolve(); };
     });
   }
-  function confirmDialog(msg){
+  // okLabel=OKボタンの文言(操作名をそのまま出す)。danger=trueの時だけ赤(削除)。
+  // ※以前は削除用の「削除する」(赤)が固定で、反映済み移動の確認でも「削除する」と表示されていた
+  //   (渡辺さん検証メモ2026-07-14 アビティ目黒)。
+  function confirmDialog(msg, okLabel, danger){
     return new Promise(function(resolve){
       $("modalMsg").textContent = msg;
+      var ok=$("modalOk");
+      ok.textContent = okLabel || "OK";
+      ok.className = danger ? "btn danger" : "btn";
       $("modalBg").className = "modal-bg show";
-      function done(v){ $("modalBg").className="modal-bg"; $("modalOk").onclick=null; $("modalCancel").onclick=null; resolve(v); }
-      $("modalOk").onclick = function(){ done(true); };
+      function done(v){ $("modalBg").className="modal-bg"; ok.onclick=null; $("modalCancel").onclick=null; resolve(v); }
+      ok.onclick = function(){ done(true); };
       $("modalCancel").onclick = function(){ done(false); };
     });
   }
