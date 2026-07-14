@@ -79,7 +79,7 @@
       <tr><td class="item">フリーレント無いのに選択されていた（7/10・11件）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.77</td><td>原因は7/09導入の「2段階読み」でAIが例文を丸写しする幻覚。プロンプトを厳格化し、さらにフリーレントの自動入力は「元データに記載がある時だけ」に限定（図面AI由来は案内のみ）。<b>登録済み15件は手直しをお願いしています</b></td></tr>
       <tr><td class="item">ペット相談可が不可に／ピアノ相談可なのに楽器不可（7/10）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.77</td><td>同じ幻覚が原因。対策＝「相談」と「不可」が両方見つかった時は相談を優先。ピアノ相談・可の物件では「楽器不可」を入れない</td></tr>
       <tr><td class="item">エアコン台数（2台以上）</td><td class="st"><span class="b hold">保留</span></td><td class="ver">—</td><td>AIは台数を読むようになったが、アドマス側の台数欄が未確認のため反映先がない（次回実画面採取で対応）</td></tr>
-      <tr><td class="item">古い取込にAI改善が届かない（7/07以前のレインズ・ATBB）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>反映時にDrive保存済みの図面PDFから読み直す仕組みを追加。※図面GASの更新（寺島さん作業）後に有効</td></tr>
+      <tr><td class="item">古い取込にAI改善が届かない（7/07以前のレインズ・ATBB）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.74</td><td>反映時にDrive保存済みの図面PDFから読み直す仕組みを追加。<b>前提だった図面GASの更新は2026-07-14に導入・動作確認済み</b>（get_zumenが正しくPDFを返すことをE2Eで確認）。これで7/07以前の古い取込物件も、反映時に最新の図面AIで読み直されます</td></tr>
     </table>
 
     <h2>礼金・費用</h2>
