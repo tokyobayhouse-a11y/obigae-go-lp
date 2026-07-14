@@ -190,7 +190,7 @@
   // 既存の「症状別」(h2+table群)を#catViewに包み、同じ行から「バージョン別(新しい順)」ビューを作る。
   // 行の追加・更新は従来どおり症状別のtableに対して行えば、両ビューに自動で反映される。
   var wrap=document.querySelector('.wrap');
-  var firstH2=wrap.querySelector('h2');
+  var firstH2=wrap.querySelector(':scope > h2'); // wrap直下のh2だけ(.team-asks内のh2を拾うとinsertBeforeで例外死する・2026-07-14実害)
   var catView=document.createElement('div'); catView.id='catView';
   wrap.insertBefore(catView, firstH2);
   Array.prototype.slice.call(wrap.children).forEach(function(el){
