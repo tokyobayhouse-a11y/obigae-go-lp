@@ -39,6 +39,9 @@
   .b.watch{color:var(--watch);background:var(--watch-bg);}
   .muted{color:var(--gray-500);font-size:12px;}
   td.cat{width:13%;white-space:normal;color:var(--gray-500);font-weight:700;font-size:11.5px;}
+  .team-asks{background:#fff;border:2px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:16px;}
+  .team-asks h2{margin:0 0 8px;border-left:none;padding-left:0;font-size:14px;}
+  .team-asks td.who{width:11%;white-space:nowrap;font-weight:900;color:var(--navy);}
   .viewtabs{display:flex;gap:8px;margin:0 0 14px;}
   .vt{border:1px solid var(--line);background:#fff;color:var(--gray-700);font-weight:800;font-size:12.5px;border-radius:8px;padding:7px 14px;cursor:pointer;}
   .vt.on{background:var(--navy);border-color:var(--navy);color:#fff;}
@@ -65,6 +68,16 @@
       <span class="muted">拡張の自動更新は数時間かかります。急ぐ場合は chrome://extensions で各拡張の「更新」。</span>
     </div>
     <div class="note">渡辺さんへ：検証メモを書く前にここを見ると「既に対応済み／保留中／仕様」が分かります。載っていない症状・「直った」なのに再発した症状は、ぜひ検証メモに書いてください（再発の記載が一番助かります）。</div>
+    <div class="team-asks">
+      <h2>お願い・確認ごと（対応が済んだら消します）</h2>
+      <table>
+        <tr><th>宛先</th><th>お願い</th><th>背景</th></tr>
+        <tr><td class="who">渡辺さん</td><td class="item">Macの通知許可を確認</td><td>エラーの即時通知（0.16.79〜）はMac側の許可が無いと表示されません。システム設定→通知→Google Chrome を「許可」に。※許可が無くても拡張アイコンの赤バッジは出ます</td></tr>
+        <tr><td class="who">渡辺さん</td><td class="item">白金タワーの写真を、拡張ポップアップの「3. 写真を画像編集画面に追加する」で入れてみる</td><td>手動で仕上げた物件の写真はこの既存機能で入る想定です（アドマスの画像編集画面を開いて実行）。使い勝手が悪ければ管理画面から1クリックで飛べる導線を作ります——感想を検証メモにお願いします</td></tr>
+        <tr><td class="who">渡辺さん</td><td class="item">フリーレント手直しリスト（15件）の消化確認</td><td>7/10にお渡しした「フリーレント誤ON等の登録済み物件」の手直しです。完了していれば検証メモで一言ください（この行を消します）</td></tr>
+        <tr><td class="who">寺島さん</td><td class="item">ルール表シートに設備5行を追加</td><td>ディンプルキー／複層ガラス／ペアガラス／ディスポーザー／シャワートイレ。拡張同梱分で動作中ですが、ルール表シートが正なので揃えたい。作業する時に言ってもらえれば貼り付け用の表を出します</td></tr>
+      </table>
+    </div>
     <div class="viewtabs">
       <button type="button" id="vtVer" class="vt on">新しい順（バージョン別）</button>
       <button type="button" id="vtCat" class="vt">症状別（分野別）</button>
