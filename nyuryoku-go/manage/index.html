@@ -137,6 +137,8 @@
   .src.other{background:var(--gray-100);color:var(--gray-600);}
   /* 掲載確認(渡辺さん研修シートと自動照合・2026-07-16)。引用元列を置き換え */
   .pc{display:inline-flex;align-items:center;justify-content:center;min-height:23px;font-size:9.5px;font-weight:900;padding:3px 7px;border-radius:5px;line-height:1.2;white-space:nowrap;cursor:default;}
+  .pc[data-detail]{cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;}
+  .pc[data-detail]:hover{filter:brightness(.96);}
   .pc-ng{background:#fde8e8;color:#c0362e;box-shadow:inset 0 0 0 1px rgba(199,52,43,.2);}
   .pc-warn{background:#fff3de;color:#7a4a00;box-shadow:inset 0 0 0 1px rgba(180,83,9,.18);}
   .pc-site{background:#eaf2ff;color:#1558a7;box-shadow:inset 0 0 0 1px rgba(39,110,241,.14);}
@@ -501,27 +503,33 @@
       .catch(function(){ /* シート読み込み失敗時は「—」表示のまま(業務は止めない) */ });
   }
   function pubBadge(p){
-    if(!pubLoaded) return '<span class="pc pc-load" title="掲載確認データを読み込み中です">…</span>';
+    if(!pubLoaded) return '<span class="pc pc-load">…</span>';
     var coN=normCo(p.agent_company);
-    if(!coN) return '<span class="pc pc-none" title="元付業者名が空です">—</span>';
+    if(!coN) return '<span class="pc pc-none">—</span>';
     var ngs=pubNg.filter(function(x){ return pcHit(coN,x); });
     var site=pubSites.filter(function(x){ return pcHit(coN,x); })[0];
     var how=(site&&site.how)?site.how:'';
     var siteName=(site&&site.site)?site.site:'';
-    var tip=how?('\n【確認方法】'+(siteName&&siteName!=='×'?siteName+'：':'')+how):'';
+    var howLine=how?('【確認方法】'+(siteName&&siteName!=='×'?siteName+'：':'')+how):'';
     var allng=ngs.filter(function(x){ return /全物件/.test(x.kubun)||/全物件/.test(x.bukken); });
+    // クリックで開く詳細(data-detailに全文を入れる。ブラウザ標準のtitleツールチップは出にくいため)
+    function badge(cls, label, detail){
+      return '<span class="pc '+cls+'" data-detail="'+esc(detail)+'" title="'+esc(detail)+'">'+esc(label)+'</span>';
+    }
+    var head='元付：'+(p.agent_company||'')+'\n\n';
     if(allng.length){
-      return '<span class="pc pc-ng" title="この元付は「全物件が自社のみ(掲載NG)」の記録があります。掲載前に要確認。'+esc(tip)+'">全物件NG</span>';
+      var abk=allng.map(function(x){ return (x.bukken||x.kubun); }).filter(Boolean).slice(0,8).join(' / ');
+      return badge('pc-ng','全物件NG', head+'この元付は「全物件が自社のみ(＝広告掲載NG)」の記録があります。掲載前に必ず確認してください。'+(abk?'\n記録：'+abk:'')+(howLine?'\n\n'+howLine:''));
     }
     if(ngs.length){
-      var bk=ngs.map(function(x){ return x.bukken||x.kubun; }).filter(Boolean).slice(0,6).join(' / ');
-      return '<span class="pc pc-warn" title="掲載NGの記録あり('+ngs.length+'件)。この物件が該当するか確認してください：'+esc(bk)+esc(tip)+'">NG歴 '+ngs.length+'</span>';
+      var bk=ngs.map(function(x){ return (x.bukken||x.kubun); }).filter(Boolean).slice(0,8).join(' / ');
+      return badge('pc-warn','NG歴 '+ngs.length, head+'掲載NGの記録が '+ngs.length+' 件あります。この物件が該当するか確認してください。\n記録：'+bk+(howLine?'\n\n'+howLine:''));
     }
     if(site && siteName && siteName!=='×'){
-      return '<span class="pc pc-site" title="確認方法：'+esc(how||'業者サイトを確認')+'">'+esc(siteName.slice(0,8))+'</span>';
+      return badge('pc-site', siteName.slice(0,8), head+(howLine||('業者サイト：'+siteName+'\n(確認方法メモは未記入)')));
     }
     if(how){
-      return '<span class="pc pc-how" title="確認方法：'+esc(how)+'">確認方法</span>';
+      return badge('pc-how','確認方法', head+howLine);
     }
     return '<span class="pc pc-none" title="掲載NG台帳・業者サイトに記録なし(通常どおり確認)">—</span>';
   }
@@ -902,6 +910,9 @@
     if(rresEl) rresEl.addEventListener("click", function(){
       infoDialog((p.reflect_result||"")+(p.note?"\n\n"+p.note:""));
     });
+    // 掲載確認バッジ: クリックで確認方法・NG記録を全文表示(標準のtitleツールチップは出にくいため・渡辺さん指摘2026-07-16)
+    var pcEl=tr.querySelector(".c-pubcheck .pc[data-detail]");
+    if(pcEl) pcEl.addEventListener("click", function(){ infoDialog(pcEl.getAttribute("data-detail")||""); });
     // 反映済みへ手動移動/未反映へ戻す(自動入力エラー→手動仕上げした物件の置き場・渡辺さん要望2026-07-13)
     var mkR=tr.querySelector(".mk-refl");
     if(mkR) mkR.addEventListener("click", function(){
