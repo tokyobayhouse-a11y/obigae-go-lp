@@ -135,6 +135,13 @@
   .src.itandi{background:var(--danger-bg);color:#c0362e;box-shadow:inset 0 0 0 1px rgba(199,52,43,.12);}
   .src.reins{background:var(--ok-bg);color:#23714d;box-shadow:inset 0 0 0 1px rgba(17,152,93,.12);}
   .src.other{background:var(--gray-100);color:var(--gray-600);}
+  /* 掲載確認(渡辺さん研修シートと自動照合・2026-07-16)。引用元列を置き換え */
+  .pc{display:inline-flex;align-items:center;justify-content:center;min-height:23px;font-size:9.5px;font-weight:900;padding:3px 7px;border-radius:5px;line-height:1.2;white-space:nowrap;cursor:default;}
+  .pc-ng{background:#fde8e8;color:#c0362e;box-shadow:inset 0 0 0 1px rgba(199,52,43,.2);}
+  .pc-warn{background:#fff3de;color:#7a4a00;box-shadow:inset 0 0 0 1px rgba(180,83,9,.18);}
+  .pc-site{background:#eaf2ff;color:#1558a7;box-shadow:inset 0 0 0 1px rgba(39,110,241,.14);}
+  .pc-how{background:#eef4f9;color:#0C4A68;}
+  .pc-none,.pc-load{color:var(--gray-400);}
   .rent{font-size:13.5px;font-weight:950;color:#151e28;white-space:nowrap;}
   .rent .man{font-size:10px;color:var(--gray-500);font-weight:800;}
   .agent{font-size:11.5px;color:#354352;font-weight:750;line-height:1.45;}
@@ -242,7 +249,7 @@
     #table[style*="display: table"] td::before{display:block;margin-bottom:3px;color:#71808f;font-size:10px;line-height:1.2;font-weight:900;}
     #table[style*="display: table"] td:nth-child(1),#table[style*="display: table"] td:nth-child(9),#table[style*="display: table"] td:nth-child(13){grid-column:1/-1;}
     #table[style*="display: table"] td:nth-child(1)::before{content:"物件名 / 所在地";}
-    #table[style*="display: table"] td:nth-child(2)::before{content:"引用元";}
+    #table[style*="display: table"] td:nth-child(2)::before{content:"掲載確認";}
     #table[style*="display: table"] td:nth-child(3)::before{content:"賃料";}
     #table[style*="display: table"] td:nth-child(4)::before{content:"間取り";}
     #table[style*="display: table"] td:nth-child(5)::before{content:"元付業者";}
@@ -272,6 +279,7 @@
       <span class="spacer"></span>
       <span class="company" id="companyLabel"></span>
       <a class="btn" href="../ledger/" title="検証メモへの対応状況を症状から引ける一覧(直った/保留/仕様)">修正台帳</a>
+      <a class="btn" href="https://docs.google.com/spreadsheets/d/1kOvsRFgKA3aUhoBtQuuSMbbwHSAFvrmJz41krFpo6ZA/edit" target="_blank" rel="noopener" title="渡辺さん用の掲載可否・掲載NG台帳・業者サイト一覧。掲載確認列はこのシートと自動照合しています">掲載確認シート</a>
       <button class="btn" id="btnSettings" title="合言葉を変更">設定</button>
     </div>
   </div>
@@ -321,7 +329,7 @@
           <thead>
             <tr>
               <th class="sortable" data-sort="name">物件名 / 所在地<span class="ar"></span></th>
-              <th class="sortable" data-sort="source">引用元<span class="ar"></span></th>
+              <th title="元付業者名を渡辺さん用シート(掲載NG台帳・業者サイト)と自動照合した結果。マウスを乗せると確認方法が出ます">掲載確認</th>
               <th class="sortable" data-sort="rent">賃料<span class="ar"></span></th>
               <th>間取り</th>
               <th class="sortable" data-sort="agent_company">元付業者<span class="ar"></span></th>
@@ -468,6 +476,54 @@
     var map={atbb:["atbb","ATBB"],itandi:["itandi","イタンジBB"],reins:["reins","レインズ"]};
     var m=map[s]; if(!m) return '<span class="src other">'+esc(s||"—")+'</span>';
     return '<span class="src '+m[0]+'">'+m[1]+'</span>';
+  }
+
+  // ===== 掲載確認: 渡辺さん研修シート(掲載NG台帳・業者サイト)と元付業者名を自動照合(2026-07-16) =====
+  //   引用元列を置き換え。シートはtera所有GAS(publish_check_db)経由で毎回読む=シートを直せば数分で反映。
+  //   電話番号の専用列は返していない(GAS側で除外)。会社名は法人格・空白を落として「含む」照合。
+  var PUBCHECK_URL='https://script.google.com/macros/s/AKfycbxmOziVS75qwX6TQSWIPfA1FLP3SckqYSMBQnBDvhpHON9uyX5E4ljKBUUWRXVjFFi3/exec';
+  var pubNg=[], pubSites=[], pubLoaded=false;
+  function normCo(s){ return String(s==null?'':s).replace(/株式会社|有限会社|合同会社|㈱|㈲|\(株\)|\(有\)|（株）|（有）/g,'').replace(/[\s　・]/g,'').toLowerCase(); }
+  function pcHit(coN, x){ var b=x.coN; if(!coN||!b) return false; var sh=coN.length<=b.length?coN:b; if(sh.length<3) return false; return coN.indexOf(b)>=0||b.indexOf(coN)>=0; }
+  function loadPubCheck(){
+    fetch(PUBCHECK_URL,{method:'POST',credentials:'omit',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'publish_check_db'})})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(!j||!j.ok) return;
+        // ヘッダ行(元付会社/業者サイト)は除外(GASの範囲指定で先頭に1件混じるため)
+        pubNg=(j.ng||[]).filter(function(x){ return x.co && x.co!=='元付会社'; })
+          .map(function(x){ return { co:x.co, coN:normCo(x.co), kubun:x.kubun||'', bukken:x.bukken||'' }; });
+        pubSites=(j.sites||[]).filter(function(x){ return x.co && x.co!=='元付会社' && x.site!=='業者サイト'; })
+          .map(function(x){ return { co:x.co, coN:normCo(x.co), site:x.site||'', how:x.how||'' }; });
+        pubLoaded=true;
+        if(rows.length) render(); // 物件が先に出ていれば照合結果で塗り直す
+      })
+      .catch(function(){ /* シート読み込み失敗時は「—」表示のまま(業務は止めない) */ });
+  }
+  function pubBadge(p){
+    if(!pubLoaded) return '<span class="pc pc-load" title="掲載確認データを読み込み中です">…</span>';
+    var coN=normCo(p.agent_company);
+    if(!coN) return '<span class="pc pc-none" title="元付業者名が空です">—</span>';
+    var ngs=pubNg.filter(function(x){ return pcHit(coN,x); });
+    var site=pubSites.filter(function(x){ return pcHit(coN,x); })[0];
+    var how=(site&&site.how)?site.how:'';
+    var siteName=(site&&site.site)?site.site:'';
+    var tip=how?('\n【確認方法】'+(siteName&&siteName!=='×'?siteName+'：':'')+how):'';
+    var allng=ngs.filter(function(x){ return /全物件/.test(x.kubun)||/全物件/.test(x.bukken); });
+    if(allng.length){
+      return '<span class="pc pc-ng" title="この元付は「全物件が自社のみ(掲載NG)」の記録があります。掲載前に要確認。'+esc(tip)+'">全物件NG</span>';
+    }
+    if(ngs.length){
+      var bk=ngs.map(function(x){ return x.bukken||x.kubun; }).filter(Boolean).slice(0,6).join(' / ');
+      return '<span class="pc pc-warn" title="掲載NGの記録あり('+ngs.length+'件)。この物件が該当するか確認してください：'+esc(bk)+esc(tip)+'">NG歴 '+ngs.length+'</span>';
+    }
+    if(site && siteName && siteName!=='×'){
+      return '<span class="pc pc-site" title="確認方法：'+esc(how||'業者サイトを確認')+'">'+esc(siteName.slice(0,8))+'</span>';
+    }
+    if(how){
+      return '<span class="pc pc-how" title="確認方法：'+esc(how)+'">確認方法</span>';
+    }
+    return '<span class="pc pc-none" title="掲載NG台帳・業者サイトに記録なし(通常どおり確認)">—</span>';
   }
   function fmtDate(iso){
     if(!iso) return "—";
@@ -654,7 +710,7 @@
       '<td class="c-name">'+(p.reflected_at?'':'<span class="drag" draggable="true" title="ドラッグで並び替え(離した位置に入ります)"><svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="6" cy="2" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="6" cy="7" r="1.3"/><circle cx="2" cy="12" r="1.3"/><circle cx="6" cy="12" r="1.3"/></svg></span>')+nameLink+
         (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+
         (p.zumen_url?'<a class="zlink" href="'+esc(p.zumen_url)+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
-      '<td>'+srcBadge(p.source)+'</td>'+
+      '<td class="c-pubcheck">'+pubBadge(p)+'</td>'+
       '<td class="rent">'+yen(p.rent)+'</td>'+
       '<td>'+esc(p.layout||"—")+'</td>'+
       '<td class="agent">'+esc(p.agent_company||"—")+(p.agent_contact?'<div class="tel">'+esc(p.agent_contact)+'</div>':'')+'</td>'+
@@ -884,6 +940,7 @@
   function load(){
     $("loading").style.display="block"; $("table").style.display="none"; $("empty").style.display="none";
     var ic=$("reloadIcon"); ic.innerHTML='<span class="spin" style="border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>';
+    if(!pubLoaded) loadPubCheck(); // 掲載確認シートの照合データ(初回のみ・失敗しても物件表示は止めない)
     api("list").then(function(j){
       rows=j.properties||[]; render();
       $("updated").textContent="最終更新 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
