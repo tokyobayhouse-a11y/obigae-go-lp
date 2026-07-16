@@ -136,13 +136,15 @@
   .src.reins{background:var(--ok-bg);color:#23714d;box-shadow:inset 0 0 0 1px rgba(17,152,93,.12);}
   .src.other{background:var(--gray-100);color:var(--gray-600);}
   /* 掲載確認(渡辺さん研修シートと自動照合・2026-07-16)。引用元列を置き換え */
-  .pc{display:inline-flex;align-items:center;justify-content:center;min-height:23px;font-size:9.5px;font-weight:900;padding:3px 7px;border-radius:5px;line-height:1.2;white-space:nowrap;cursor:default;}
+  .c-pubcheck{white-space:normal;}
+  .c-pubcheck .pc{margin:1px 2px 1px 0;}
+  .pc{display:inline-flex;align-items:center;justify-content:center;min-height:22px;font-size:9.5px;font-weight:900;padding:3px 7px;border-radius:5px;line-height:1.2;white-space:nowrap;cursor:default;}
   .pc[data-detail]{cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;}
   .pc[data-detail]:hover{filter:brightness(.96);}
   .pc-ng{background:#fde8e8;color:#c0362e;box-shadow:inset 0 0 0 1px rgba(199,52,43,.2);}
   .pc-warn{background:#fff3de;color:#7a4a00;box-shadow:inset 0 0 0 1px rgba(180,83,9,.18);}
+  .pc-itandi{background:#e7f7ef;color:#0f7a4a;box-shadow:inset 0 0 0 1px rgba(17,152,93,.18);}
   .pc-site{background:#eaf2ff;color:#1558a7;box-shadow:inset 0 0 0 1px rgba(39,110,241,.14);}
-  .pc-how{background:#eef4f9;color:#0C4A68;}
   .pc-none,.pc-load{color:var(--gray-400);}
   .rent{font-size:13.5px;font-weight:950;color:#151e28;white-space:nowrap;}
   .rent .man{font-size:10px;color:var(--gray-500);font-weight:800;}
@@ -251,7 +253,7 @@
     #table[style*="display: table"] td::before{display:block;margin-bottom:3px;color:#71808f;font-size:10px;line-height:1.2;font-weight:900;}
     #table[style*="display: table"] td:nth-child(1),#table[style*="display: table"] td:nth-child(9),#table[style*="display: table"] td:nth-child(13){grid-column:1/-1;}
     #table[style*="display: table"] td:nth-child(1)::before{content:"物件名 / 所在地";}
-    #table[style*="display: table"] td:nth-child(2)::before{content:"掲載確認";}
+    #table[style*="display: table"] td:nth-child(2)::before{content:"掲載/空き確認";}
     #table[style*="display: table"] td:nth-child(3)::before{content:"賃料";}
     #table[style*="display: table"] td:nth-child(4)::before{content:"間取り";}
     #table[style*="display: table"] td:nth-child(5)::before{content:"元付業者";}
@@ -331,7 +333,7 @@
           <thead>
             <tr>
               <th class="sortable" data-sort="name">物件名 / 所在地<span class="ar"></span></th>
-              <th title="元付業者名を渡辺さん用シート(掲載NG台帳・業者サイト)と自動照合した結果。マウスを乗せると確認方法が出ます">掲載確認</th>
+              <th title="元付業者名を渡辺さん用シートと自動照合。緑/青=空き確認先(イタンジBB・いい生活等)、赤/黄=掲載NGの記録。バッジをクリックで詳細">掲載/空き確認</th>
               <th class="sortable" data-sort="rent">賃料<span class="ar"></span></th>
               <th>間取り</th>
               <th class="sortable" data-sort="agent_company">元付業者<span class="ar"></span></th>
@@ -480,11 +482,12 @@
     return '<span class="src '+m[0]+'">'+m[1]+'</span>';
   }
 
-  // ===== 掲載確認: 渡辺さん研修シート(掲載NG台帳・業者サイト)と元付業者名を自動照合(2026-07-16) =====
-  //   引用元列を置き換え。シートはtera所有GAS(publish_check_db)経由で毎回読む=シートを直せば数分で反映。
+  // ===== 掲載確認: 渡辺さん研修シートと元付業者名を自動照合(2026-07-16) =====
+  //   3タブを使う: ①掲載NGサイト(掲載可否=全物件NG/物件別NG) ②業者サイト(空き確認先=いい生活/いえらぶ/×+手順)
+  //   ③イタンジBB業者(この元付はイタンジBBで空き確認する)。シートはtera所有GAS経由で毎回読む=直せば数分で反映。
   //   電話番号の専用列は返していない(GAS側で除外)。会社名は法人格・空白を落として「含む」照合。
   var PUBCHECK_URL='https://script.google.com/macros/s/AKfycbxmOziVS75qwX6TQSWIPfA1FLP3SckqYSMBQnBDvhpHON9uyX5E4ljKBUUWRXVjFFi3/exec';
-  var pubNg=[], pubSites=[], pubLoaded=false;
+  var pubNg=[], pubSites=[], pubItandi=[], pubLoaded=false;
   function normCo(s){ return String(s==null?'':s).replace(/株式会社|有限会社|合同会社|㈱|㈲|\(株\)|\(有\)|（株）|（有）/g,'').replace(/[\s　・]/g,'').toLowerCase(); }
   function pcHit(coN, x){ var b=x.coN; if(!coN||!b) return false; var sh=coN.length<=b.length?coN:b; if(sh.length<3) return false; return coN.indexOf(b)>=0||b.indexOf(coN)>=0; }
   function loadPubCheck(){
@@ -492,46 +495,51 @@
       .then(function(r){ return r.json(); })
       .then(function(j){
         if(!j||!j.ok) return;
-        // ヘッダ行(元付会社/業者サイト)は除外(GASの範囲指定で先頭に1件混じるため)
+        // ヘッダ行(元付会社/業者サイト/業者名)は除外(GASの範囲指定で先頭に混じることがある)
         pubNg=(j.ng||[]).filter(function(x){ return x.co && x.co!=='元付会社'; })
           .map(function(x){ return { co:x.co, coN:normCo(x.co), kubun:x.kubun||'', bukken:x.bukken||'' }; });
         pubSites=(j.sites||[]).filter(function(x){ return x.co && x.co!=='元付会社' && x.site!=='業者サイト'; })
           .map(function(x){ return { co:x.co, coN:normCo(x.co), site:x.site||'', how:x.how||'' }; });
+        pubItandi=(j.itandi||[]).filter(function(x){ return x && x!=='業者名'; })
+          .map(function(x){ return { co:x, coN:normCo(x) }; });
         pubLoaded=true;
         if(rows.length) render(); // 物件が先に出ていれば照合結果で塗り直す
       })
       .catch(function(){ /* シート読み込み失敗時は「—」表示のまま(業務は止めない) */ });
   }
+  // 掲載確認セル: 「空き確認先」チップ(青)+「掲載NG」チップ(赤/黄)を最大2つ並べる。どちらもクリックで詳細ダイアログ。
   function pubBadge(p){
     if(!pubLoaded) return '<span class="pc pc-load">…</span>';
     var coN=normCo(p.agent_company);
     if(!coN) return '<span class="pc pc-none">—</span>';
-    var ngs=pubNg.filter(function(x){ return pcHit(coN,x); });
-    var site=pubSites.filter(function(x){ return pcHit(coN,x); })[0];
-    var how=(site&&site.how)?site.how:'';
-    var siteName=(site&&site.site)?site.site:'';
-    var howLine=how?('【確認方法】'+(siteName&&siteName!=='×'?siteName+'：':'')+how):'';
-    var allng=ngs.filter(function(x){ return /全物件/.test(x.kubun)||/全物件/.test(x.bukken); });
-    // クリックで開く詳細(data-detailに全文を入れる。ブラウザ標準のtitleツールチップは出にくいため)
-    function badge(cls, label, detail){
-      return '<span class="pc '+cls+'" data-detail="'+esc(detail)+'" title="'+esc(detail)+'">'+esc(label)+'</span>';
-    }
     var head='元付：'+(p.agent_company||'')+'\n\n';
+    // --- 空き確認先(業者サイト+イタンジBB業者) ---
+    var itHit=pubItandi.some(function(x){ return pcHit(coN,x); });
+    var site=pubSites.filter(function(x){ return pcHit(coN,x); })[0];
+    var siteName=(site&&site.site)?site.site:'';
+    var how=(site&&site.how)?site.how:'';
+    var akiLabel='', akiDetail='';
+    if(itHit){ akiLabel='イタンジBB'; akiDetail=head+'空き確認：イタンジBBで確認する元付です。'+(how?'\n\n業者サイト側メモ：'+(siteName&&siteName!=='×'?siteName+'：':'')+how:''); }
+    else if(siteName && siteName!=='×'){ akiLabel=siteName.slice(0,8); akiDetail=head+'空き確認先：'+siteName+(how?'\n確認方法：'+how:''); }
+    else if(how){ akiLabel='TEL/手順'; akiDetail=head+'空き確認：'+how; }
+    // --- 掲載NG(掲載NGサイト) ---
+    var ngs=pubNg.filter(function(x){ return pcHit(coN,x); });
+    var allng=ngs.filter(function(x){ return /全物件/.test(x.kubun)||/全物件/.test(x.bukken); });
+    var ngChip='';
     if(allng.length){
       var abk=allng.map(function(x){ return (x.bukken||x.kubun); }).filter(Boolean).slice(0,8).join(' / ');
-      return badge('pc-ng','全物件NG', head+'この元付は「全物件が自社のみ(＝広告掲載NG)」の記録があります。掲載前に必ず確認してください。'+(abk?'\n記録：'+abk:'')+(howLine?'\n\n'+howLine:''));
-    }
-    if(ngs.length){
+      ngChip=pcChip('pc-ng','掲載NG(全)', head+'掲載可否：この元付は「全物件が自社のみ(＝広告掲載NG)」の記録があります。掲載前に必ず確認。'+(abk?'\n記録：'+abk:''));
+    } else if(ngs.length){
       var bk=ngs.map(function(x){ return (x.bukken||x.kubun); }).filter(Boolean).slice(0,8).join(' / ');
-      return badge('pc-warn','NG歴 '+ngs.length, head+'掲載NGの記録が '+ngs.length+' 件あります。この物件が該当するか確認してください。\n記録：'+bk+(howLine?'\n\n'+howLine:''));
+      ngChip=pcChip('pc-warn','掲載NG歴'+ngs.length, head+'掲載可否：掲載NGの記録が '+ngs.length+' 件あります。この物件が該当するか確認してください。\n記録：'+bk);
     }
-    if(site && siteName && siteName!=='×'){
-      return badge('pc-site', siteName.slice(0,8), head+(howLine||('業者サイト：'+siteName+'\n(確認方法メモは未記入)')));
-    }
-    if(how){
-      return badge('pc-how','確認方法', head+howLine);
-    }
-    return '<span class="pc pc-none" title="掲載NG台帳・業者サイトに記録なし(通常どおり確認)">—</span>';
+    var akiChip = akiLabel ? pcChip('pc-'+(itHit?'itandi':'site'), akiLabel, akiDetail) : '';
+    var html = akiChip + ngChip;
+    if(!html) return '<span class="pc pc-none" title="掲載NG台帳・業者サイト・イタンジBB業者のいずれにも記録なし">—</span>';
+    return html;
+  }
+  function pcChip(cls, label, detail){
+    return '<span class="pc '+cls+'" data-detail="'+esc(detail)+'" title="'+esc(detail)+'">'+esc(label)+'</span>';
   }
   function fmtDate(iso){
     if(!iso) return "—";
@@ -910,9 +918,11 @@
     if(rresEl) rresEl.addEventListener("click", function(){
       infoDialog((p.reflect_result||"")+(p.note?"\n\n"+p.note:""));
     });
-    // 掲載確認バッジ: クリックで確認方法・NG記録を全文表示(標準のtitleツールチップは出にくいため・渡辺さん指摘2026-07-16)
-    var pcEl=tr.querySelector(".c-pubcheck .pc[data-detail]");
-    if(pcEl) pcEl.addEventListener("click", function(){ infoDialog(pcEl.getAttribute("data-detail")||""); });
+    // 掲載確認バッジ: クリックで確認方法・NG記録を全文表示(標準のtitleツールチップは出にくいため・渡辺さん指摘2026-07-16)。
+    // 空き確認先チップと掲載NGチップが2つ並ぶことがあるので、両方に付ける。
+    [].slice.call(tr.querySelectorAll(".c-pubcheck .pc[data-detail]")).forEach(function(pcEl){
+      pcEl.addEventListener("click", function(){ infoDialog(pcEl.getAttribute("data-detail")||""); });
+    });
     // 反映済みへ手動移動/未反映へ戻す(自動入力エラー→手動仕上げした物件の置き場・渡辺さん要望2026-07-13)
     var mkR=tr.querySelector(".mk-refl");
     if(mkR) mkR.addEventListener("click", function(){
