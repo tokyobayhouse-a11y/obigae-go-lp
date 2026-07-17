@@ -46,6 +46,21 @@
   .vt{border:1px solid var(--line);background:#fff;color:var(--gray-700);font-weight:800;font-size:12.5px;border-radius:8px;padding:7px 14px;cursor:pointer;}
   .vt.on{background:var(--navy);border-color:var(--navy);color:#fff;}
   @media (max-width:640px){ td.item{width:auto;} table{font-size:12px;} }
+  /* ---- フィードバック(対応済みチェック+返事・渡辺さん要望2026-07-16) ---- */
+  .fb-bar{margin-top:7px;padding-top:6px;border-top:1px dashed #d5dee6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;}
+  .fb-chk{display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:#345;font-weight:700;}
+  .fbReply{font-size:11px;padding:2px 8px;border:1px solid #b9c6d2;border-radius:5px;background:#fff;cursor:pointer;color:#1f4e8c;font-weight:700;}
+  .fbReply:hover{background:#eef4fb;}
+  .fb-state{color:#0f7a4a;font-weight:800;}
+  .fb-replybox{flex-basis:100%;background:#fff8e6;border:1px solid #e7d9a8;border-radius:6px;padding:6px 9px;margin-top:2px;line-height:1.5;}
+  #fbModalBg{position:fixed;inset:0;background:rgba(20,30,40,.45);display:none;z-index:99;}
+  #fbModal{position:fixed;top:18%;left:50%;transform:translateX(-50%);width:min(560px,92vw);background:#fff;border-radius:10px;padding:16px;z-index:100;display:none;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+  #fbModal h3{margin:0 0 4px;font-size:14px;}
+  #fbModal .tgt{color:#667;font-size:11px;margin:0 0 8px;}
+  #fbModal textarea{width:100%;height:110px;box-sizing:border-box;font:inherit;font-size:13px;padding:8px;border:1px solid #b9c6d2;border-radius:6px;}
+  #fbModal .btns{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;}
+  #fbModal button{padding:6px 14px;border-radius:6px;border:1px solid #b9c6d2;background:#fff;cursor:pointer;font-weight:700;}
+  #fbModal .pri{background:#1f4e8c;color:#fff;border-color:#1f4e8c;}
 </style>
 </head>
 <body>
@@ -193,7 +208,15 @@
       <tr><td class="item">住所名の物件で図面の物件名に差し替わらない（大田区西六郷2丁目・旗の台6丁目）</td><td class="st"><span class="b ok">直った</span></td><td class="ver">0.16.84</td><td>図面AIは両物件とも物件名を読めていました（「大田ハウスシオン」「サニーアヴェニュー B棟」）。原因は0.16.83にあった受け渡し漏れで、<b>0.16.84で修正済み</b>です（現行版で再現テスト済み・正しく差し替わります）。この2物件の名前はお手数ですが画面で直してください。拡張が0.16.84以降になっていれば再発しません</td></tr>
     </table>
 
-    <p class="muted" style="margin-top:18px;">この台帳は Claude が検証メモ対応のたびに更新します。「直った」の版がまだ配信前のこともあります（拡張の自動更新は数時間・管理画面は再読み込みで反映）。</p>
+    <p class="muted" style="margin-top:18px;">この台帳は Claude が検証メモ対応のたびに更新します。「直った」の版がまだ配信前のこともあります（拡張の自動更新は数時間・管理画面は再読み込みで反映）。<br>
+    各行の<b>「対応済み」チェック</b>と<b>「返事を書く」</b>は保存され、Claude が検証メモ対応のたびに必ず読みます（合言葉は物出管理画面と同じ・1回入れれば覚えます）。実物件で確認できたらチェック、まだ直っていない・追加で伝えたいことは返事へ——検証メモに書かなくてもこの画面で完結します。</p>
+    <div id="fbModalBg"></div>
+    <div id="fbModal">
+      <h3>Claudeへの返事</h3>
+      <p class="tgt" id="fbModalTgt"></p>
+      <textarea id="fbModalText" placeholder="さらに対応が必要な内容・再発の状況・気づいたことなど（空にして保存すると返事を消します）"></textarea>
+      <div class="btns"><button type="button" id="fbModalCancel">やめる</button><button type="button" class="pri" id="fbModalSave">保存する</button></div>
+    </div>
   </div>
 <script>
 (function(){
@@ -269,6 +292,97 @@
   var saved='ver';
   try{ saved=localStorage.getItem('ledger_view')||'ver'; }catch(e){}
   show(saved==='cat'?'cat':'ver');
+})();
+</script>
+<script>
+(function(){
+  // ---- 台帳フィードバック: 各行の「対応済み」チェックと「Claudeへの返事」(渡辺さん要望2026-07-16) ----
+  //   保存先=共有DB(admas-intake/ledger_feedback)。合言葉は物出管理画面と同じlocalStorageキーを共用。
+  //   行キー=項目テキストのハッシュ(両ビューのクローン行にも同じキーが付く→表示はキー単位で全行更新)。
+  var API='https://qtbtnunmrhtjrotwimbw.supabase.co/functions/v1/admas-intake';
+  var TK='admas_intake_token';
+  function token(){ try{ return localStorage.getItem(TK)||''; }catch(e){ return ''; } }
+  function needToken(){
+    var t=token(); if(t) return t;
+    t=(prompt('合言葉を入力してください(物出管理画面と同じものです)')||'').trim();
+    if(t){ try{ localStorage.setItem(TK,t); }catch(e){} }
+    return t;
+  }
+  function hash(str){ var h=5381; for(var i=0;i<str.length;i++){ h=(((h<<5)+h)+str.charCodeAt(i))>>>0; } return 'fb'+h.toString(36); }
+  function post(b){ return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){return r.json();}); }
+  function esc(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function fmtD(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return (d.getMonth()+1)+'/'+d.getDate(); }
+
+  var rows={}; // key -> [tr,...]
+  Array.prototype.slice.call(document.querySelectorAll('tr')).forEach(function(tr){
+    var it=tr.querySelector('td.item'); if(!it) return;
+    var key=hash(it.textContent.trim());
+    tr.setAttribute('data-fbkey',key);
+    (rows[key]=rows[key]||[]).push(tr);
+    var last=tr.querySelector('td:last-child'); if(!last) return;
+    var bar=document.createElement('div'); bar.className='fb-bar';
+    bar.innerHTML='<label class="fb-chk"><input type="checkbox" class="fbDone"> 対応済み</label>'+
+      '<button type="button" class="fbReply">返事を書く</button>'+
+      '<span class="fb-state"></span><div class="fb-replybox" style="display:none"></div>';
+    last.appendChild(bar);
+  });
+
+  var cache={};
+  function paint(key){
+    var fb=cache[key];
+    (rows[key]||[]).forEach(function(tr){
+      var chk=tr.querySelector('.fbDone'), st=tr.querySelector('.fb-state'), rb=tr.querySelector('.fb-replybox');
+      if(chk) chk.checked=!!(fb&&fb.checked);
+      if(st) st.textContent=(fb&&fb.checked)?('渡辺さん確認済み'+(fmtD(fb.checked_at)?' '+fmtD(fb.checked_at):'')):'';
+      if(rb){ if(fb&&fb.reply){ rb.style.display=''; rb.innerHTML='<b>渡辺さんからの返事'+(fmtD(fb.replied_at)?'('+fmtD(fb.replied_at)+')':'')+'：</b>'+esc(fb.reply); } else { rb.style.display='none'; rb.innerHTML=''; } }
+    });
+  }
+  function load(){
+    var t=token(); if(!t) return; // 合言葉が未入力の端末では読み込みしない(操作時に聞く)
+    post({token:t, action:'ledger_fb_list'}).then(function(j){
+      if(!j||!j.ok) return;
+      (j.feedback||[]).forEach(function(fb){ cache[fb.key]=fb; paint(fb.key); });
+    }).catch(function(){});
+  }
+
+  // 対応済みチェック(両ビュー対応=delegation)
+  document.addEventListener('change', function(ev){
+    var el=ev.target; if(!el.classList||!el.classList.contains('fbDone')) return;
+    var tr=el.closest('tr'); var key=tr&&tr.getAttribute('data-fbkey'); if(!key) return;
+    var want=el.checked;
+    var t=needToken(); if(!t){ el.checked=!want; return; }
+    var item=(tr.querySelector('td.item')||{textContent:''}).textContent.trim();
+    post({token:t, action:'ledger_fb_set', key:key, item:item, checked:want}).then(function(j){
+      if(!j||!j.ok){ alert('保存できませんでした: '+((j&&j.error)||'')); el.checked=!want; return; }
+      cache[key]=cache[key]||{key:key}; cache[key].checked=want; cache[key].checked_at=new Date().toISOString();
+      paint(key);
+    }).catch(function(){ alert('通信に失敗しました(電波・Wi-Fiをご確認ください)'); el.checked=!want; });
+  });
+
+  // 返事モーダル
+  var mBg=document.getElementById('fbModalBg'), mBox=document.getElementById('fbModal'),
+      mTgt=document.getElementById('fbModalTgt'), mText=document.getElementById('fbModalText');
+  var mKey='', mItem='';
+  function openM(key,item){ mKey=key; mItem=item; mTgt.textContent='対象: '+item.slice(0,60); mText.value=(cache[key]&&cache[key].reply)||''; mBg.style.display='block'; mBox.style.display='block'; mText.focus(); }
+  function closeM(){ mBg.style.display='none'; mBox.style.display='none'; }
+  document.getElementById('fbModalCancel').onclick=closeM;
+  mBg.onclick=closeM;
+  document.getElementById('fbModalSave').onclick=function(){
+    var t=needToken(); if(!t) return;
+    var txt=mText.value.trim();
+    post({token:t, action:'ledger_fb_set', key:mKey, item:mItem, reply:txt}).then(function(j){
+      if(!j||!j.ok){ alert('保存できませんでした: '+((j&&j.error)||'')); return; }
+      cache[mKey]=cache[mKey]||{key:mKey}; cache[mKey].reply=txt; cache[mKey].replied_at=new Date().toISOString();
+      paint(mKey); closeM();
+    }).catch(function(){ alert('通信に失敗しました(電波・Wi-Fiをご確認ください)'); });
+  };
+  document.addEventListener('click', function(ev){
+    var el=ev.target; if(!el.classList||!el.classList.contains('fbReply')) return;
+    var tr=el.closest('tr'); var key=tr&&tr.getAttribute('data-fbkey'); if(!key) return;
+    if(!needToken()) return;
+    openM(key, (tr.querySelector('td.item')||{textContent:''}).textContent.trim());
+  });
+  load();
 })();
 </script>
 </body>
