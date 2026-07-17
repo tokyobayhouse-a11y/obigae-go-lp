@@ -366,7 +366,7 @@
   <!-- 確認モーダル(native confirmの代わり=自動操作も可・統一デザイン) -->
   <div class="modal-bg" id="modalBg">
     <div class="modal">
-      <h3>削除の確認</h3>
+      <h3 id="modalTitle">確認</h3>
       <p id="modalMsg"></p>
       <div class="row">
         <button class="btn" id="modalCancel">キャンセル</button>
@@ -542,7 +542,10 @@
     var siteName=(site&&site.site)?site.site:'';
     var how=(site&&site.how)?site.how:'';
     var akiLabel='', akiDetail='';
-    if(itHit){ akiLabel='イタンジBB'; akiDetail=head+'空き確認：イタンジBBで確認する元付です。'+(how?'\n\n業者サイト側メモ：'+(siteName&&siteName!=='×'?siteName+'：':'')+how:''); }
+    // 業者サイトタブのメモが「イタンジ」を指す元付は、イタンジBB業者タブに未記載でもイタンジBB扱いにする
+    // (渡辺さん検証メモ2026-07-16 ラクレイス南品川=「TEL/手順」表示だが中身は「空室→イタンジ」でTEL不要)
+    var howItandi = !itHit && /イタンジ/.test(how);
+    if(itHit || howItandi){ akiLabel='イタンジBB'; akiDetail=head+'空き確認：イタンジBBで確認する元付です。'+(how?'\n\n業者サイト側メモ：'+(siteName&&siteName!=='×'?siteName+'：':'')+how:''); }
     else if(siteName && siteName!=='×'){ akiLabel=siteName.slice(0,8); akiDetail=head+'空き確認先：'+siteName+(how?'\n確認方法：'+how:''); }
     else if(how){ akiLabel='TEL/手順'; akiDetail=head+'空き確認：'+how; }
     // --- 掲載NG(掲載NGサイト) ---
@@ -558,7 +561,7 @@
       var bk=ngs.map(function(x){ return (x.bukken||x.kubun); }).filter(Boolean).slice(0,8).join(' / ');
       ngChip=pcChip('pc-warn','掲載NG歴'+ngs.length, head+'掲載可否：掲載NGの記録が '+ngs.length+' 件あります。この物件が該当するか確認してください。\n記録：'+bk+coLine);
     }
-    var akiChip = akiLabel ? pcChip('pc-'+(itHit?'itandi':'site'), akiLabel, akiDetail) : '';
+    var akiChip = akiLabel ? pcChip('pc-'+((itHit||howItandi)?'itandi':'site'), akiLabel, akiDetail) : '';
     var html = akiChip + ngChip;
     if(!html) return '<span class="pc pc-none" title="掲載NG台帳・業者サイト・イタンジBB業者のいずれにも記録なし">—</span>';
     return html;
@@ -1022,6 +1025,7 @@
   // 情報表示だけのダイアログ(OKのみ)。エラー全文の表示に使う(列内では切れて読めない・渡辺さん検証メモ2026-07-13)
   function infoDialog(msg){
     return new Promise(function(resolve){
+      $("modalTitle").textContent = "詳細"; // 見出しが「削除の確認」固定で誤解を招いた(渡辺さん検証メモ2026-07-16 ＩＳハイツ)
       $("modalMsg").textContent = msg;
       var ok=$("modalOk");
       ok.textContent = "閉じる";
@@ -1037,6 +1041,7 @@
   //   (渡辺さん検証メモ2026-07-14 アビティ目黒)。
   function confirmDialog(msg, okLabel, danger){
     return new Promise(function(resolve){
+      $("modalTitle").textContent = danger ? "削除の確認" : "確認";
       $("modalMsg").textContent = msg;
       var ok=$("modalOk");
       ok.textContent = okLabel || "OK";
