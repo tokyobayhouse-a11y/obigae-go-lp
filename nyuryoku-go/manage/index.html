@@ -548,12 +548,15 @@
     // --- 掲載NG(掲載NGサイト) ---
     var ngs=m.ngs, allng=m.allng;
     var ngChip='';
+    // シート側の登録名を明記(渡辺さんがシートでCtrl+F検索で辿れるように・検証メモ2026-07-17 シュゼル三浦=「シートで探しても見当たらない」)
+    var ngCos=[]; ngs.forEach(function(x){ if(x.co && ngCos.indexOf(x.co)<0) ngCos.push(x.co); });
+    var coLine=ngCos.length?('\nシートの登録名：'+ngCos.slice(0,4).join(' / ')+'（掲載NGサイトのタブでこの名前を検索してください）'):'';
     if(allng.length){
       var abk=allng.map(function(x){ return (x.bukken||x.kubun); }).filter(Boolean).slice(0,8).join(' / ');
-      ngChip=pcChip('pc-ng','掲載NG(全)', head+'掲載可否：この元付は「全物件が自社のみ(＝広告掲載NG)」の記録があります。掲載前に必ず確認。'+(abk?'\n記録：'+abk:''));
+      ngChip=pcChip('pc-ng','掲載NG(全)', head+'掲載可否：この元付は「全物件不可(広告掲載NG)」の記録があります。掲載前に必ず確認。'+(abk?'\n記録：'+abk:'')+coLine);
     } else if(ngs.length){
       var bk=ngs.map(function(x){ return (x.bukken||x.kubun); }).filter(Boolean).slice(0,8).join(' / ');
-      ngChip=pcChip('pc-warn','掲載NG歴'+ngs.length, head+'掲載可否：掲載NGの記録が '+ngs.length+' 件あります。この物件が該当するか確認してください。\n記録：'+bk);
+      ngChip=pcChip('pc-warn','掲載NG歴'+ngs.length, head+'掲載可否：掲載NGの記録が '+ngs.length+' 件あります。この物件が該当するか確認してください。\n記録：'+bk+coLine);
     }
     var akiChip = akiLabel ? pcChip('pc-'+(itHit?'itandi':'site'), akiLabel, akiDetail) : '';
     var html = akiChip + ngChip;
