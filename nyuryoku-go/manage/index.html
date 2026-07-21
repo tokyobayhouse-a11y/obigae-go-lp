@@ -817,6 +817,24 @@
         if(bm && /[0-9０-９]/.test(bm[2])) bldg=bm[1].trim();
         var siteKey=fb.getAttribute("data-site");
         var siteName=siteKey==="atbb"?"ATBB":(siteKey==="itandi"?"イタンジ":"レインズ");
+        // この物件の元サイトのボタンなら、名前コピーではなく物件情報へ直接遷移する
+        // (渡辺さん検証メモ2026-07-20 グリーンテラス久が原=「物件名コピーではなく各サイトの物件情報へ」)
+        if(siteKey===p.source){
+          if(siteKey==="itandi" && p.source_url){ window.open(p.source_url, "_blank", "noopener"); return; }
+          if((siteKey==="atbb"||siteKey==="reins") && extJumpOk){
+            var no0=(String(p.source_url||"").split("#")[1]||"").trim();
+            if(siteKey!=="reins" || /^\d{12}$/.test(no0)){
+              toast("開いている"+siteName+"でこの物件を検索しています…(そのタブに切り替わります)", false, 4000);
+              try{
+                chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:siteKey, bkkn:no0, name:p.name||"" }, function(r){
+                  void chrome.runtime.lastError;
+                  if(!(r&&r.ok)) toast((r&&r.error)||"入力GO拡張に接続できませんでした", true, 6000);
+                });
+              }catch(e){ toast("入力GO拡張に接続できませんでした", true, 5000); }
+              return;
+            }
+          }
+        }
         if(kensakuGoId){
           toast("検索GOが"+siteName+"で「"+bldg+"」を検索しています…HITすると物件ページが前面に開きます(20秒ほど)", false, 6000);
           try{
