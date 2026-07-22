@@ -126,6 +126,8 @@
   .c-name{padding-left:11px!important;}
   /* 図面リンク(Drive保存済みのマイソクPDF・渡辺さん要望2026-07-06)。取込がURLを記録した物件だけに出る */
   .c-name .zlink{display:inline-block;margin-top:3px;font-size:10px;font-weight:800;color:#1f4e8c;text-decoration:none;border:1px solid rgba(31,78,140,.35);border-radius:5px;padding:1px 6px;background:#f4f8fd;}
+  .nm-edit{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:4px;border:1px solid var(--line);border-radius:4px;background:#fff;color:#7b92a2;cursor:pointer;vertical-align:middle;padding:0;}
+  .nm-edit:hover{color:var(--navy);border-color:var(--line-strong);background:var(--gray-50);}
   .c-name .zlink:hover{background:#e8f0fa;}
   .c-name a{display:block;color:var(--navy);font-weight:900;text-decoration:none;font-size:12.5px;line-height:1.35;overflow-wrap:anywhere;}
   .c-name a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
@@ -765,6 +767,7 @@
     applyRowStatus(tr, p);
     tr.innerHTML =
       '<td class="c-name">'+(p.reflected_at?'':'<span class="drag" draggable="true" title="ドラッグで並び替え(離した位置に入ります)"><svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="6" cy="2" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="6" cy="7" r="1.3"/><circle cx="2" cy="12" r="1.3"/><circle cx="6" cy="12" r="1.3"/></svg></span>')+nameLink+
+        (p.reflected_at?'':'<button type="button" class="nm-edit" title="物件名・部屋番号を手直しします(AIが読めなかった名前を反映前に直すとエラー予防になります)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>')+
         (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+
         (p.zumen_url?'<a class="zlink" href="'+esc(p.zumen_url)+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
       '<td class="c-pubcheck">'+pubBadge(p)+'</td>'+
@@ -858,6 +861,18 @@
         try{ navigator.clipboard.writeText(bldg); }catch(e){}
         toast("建物名「"+bldg+"」をコピーしました。開いている"+siteName+"の検索に貼り付けて(⌘V)、写真があるか確認してください(検索GOを最新にすると全自動になります)", false, 6000);
       });
+    });
+    // 物件名・部屋番号の手直し(未反映のみ・渡辺さん検証メモ2026-07-22 エスポワール芝公園=
+    //   AIが読めなかった名前を反映前に直しておけば、自動入力時のエラーを防げる)
+    var ne=tr.querySelector(".nm-edit");
+    if(ne) ne.addEventListener("click", function(){
+      var cur=p.name||"";
+      var v=prompt("物件名・部屋番号を手直しできます。\n形式の例: サンハイム大森 部屋番号：203\n(部屋番号ごと書き換えられます。空のままOKで変更なし)", cur);
+      if(v==null) return;
+      v=v.trim();
+      if(!v || v===cur) return;
+      api("update",{ id:p.id, patch:{ name:v } }).then(function(){ p.name=v; render(); toast("物件名を保存しました"); })
+        .catch(function(e){ toast(e.message||"保存に失敗", true); });
     });
     // ジャンプ(0.16.72): 拡張が居れば、開いているATBB/レインズをこの物件まで自動走行させる(居なければ従来リンク)
     var na=tr.querySelector("a.nlink");
