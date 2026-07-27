@@ -491,7 +491,31 @@
   var PUBCHECK_URL='https://script.google.com/macros/s/AKfycbxmOziVS75qwX6TQSWIPfA1FLP3SckqYSMBQnBDvhpHON9uyX5E4ljKBUUWRXVjFFi3/exec';
   var pubNg=[], pubSites=[], pubItandi=[], pubLoaded=false;
   function normCo(s){ return String(s==null?'':s).replace(/株式会社|有限会社|合同会社|㈱|㈲|\(株\)|\(有\)|（株）|（有）/g,'').replace(/[\s　・]/g,'').toLowerCase(); }
-  function pcHit(coN, x){ var b=x.coN; if(!coN||!b) return false; var sh=coN.length<=b.length?coN:b; if(sh.length<3) return false; return coN.indexOf(b)>=0||b.indexOf(coN)>=0; }
+  // 会社名の照合。完全一致が基本。前方一致は「余りが支店・部署名」の時だけ認める。
+  //   「(株)東京建物」が「東京建物不動産販売株式会社 賃貸営業第一部」に前方一致して別会社と混同していた
+  //   (渡辺さん検証メモ2026-07-27 平野ビル202)。余りが「不動産販売…」のように会社名の続きなら別会社とみなす。
+  var PC_DEPT_HEAD=/^(本店|本社|支店|支社|営業所|営業部|賃貸|売買|管理|仲介|法人|住宅|第[0-9一二三四五六七八九十]+)/;
+  var PC_DEPT_TAIL=/(本店|本社|支店|支社|営業所|営業部|センター|事業部|店|課|係|部)$/;
+  function pcHit(coN, x){
+    var b=x.coN; if(!coN||!b) return false;
+    if(coN===b) return true;                   // 完全一致
+    var sh=coN.length<=b.length?coN:b, lo=coN.length<=b.length?b:coN;
+    if(sh.length<3) return false;
+    if(lo.indexOf(sh)!==0) return false;       // 前方一致でなければ別物
+    var rest=lo.slice(sh.length);
+    if(!rest) return true;
+    if(PC_DEPT_HEAD.test(rest)) return true;   // 余りが「賃貸営業第一部」のように部署名で始まる
+    var tail=rest.match(PC_DEPT_TAIL);         // 余りが「品川営業所」「城南支店」のように地名+部署名
+    if(tail && rest.slice(0, rest.length-tail[1].length).length<=5) return true; // 「東京第二支店」等も同社
+    return false;                              // 「不動産販売…」のように会社名が続くものは別会社
+  }
+  // 元サイトで検索する時の名前。管理画面で名前を手直しすると元サイトでは見つからなくなるため、
+  //   取込時の名前(data.title / 建物名・部屋番号)があればそちらを使う
+  //   (渡辺さん検証メモ2026-07-27 三田第二コーポラス303=名前を変えるとATBBに飛ばなくなる)
+  function srcName(p){
+    var d=p&&p.data; var f=(d&&d.fields)||{};
+    return String((d&&d.title)||f["建物名・部屋番号"]||p.name||"").trim();
+  }
   function loadPubCheck(){
     fetch(PUBCHECK_URL,{method:'POST',credentials:'omit',headers:{'Content-Type':'text/plain'},body:JSON.stringify({type:'publish_check_db'})})
       .then(function(r){ return r.json(); })
@@ -829,7 +853,7 @@
             if(siteKey!=="reins" || /^\d{12}$/.test(no0)){
               toast("開いている"+siteName+"でこの物件を検索しています…(そのタブに切り替わります)", false, 4000);
               try{
-                chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:siteKey, bkkn:no0, name:p.name||"" }, function(r){
+                chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:siteKey, bkkn:no0, name:srcName(p) }, function(r){
                   void chrome.runtime.lastError;
                   if(!(r&&r.ok)) toast((r&&r.error)||"入力GO拡張に接続できませんでした", true, 6000);
                 });
@@ -884,7 +908,7 @@
         ev.preventDefault();
         toast("開いている"+(p.source==="atbb"?"ATBB":"レインズ")+"でこの物件を検索しています…(そのタブに切り替わります)", false, 4000);
         try{
-          chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:p.source, bkkn:no, name:p.name||"" }, function(r){
+          chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:p.source, bkkn:no, name:srcName(p) }, function(r){
             void chrome.runtime.lastError;
             if(!(r&&r.ok)) toast((r&&r.error)||"入力GO拡張に接続できませんでした", true, 6000);
           });
