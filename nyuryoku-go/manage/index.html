@@ -533,12 +533,20 @@
       })
       .catch(function(){ /* シート読み込み失敗時は「—」表示のまま(業務は止めない) */ });
   }
+  // 電話番号の正規化(ハイフン・全角・空白を除いて数字だけに)と、テキスト中の電話番号抽出
+  function normTel(s){ return String(s==null?"":s).replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-65248);}).replace(/[^0-9]/g,""); }
+  function telsIn(s){ var m=String(s==null?"":s).match(/0[0-9]{1,4}[-−ー－][0-9]{1,4}[-−ー－][0-9]{3,4}/g)||[]; return m.map(normTel); }
   // 元付業者名→3タブ照合の共通部(バッジ表示と並び替えの両方から使う)
   function pubMatch(p){
     var coN=normCo(p.agent_company);
-    if(!coN) return null;
+    var telN=normTel(p.agent_contact);
+    if(!coN && !telN) return null;
+    // 電話でも照合する: シートの「空き確認サイト」欄が電話番号の行(大和リビング等)や、
+    // 確認方法メモ内の電話番号が、この物件の元付TELと一致したらその行をヒットにする
+    // (会社名の表記ゆれで会社名照合が外れても電話で拾える。渡辺さん要望2026-07-28)
+    function telHit(x){ if(!telN) return false; var ts=telsIn(x.site).concat(telsIn(x.how)); return ts.indexOf(telN)>=0; }
     var itHit=pubItandi.some(function(x){ return pcHit(coN,x); });
-    var site=pubSites.filter(function(x){ return pcHit(coN,x); })[0];
+    var site=pubSites.filter(function(x){ return pcHit(coN,x)||telHit(x); })[0];
     var ngs=pubNg.filter(function(x){ return pcHit(coN,x); });
     var allng=ngs.filter(function(x){ return /全物件/.test(x.kubun)||/全物件/.test(x.bukken); });
     return { itHit:itHit, site:site, ngs:ngs, allng:allng };
@@ -691,8 +699,13 @@
     var sy=window.scrollY;
     updateSortUI();
     var f=filter.trim().toLowerCase();
+    // 検索は画面に見えるものすべてを対象にする(名前・住所・元付だけでなく、社内メモ・一覧メモ・
+    // 検証メモ・反映結果・担当・賃料・間取り・電話・SUUMO点数まで。渡辺さん要望2026-07-28)
     var list = !f ? rows : rows.filter(function(p){
-      return [p.name,p.address,p.agent_company].some(function(v){ return String(v||"").toLowerCase().indexOf(f)>=0; });
+      return [p.name,p.address,p.agent_company,p.agent_contact,p.rent,p.layout,
+              p.memo,p.list_memo,p.verify_note,p.note,p.reflect_result,p.assignee,
+              p.suumo_score,p.application_status,p.source]
+        .some(function(v){ return String(v==null?"":v).toLowerCase().indexOf(f)>=0; });
     });
     // 申込/掲載不可・空き確認での絞り込み(渡辺さん要望2026-07-08)
     if(fltApply==="none") list=list.filter(function(p){ return !(p.application_status||(p.application?"申込":"")); });
