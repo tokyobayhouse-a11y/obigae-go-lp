@@ -1090,125 +1090,132 @@
     /* Pricing */
     .pricing { background: var(--bg); }
     .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 22px;
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
       align-items: stretch;
-      max-width: 880px;
+      max-width: 1000px;
       margin: 0 auto;
     }
     .price-card {
-      position: relative;
-      background: white;
-      border: 1px solid var(--line);
+      flex: 1 1 420px;
+      max-width: 480px;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      color: white;
       border-radius: 24px;
-      padding: 32px;
-      box-shadow: 0 20px 54px rgba(15,23,42,0.06);
-      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
-      animation: float-card 4s ease-in-out infinite;
-      will-change: transform;
+      padding: 48px 36px;
+      text-align: center;
+      box-shadow: 0 30px 70px -20px rgba(13,77,107,0.5);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform .2s ease, box-shadow .2s ease;
     }
-    /* 浮遊アニメの位相をズラして自然な揺れに */
-    .price-card:nth-child(1) { animation-delay: 0s; }
-    .price-card:nth-child(3) { animation-delay: -2s; }
+    .price-card::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(217,119,6,0.3), transparent 70%);
+    }
     .price-card.recommended {
-      border: 3px solid var(--orange);
-      box-shadow: 0 30px 70px rgba(217,119,6,0.16);
-      animation: float-card-reco 4s ease-in-out infinite, glow-pulse 2.4s ease-in-out infinite;
+      background: linear-gradient(135deg, #1a2332 0%, #0d1b2a 100%);
+      border: 2px solid var(--orange);
     }
-    /* 通常カード: ふわふわ浮遊 */
-    @keyframes float-card {
-      0%, 100% { transform: translateY(0); }
-      50%      { transform: translateY(-6px); }
+    .price-card.recommended::before {
+      background: radial-gradient(circle, rgba(217,119,6,0.45), transparent 70%);
     }
-    /* 推奨カード: 一段上で浮遊 */
-    @keyframes float-card-reco {
-      0%, 100% { transform: translateY(-12px); }
-      50%      { transform: translateY(-20px); }
-    }
-    /* 推奨カード: オレンジ枠パルス発光 */
-    @keyframes glow-pulse {
-      0%, 100% {
-        box-shadow: 0 30px 70px rgba(217,119,6,0.16), 0 0 0 0 rgba(217,119,6,0);
-      }
-      50% {
-        box-shadow: 0 30px 70px rgba(217,119,6,0.22), 0 0 0 10px rgba(217,119,6,0.18);
-      }
-    }
-    /* デスクトップでのホバーエフェクト */
     @media (hover: hover) {
       .price-card:hover {
-        animation: none;
-        transform: scale(1.05);
-        border-color: var(--orange);
-        box-shadow:
-          0 0 0 5px rgba(217,119,6,0.22),
-          0 36px 80px rgba(217,119,6,0.28);
+        transform: translateY(-6px);
+        box-shadow: 0 40px 90px -20px rgba(13,77,107,0.6);
       }
       .price-card.recommended:hover {
-        animation: none;
-        transform: translateY(-14px) scale(1.05);
-        border-color: var(--orange);
-        box-shadow:
-          0 0 0 6px rgba(217,119,6,0.34),
-          0 40px 90px rgba(217,119,6,0.38);
+        box-shadow: 0 40px 90px -20px rgba(217,119,6,0.5);
       }
     }
-    /* スマホ タップ時の反応 */
-    .price-card:active {
-      animation: none;
-      transform: scale(0.96);
-      border-color: var(--orange);
-      box-shadow:
-        0 0 0 5px rgba(217,119,6,0.28),
-        0 24px 56px rgba(217,119,6,0.24);
-    }
-    .price-card.recommended:active {
-      animation: none;
-      transform: translateY(-12px) scale(0.96);
-      box-shadow:
-        0 0 0 6px rgba(217,119,6,0.38),
-        0 30px 66px rgba(217,119,6,0.32);
-    }
-    /* スクロール出現アニメ: 下からぽよんバウンス */
+    /* スクロール出現アニメ（控えめなフェードアップ） */
     @keyframes pop-in {
-      0%   { transform: translateY(60px) scale(0.85); opacity: 0; }
-      60%  { transform: translateY(-10px) scale(1.06); opacity: 1; }
-      100% { transform: translateY(0) scale(1); opacity: 1; }
+      0%   { transform: translateY(28px); opacity: 0; }
+      100% { transform: translateY(0);    opacity: 1; }
     }
-    @keyframes pop-in-reco {
-      0%   { transform: translateY(60px) scale(0.85); opacity: 0; }
-      60%  { transform: translateY(-24px) scale(1.06); opacity: 1; }
-      100% { transform: translateY(-12px) scale(1); opacity: 1; }
-    }
-    .price-card.in-view {
-      animation: pop-in 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .price-card.recommended.in-view {
-      animation: pop-in-reco 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    /* 出現時の時間差（左→中央→右の順で登場） */
-    .price-card:nth-child(1).in-view { animation-delay: 0s; }
-    .price-card:nth-child(2).in-view { animation-delay: 0.15s; }
-    .price-card:nth-child(3).in-view { animation-delay: 0.30s; }
+    .price-card.in-view { animation: pop-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .price-card:nth-child(2).in-view { animation-delay: 0.12s; }
     .badge {
-      position: absolute;
-      top: -16px;
-      left: 50%;
-      transform: translateX(-50%);
+      display: inline-block;
+      align-self: center;
       background: var(--orange);
       color: white;
       border-radius: 999px;
       padding: 6px 16px;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.08em;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 18px;
+      position: relative;
+      letter-spacing: 0.04em;
     }
-    .price-card h3 { margin: 0 0 10px; font-size: 22px; color: var(--navy); font-weight: 900; }
-    .monthly { font-size: 44px; font-weight: 950; color: var(--navy); margin: 12px 0; letter-spacing: -0.03em; }
-    .monthly small { font-size: 14px; color: var(--muted); font-weight: 700; }
-    .check-list { padding: 0; margin: 18px 0 24px; list-style: none; display: grid; gap: 10px; color: #475569; font-size: 14px; }
-    .check-list li::before { content: "✓"; color: var(--teal); font-weight: 900; margin-right: 8px; }
+    .price-card h3 { margin: 0 0 8px; font-size: 22px; color: white; font-weight: 900; position: relative; }
+    .price-card > p { color: rgba(255,255,255,0.75); font-size: 14px; margin: 0; position: relative; }
+    .monthly {
+      font-size: 72px;
+      font-weight: 900;
+      color: white;
+      line-height: 1;
+      margin: 18px 0 6px;
+      letter-spacing: -0.04em;
+      position: relative;
+    }
+    .monthly small { font-size: 20px; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 0; }
+    .check-list {
+      padding: 0;
+      margin: 30px 0 24px;
+      list-style: none;
+      text-align: left;
+      position: relative;
+      flex: 1;
+      color: white;
+      font-size: 15px;
+    }
+    .check-list li {
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .check-list li:last-child { border-bottom: none; }
+    .check-list li::before {
+      content: "✓";
+      color: var(--orange);
+      font-weight: 900;
+      background: white;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      margin: 0;
+    }
+    /* カード内CTAはカード配色に合わせて上書き */
+    .price-card .btn {
+      position: relative;
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 16px;
+      margin-top: auto;
+    }
+    .price-card .btn:hover {
+      background: var(--orange);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(217,119,6,0.5);
+    }
 
     /* プラン補助情報 */
     .plan-target {
@@ -1455,7 +1462,7 @@
       .hero-grid, .demo-body, .cta-inner, .contact-layout { grid-template-columns: 1fr; }
       .demo-body { gap: 48px; }
       .arrow-badge { margin: 0 auto; transform: rotate(90deg); }
-      .stats-grid, .feature-grid, .pricing-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr 1fr; }
+      .stats-grid, .feature-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr 1fr; }
       /* ヒーロー: バリュー 4→2 列に */
       .value-strip { grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 16px; }
       .hero-ribbon { top: 14px; right: 14px; padding: 10px 14px; }
@@ -1465,13 +1472,9 @@
       .ba-label { font-size: 11px; padding: 3px 9px; }
       .ba-label.before { left: 4%; }
       .ba-label.after { right: 6%; }
-      /* モバイルでは推奨カードも通常カードと同じ高さで浮遊（パルス発光は維持） */
-      .price-card.recommended {
-        animation: float-card 4s ease-in-out infinite, glow-pulse 2.4s ease-in-out infinite;
-      }
-      .price-card.recommended.in-view {
-        animation: pop-in 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
+      /* モバイルではカードを縦積みにして余白を詰める */
+      .price-card { padding: 36px 24px; flex-basis: 100%; }
+      .monthly { font-size: 56px; }
       .sister-grid { grid-template-columns: 1fr; gap: 16px; }
     }
     @media (max-width: 640px) {
@@ -1533,7 +1536,7 @@
         line-height: 1.4;
       }
       .security-strip strong { display: block; margin-bottom: 2px; }
-      .stats-grid, .feature-grid, .pricing-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr; }
+      .stats-grid, .feature-grid, .steps-grid, .faq-grid { grid-template-columns: 1fr; }
       .stat { border-right: 0; border-bottom: 1px solid var(--line); }
       .footer-inner { flex-direction: column; align-items: flex-start; }
       .form-grid { grid-template-columns: 1fr; }
@@ -1758,6 +1761,7 @@
 
         <div class="pricing-grid">
           <article class="price-card">
+            <div class="badge">14日間無料トライアル</div>
             <h3>個人プラン</h3>
             <p>一人営業マン・個人事業主向け</p>
             <div class="monthly">¥990<small>/ 月（税込）</small></div>
