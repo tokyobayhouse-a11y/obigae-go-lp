@@ -629,7 +629,7 @@
         var srcName={atbb:"ATBB",reins:"レインズ",itandi:"イタンジBB"}[q.source]||q.source||"";
         m[p.id||k]={
           label:(d.getMonth()+1)+"/"+d.getDate()+"にも物出済み",
-          tip:"2週間以内に同じ物件名の物出があります: "+fmtDate(q.imported_at)+" 取込"+(srcName?"("+srcName+")":"")+"・"+(q.reflected_at?"反映済み":"未反映")+(near.length>1?" ほか"+(near.length-1)+"件":"")+"。二重登録にご注意ください"
+          tip:"2週間以内に同じ物件名の物出があります: "+(d.getMonth()+1)+"/"+d.getDate()+" 取込"+(srcName?"("+srcName+")":"")+"・"+(q.reflected_at?"反映済み":"未反映")+(near.length>1?" ほか"+(near.length-1)+"件":"")+"。二重登録にご注意ください"
         };
       });
     });
