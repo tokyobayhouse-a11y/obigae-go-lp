@@ -608,28 +608,44 @@
   //   別のサイトから同じ物件をもう一度出してしまう二重作業・二重登録の予防)。
   //   正規化=全半角そろえ+空白除去+読み仮名括弧除去+「部屋番号:」除去。英字⇔カナの表記違いは原理的に拾えない。
   var dupMap={};
-  function dupNameKey(p){
+  function dupParts(p){
+    // 建物名と部屋番号に分けて比較する(「クレッセント目黒Ⅱ」と「クレッセント目黒Ⅱ　106」のように
+    //  片方に部屋番号が無い書き方でも重複に気づけるように — 渡辺さん検証メモ2026-08-07)
     var n=String(p&&p.name||"");
     try{ n=n.normalize("NFKC"); }catch(e){}
-    n=n.toLowerCase().replace(/[\s\u3000]/g,"").replace(/[（(][^（()）]*[)）]/g,"").replace(/部屋番号[:：]?/g,"");
-    return n;
+    n=n.toLowerCase().replace(/[（(][^（()）]*[)）]/g,"").replace(/部屋番号[:：]?/g," ");
+    n=n.replace(/角部屋|メゾネット/g," ");
+    n=n.replace(/[\s\u3000]+/g," ").trim();
+    var toks=n.split(" "), room="";
+    if(toks.length>1){
+      var last=toks[toks.length-1];
+      if(/^[0-9a-z]{1,6}(号室?)?$/i.test(last) && /[0-9]/.test(last)){ room=last.replace(/号室?$/,""); toks.pop(); }
+      else if(/^[a-z]$/i.test(last)){ room=last; toks.pop(); }
+    }
+    return { bldg: toks.join(""), room: room };
   }
   function buildDupMap(){
     var m={}, by={};
-    rows.forEach(function(p){ var k=dupNameKey(p); if(k) (by[k]=by[k]||[]).push(p); });
+    rows.forEach(function(p){ var pt=dupParts(p); if(pt.bldg) (by[pt.bldg]=by[pt.bldg]||[]).push({p:p,room:pt.room}); });
     Object.keys(by).forEach(function(k){
       var g=by[k]; if(g.length<2) return;
-      g.forEach(function(p){
+      g.forEach(function(e){
+        var p=e.p;
         if(!p.imported_at) return;
         var t=new Date(p.imported_at).getTime();
-        var near=g.filter(function(q){ return q!==p && q.imported_at && Math.abs(new Date(q.imported_at).getTime()-t)<=14*24*3600*1000; });
+        var near=g.filter(function(o){
+          if(o.p===p || !o.p.imported_at) return false;
+          if(e.room && o.room && e.room!==o.room) return false;  // 部屋番号が両方あって違う=別部屋(正常)
+          return Math.abs(new Date(o.p.imported_at).getTime()-t)<=14*24*3600*1000;
+        });
         if(!near.length) return;
-        near.sort(function(a,b){ return new Date(b.imported_at)-new Date(a.imported_at); });
-        var q=near[0], d=new Date(q.imported_at);
+        near.sort(function(a,b){ return new Date(b.p.imported_at)-new Date(a.p.imported_at); });
+        var o=near[0], q=o.p, d=new Date(q.imported_at);
         var srcName={atbb:"ATBB",reins:"レインズ",itandi:"イタンジBB"}[q.source]||q.source||"";
+        var vague=!(e.room&&o.room);  // 片方に部屋番号が無い=同じ建物としか言えない
         m[p.id||k]={
-          label:(d.getMonth()+1)+"/"+d.getDate()+"にも物出済み",
-          tip:"2週間以内に同じ物件名の物出があります: "+(d.getMonth()+1)+"/"+d.getDate()+" 取込"+(srcName?"("+srcName+")":"")+"・"+(q.reflected_at?"反映済み":"未反映")+(near.length>1?" ほか"+(near.length-1)+"件":"")+"。二重登録にご注意ください"
+          label:(d.getMonth()+1)+"/"+d.getDate()+"にも物出済み"+(vague?"?":""),
+          tip:"2週間以内に同じ"+(vague?"建物名":"物件名")+"の物出があります: "+(d.getMonth()+1)+"/"+d.getDate()+" 取込"+(srcName?"("+srcName+")":"")+"・"+(q.reflected_at?"反映済み":"未反映")+(near.length>1?" ほか"+(near.length-1)+"件":"")+"。"+(vague?"部屋番号の記載が無いため同じ部屋かはご確認ください。":"")+"二重登録にご注意ください"
         };
       });
     });
@@ -833,7 +849,7 @@
       var rvInner='<span class="rv'+(p.suumo_rivals===0?' rv0':'')+'" title="'+rvNote+'">'+p.suumo_rivals+'</span>';
       rivalsHtml = p.suumo_rivals_url ? '<a href="'+esc(p.suumo_rivals_url)+'" target="_blank" rel="noopener" title="'+rvNote+' (クリックでSUUMOの該当建物を開く)">'+rvInner+'</a>' : rvInner;
     }
-    var dp=dupMap[p.id||dupNameKey(p)];
+    var dp=dupMap[p.id||dupParts(p).bldg];
     var dupHtml=dp?'<span class="dup-badge" title="'+esc(dp.tip)+'">'+esc(dp.label)+'</span>':'';
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
