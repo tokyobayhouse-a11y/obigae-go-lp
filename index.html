@@ -294,61 +294,6 @@
       height: auto;
       border-radius: 16px;
     }
-    /* 画像内CTAボタン位置に重ねる透明リンク (% 単位で画像と一緒に縮小) */
-    .hero-cta-hit {
-      position: absolute;
-      display: block;
-      background: transparent;
-      border-radius: 999px;
-      cursor: pointer;
-      z-index: 2;
-      transition: background 0.2s ease;
-    }
-    .hero-cta-hit:hover {
-      background: rgba(217,119,6,0.10);
-    }
-    /* 画像全体をインストールへの入口にする (ボタン位置のズレ解消のため) */
-    .hero-cta-hit.backdrop {
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: 16px;
-    }
-    .hero-cta-hit.backdrop:hover {
-      background: transparent;
-    }
-    /* PC版画像 (1672×941) のCTA位置 (旧hotspot方式・現在は未使用) */
-    @media (min-width: 761px) {
-      .hero-cta-hit.primary {
-        left: 2.2%;
-        top: 73%;
-        width: 21%;
-        height: 8.5%;
-      }
-      .hero-cta-hit.secondary {
-        left: 25%;
-        top: 73%;
-        width: 18%;
-        height: 8.5%;
-      }
-    }
-    /* スマホ版画像 (1035×1520) のCTA位置 */
-    @media (max-width: 760px) {
-      .hero-cta-hit.primary {
-        left: 7%;
-        top: 58.5%;
-        width: 86%;
-        height: 4.6%;
-      }
-      .hero-cta-hit.secondary {
-        left: 7%;
-        top: 64.2%;
-        width: 86%;
-        height: 4%;
-      }
-    }
-
     /* 右上の金色リボン: サービス公開記念（月桂冠スタイル） */
     .hero-ribbon {
       position: absolute;
@@ -1631,8 +1576,6 @@
                  alt="帯替えGO‼︎ - 募集図面の「帯」を、ワンクリックで自社帯へ。初期費用なし・解約縛りなし・14日間無料でお試し"
                  loading="eager" fetchpriority="high">
           </picture>
-          <!-- 画像全体をインストールへの入口に (ボタン位置のズレ解消のため個別リンクは廃止) -->
-          <a class="hero-cta-hit backdrop" href="https://chromewebstore.google.com/detail/%E5%B8%AF%E6%9B%BF%E3%81%88go%E2%80%BC%EF%B8%8E/gjeefgaaildoahpmcpjjllcfcmhapjlg" target="_blank" rel="noopener" aria-label="14日間 無料で試してみる (Chromeに追加)"></a>
         </div>
       </div>
     </section>
