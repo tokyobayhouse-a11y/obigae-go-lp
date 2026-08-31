@@ -133,6 +133,7 @@
   .c-name a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
   .c-name .addr{color:#71808f;font-size:11px;font-weight:650;margin-top:3px;line-height:1.35;}
   .dup-badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:9px;background:#fdeaea;color:#b93a3a;border:1px solid #f2b8b8;font-size:11px;font-weight:700;white-space:nowrap;cursor:help;vertical-align:1px;}
+  .reimp-badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:9px;background:#fff3df;color:#a8620a;border:1px solid #f0cf9a;font-size:11px;font-weight:700;white-space:nowrap;cursor:help;vertical-align:1px;}
   .src{display:inline-flex;align-items:center;justify-content:center;min-height:23px;font-size:9.5px;font-weight:900;padding:3px 6px;border-radius:5px;letter-spacing:0;line-height:1.2;white-space:nowrap;}
   .src.atbb{background:var(--blue-bg);color:#1558a7;box-shadow:inset 0 0 0 1px rgba(39,110,241,.12);}
   .src.itandi{background:var(--danger-bg);color:#c0362e;box-shadow:inset 0 0 0 1px rgba(199,52,43,.12);}
@@ -851,10 +852,18 @@
     }
     var dp=dupMap[p.id||dupParts(p).bldg];
     var dupHtml=dp?'<span class="dup-badge" title="'+esc(dp.tip)+'">'+esc(dp.label)+'</span>':'';
+    // 反映済みの後に取り直した物件(データは新しいが登録は古い版のまま)に印を付ける
+    //   (渡辺さん検証メモ2026-08-31 エスティメゾン戸越702=7/31登録のまま8/30再取込が気づかれず、
+    //    古い版の読み取りへの指摘になっていた。「反映する」を付けて反映し直すと最新の読み取りで入る)
+    var reimpHtml='';
+    if(p.reflected_at && p.imported_at && new Date(p.imported_at).getTime() > new Date(p.reflected_at).getTime() + 60000){
+      var rd=new Date(p.reflected_at), idt=new Date(p.imported_at);
+      reimpHtml='<span class="reimp-badge" title="アドマスへの反映('+ (rd.getMonth()+1)+'/'+rd.getDate() +')の後に取り直されたデータ('+ (idt.getMonth()+1)+'/'+idt.getDate() +')です。アドマスの登録内容は古い取込のまま。最新の読み取りで入れ直すには「反映する」を付けて一括反映してください">'+ (idt.getMonth()+1)+'/'+idt.getDate() +'に再取込済み</span>';
+    }
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
     tr.innerHTML =
-      '<td class="c-name">'+(p.reflected_at?'':'<span class="drag" draggable="true" title="ドラッグで並び替え(離した位置に入ります)"><svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="6" cy="2" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="6" cy="7" r="1.3"/><circle cx="2" cy="12" r="1.3"/><circle cx="6" cy="12" r="1.3"/></svg></span>')+nameLink+dupHtml+
+      '<td class="c-name">'+(p.reflected_at?'':'<span class="drag" draggable="true" title="ドラッグで並び替え(離した位置に入ります)"><svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="6" cy="2" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="6" cy="7" r="1.3"/><circle cx="2" cy="12" r="1.3"/><circle cx="6" cy="12" r="1.3"/></svg></span>')+nameLink+dupHtml+reimpHtml+
         (p.reflected_at?'':'<button type="button" class="nm-edit" title="物件名・部屋番号を手直しします(AIが読めなかった名前を反映前に直すとエラー予防になります)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>')+
         (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+
         (p.zumen_url?'<a class="zlink" href="'+esc(p.zumen_url)+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
