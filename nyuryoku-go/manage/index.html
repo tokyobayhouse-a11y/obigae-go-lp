@@ -473,6 +473,9 @@
   // 正解=入力GO拡張への「ジャンプ」依頼(0.16.72以降): 拡張が開いているATBB/レインズのタブを自動走行して
   //   その物件まで連れて行く。拡張が居ない/古い時は従来どおり保存リンクの直リンク(作業中セッションなら開ける)。
   var EXT_ID = localStorage.getItem("nyuryokuGoExtId") || "lmpciiaimdmdknhbappbcbmddpilooba";
+  // 0.17.0 実機確認用(フォルダ直接読込)の拡張が居れば、そちらを優先する(2026-09-05)。Web Store版が復活したら不要
+  (function(){ var DEV="fppcjobhbpcbooohplnllnoalbjlggfa"; try{ if(localStorage.getItem("nyuryokuGoExtId")) return;
+    chrome.runtime.sendMessage(DEV,{type:"PING"},function(r){ if(!chrome.runtime.lastError && r && r.ok) EXT_ID=DEV; }); }catch(e){} })();
   // 検索GO(ヒットチェッカー)連携: 検索GOのcontent scriptがpostMessageで自分のIDを名乗る(v1.2.1+)。
   // 「写真を探す」ボタンはこのIDへ単サイト検索を依頼し、HITした物件ページが自動で前面に開く。
   var kensakuGoId = "";
