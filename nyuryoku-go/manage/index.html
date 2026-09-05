@@ -288,7 +288,7 @@
       <span class="company" id="companyLabel"></span>
       <a class="btn" href="../ledger/" title="検証メモへの対応状況を症状から引ける一覧(直った/保留/仕様)">修正台帳</a>
       <a class="btn" href="https://docs.google.com/spreadsheets/d/1kOvsRFgKA3aUhoBtQuuSMbbwHSAFvrmJz41krFpo6ZA/edit" target="_blank" rel="noopener" title="渡辺さん用の掲載可否・掲載NG台帳・業者サイト一覧。掲載確認列はこのシートと自動照合しています">掲載確認シート</a>
-      <button class="btn" id="btnSettings" title="合言葉を変更">設定</button>
+      <button class="btn" id="btnSettings" title="ログアウト">ログアウト</button>
     </div>
   </div>
 
@@ -299,10 +299,13 @@
       <div>入力 <span>GO</span><span class="bang">!!</span> <span class="sub">物出管理</span></div>
     </div>
     <h2>物出管理にログイン</h2>
-    <p>拡張機能と同じ<b>合言葉</b>を入力してください。この端末にだけ保存され、次回から省略できます。</p>
-    <label for="tokenInput">合言葉</label>
-    <input type="password" id="tokenInput" placeholder="合言葉" autocomplete="off">
-    <button class="btn primary" id="btnEnter">開く</button>
+    <p>入力GO!!のアカウント(帯替えGO‼︎と共通)でログインしてください。</p>
+    <label for="emailInput">メールアドレス</label>
+    <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email">
+    <label for="tokenInput">パスワード</label>
+    <input type="password" id="tokenInput" placeholder="パスワード" autocomplete="current-password">
+    <button class="btn primary" id="btnEnter">ログイン</button>
+    <p style="margin-top:10px;font-size:12px;">アカウントの作成・契約は <a href="https://app.obigae-go.com/nyuryoku.html" target="_blank" rel="noopener">マイページ</a> から。</p>
   </div>
 
   <!-- 本体 -->
@@ -385,12 +388,16 @@
 (function(){
   "use strict";
   // ===== 設定 =====
-  var API_URL = "https://qtbtnunmrhtjrotwimbw.supabase.co/functions/v1/admas-intake";
-  var COMPANY = "東京ベイハウス";               // 自社運用フェーズの会社名(商品化でログイン会社に切替)
-  var TOKEN_KEY = "admas_intake_token";          // 合言葉の保存先(この端末のみ)
+  // 商品版(2026-09-05): ログインは入力GO!!のアカウント(Supabase Auth・帯替えGOと共通)。
+  //   物出DBへは app.obigae-go.com の中継(/api/nyuryoku/intake)経由。会社はログインしたアカウントから決まる。
+  var APP_BASE = "https://app.obigae-go.com";
+  var API_URL = APP_BASE + "/api/nyuryoku/intake";
+  var COMPANY = "";                              // ログイン後に /api/nyuryoku/usage から入る
+  var IS_OWNER = false;                          // 運営アカウント(当社)だけ掲載確認シート照合を使う
+  var sb = null;                                 // supabase-js クライアント
 
   // ===== 状態 =====
-  var token = localStorage.getItem(TOKEN_KEY) || "";
+  var token = "";                                // アクセストークン(supabaseが保持・更新)
   var rows = [];               // サーバーから取得した全物件
   var filter = "";             // 検索語
   var fltApply = "";           // 申込/掲載不可の絞り込み(""=全て/none=未設定/申込/掲載不可)
@@ -433,17 +440,25 @@
   var gate=$("gate"), app=$("app");
 
   // ===== API =====
+  function freshToken(){
+    if(!sb) return Promise.resolve("");
+    return sb.auth.getSession().then(function(r){ var s=r&&r.data&&r.data.session; token=(s&&s.access_token)||""; return token; });
+  }
   function api(action, extra){
-    var body = Object.assign({ token: token, company: COMPANY, action: action }, extra || {});
-    return fetch(API_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"text/plain" },   // CORS preflightを起こさない形
-      body: JSON.stringify(body)
+    var body = Object.assign({ action: action }, extra || {});
+    return freshToken().then(function(t){
+      return fetch(API_URL, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+t },
+        body: JSON.stringify(body)
+      });
     }).then(function(res){
       return res.json().catch(function(){ return { error:"応答を解釈できません(HTTP "+res.status+")" }; })
         .then(function(j){
-          if(res.status===401) { var e=new Error("合言葉が違います"); e.unauth=true; throw e; }
-          if(!res.ok || (j && j.ok===false) || (j && j.error)) throw new Error((j&&j.error)||("エラー(HTTP "+res.status+")"));
+          var msg=(j&&(j.error&&j.error.message||j.error))||"";
+          if(res.status===401) { var e=new Error("ログインしてください"); e.unauth=true; throw e; }
+          if(res.status===402) { throw new Error(msg||"契約状態を確認してください(マイページ)"); }
+          if(!res.ok || (j && j.ok===false) || (j && j.error)) throw new Error(msg||("エラー(HTTP "+res.status+")"));
           return j;
         });
     });
@@ -514,6 +529,12 @@
   // 元サイトで検索する時の名前。管理画面で名前を手直しすると元サイトでは見つからなくなるため、
   //   取込時の名前(data.title / 建物名・部屋番号)があればそちらを使う
   //   (渡辺さん検証メモ2026-07-27 三田第二コーポラス303=名前を変えるとATBBに飛ばなくなる)
+  // 入力GOサーバー保存の図面はログイン付きで開く(?t=トークン)。旧Drive保存分はそのまま。
+  function zumenHref(u){
+    u=String(u||"");
+    if(u.indexOf(APP_BASE+"/api/nyuryoku/zumen/")===0 && token) return u+(u.indexOf("?")===-1?"?":"&")+"t="+encodeURIComponent(token);
+    return u;
+  }
   function srcName(p){
     var d=p&&p.data; var f=(d&&d.fields)||{};
     return String((d&&d.title)||f["建物名・部屋番号"]||p.name||"").trim();
@@ -866,7 +887,7 @@
       '<td class="c-name">'+(p.reflected_at?'':'<span class="drag" draggable="true" title="ドラッグで並び替え(離した位置に入ります)"><svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor"><circle cx="2" cy="2" r="1.3"/><circle cx="6" cy="2" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="6" cy="7" r="1.3"/><circle cx="2" cy="12" r="1.3"/><circle cx="6" cy="12" r="1.3"/></svg></span>')+nameLink+dupHtml+reimpHtml+
         (p.reflected_at?'':'<button type="button" class="nm-edit" title="物件名・部屋番号を手直しします(AIが読めなかった名前を反映前に直すとエラー予防になります)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>')+
         (p.address?'<div class="addr">'+esc(p.address)+'</div>':'')+
-        (p.zumen_url?'<a class="zlink" href="'+esc(p.zumen_url)+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
+        (p.zumen_url?'<a class="zlink" href="'+esc(zumenHref(p.zumen_url))+'" target="_blank" rel="noopener">図面を開く</a>':'')+'</td>'+
       '<td class="c-pubcheck">'+pubBadge(p)+'</td>'+
       '<td class="rent">'+yen(p.rent)+'</td>'+
       '<td>'+esc(p.layout||"—")+'</td>'+
@@ -1132,14 +1153,14 @@
   function load(){
     $("loading").style.display="block"; $("table").style.display="none"; $("empty").style.display="none";
     var ic=$("reloadIcon"); ic.innerHTML='<span class="spin" style="border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>';
-    if(!pubLoaded) loadPubCheck(); // 掲載確認シートの照合データ(初回のみ・失敗しても物件表示は止めない)
+    if(!pubLoaded && IS_OWNER) loadPubCheck(); // 掲載確認シート照合は当社(運営)専用(初回のみ・失敗しても物件表示は止めない)
     api("list").then(function(j){
       rows=j.properties||[]; render();
       $("updated").textContent="最終更新 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
       ic.textContent="↻";
     }).catch(function(e){
       ic.textContent="↻"; $("loading").style.display="none";
-      if(e.unauth){ openGate(); toast("合言葉が違います", true); return; }
+      if(e.unauth){ openGate(); toast("ログインしてください", true); return; }
       toast(e.message||"読み込みに失敗", true);
     });
   }
@@ -1184,15 +1205,35 @@
   }
 
   // ===== ゲート =====
-  function openGate(){ gate.style.display="block"; app.style.display="none"; $("tokenInput").value=""; $("tokenInput").focus(); }
-  function openApp(){ gate.style.display="none"; app.style.display="block"; $("companyLabel").innerHTML="会社：<b>"+esc(COMPANY)+"</b>"; load(); }
+  function openGate(){ gate.style.display="block"; app.style.display="none"; $("tokenInput").value=""; $("emailInput").focus(); }
+  function openApp(){ gate.style.display="none"; app.style.display="block"; $("companyLabel").innerHTML="会社：<b>"+esc(COMPANY||"…")+"</b>"; load(); }
 
   $("btnEnter").addEventListener("click", function(){
-    var v=$("tokenInput").value.trim(); if(!v){ toast("合言葉を入力してください", true); return; }
-    token=v; localStorage.setItem(TOKEN_KEY, v); openApp();
+    var em=$("emailInput").value.trim(), pw=$("tokenInput").value;
+    if(!em||!pw){ toast("メールアドレスとパスワードを入力してください", true); return; }
+    if(!sb){ toast("ログイン部品の読み込み中です。少し待ってください", true); return; }
+    $("btnEnter").disabled=true;
+    sb.auth.signInWithPassword({ email: em, password: pw }).then(function(r){
+      $("btnEnter").disabled=false;
+      if(r.error){ toast("ログイン失敗: "+r.error.message, true); return; }
+      afterLogin();
+    });
   });
+  // ログイン後: 会社名・運営判定を取ってから物件一覧へ
+  function afterLogin(){
+    freshToken().then(function(t){
+      return fetch(APP_BASE+"/api/nyuryoku/usage",{ headers:{ "Authorization":"Bearer "+t } }).then(function(r){ return r.json(); });
+    }).then(function(u){
+      IS_OWNER=!!(u&&u.is_owner); COMPANY=(u&&u.company&&u.company.name)||"";
+      if(u && u.allowed===false){ toast(u.reason==="trial_ended"?"無料期間が終了しています。マイページからプランに加入してください":"契約状態を確認してください(マイページ)", true); }
+      openApp();
+    }).catch(function(){ openApp(); });
+  }
   $("tokenInput").addEventListener("keydown", function(e){ if(e.key==="Enter") $("btnEnter").click(); });
-  $("btnSettings").addEventListener("click", function(){ openGate(); });
+  $("btnSettings").addEventListener("click", function(){
+    if(!confirm("ログアウトしますか？")) return;
+    (sb?sb.auth.signOut():Promise.resolve()).then(function(){ token=""; COMPANY=""; IS_OWNER=false; openGate(); });
+  });
   $("btnReload").addEventListener("click", load);
   $("search").addEventListener("input", function(e){ filter=e.target.value; render(); });
   $("fltApply").addEventListener("change", function(e){ fltApply=e.target.value; render(); });
@@ -1274,8 +1315,21 @@
     });
   });
 
-  // ===== 起動 =====
-  if(token) openApp(); else openGate();
+  // ===== 起動: supabase-js を読み込み → 既存セッションがあればそのまま開く =====
+  (function boot(){
+    var sc=document.createElement("script");
+    sc.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js";
+    sc.onload=function(){
+      fetch(APP_BASE+"/api/config").then(function(r){ return r.json(); }).then(function(cfg){
+        sb=window.supabase.createClient(cfg.url, cfg.anonKey, { auth:{ persistSession:true, autoRefreshToken:true } });
+        return sb.auth.getSession();
+      }).then(function(r){
+        if(r&&r.data&&r.data.session) afterLogin(); else openGate();
+      }).catch(function(e){ toast("ログイン部品の準備に失敗: "+(e.message||e), true); openGate(); });
+    };
+    sc.onerror=function(){ toast("ログイン部品を読み込めませんでした", true); openGate(); };
+    document.head.appendChild(sc);
+  })();
 })();
 </script>
 </body>
