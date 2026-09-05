@@ -305,6 +305,8 @@
     <label for="tokenInput">パスワード</label>
     <input type="password" id="tokenInput" placeholder="パスワード" autocomplete="current-password">
     <button class="btn primary" id="btnEnter">ログイン</button>
+    <div style="text-align:center;margin:10px 0 2px;font-size:12px;color:#888;">または</div>
+    <button class="btn" id="btnGoogle" style="width:100%;">Googleアカウントでログイン</button>
     <p style="margin-top:10px;font-size:12px;">アカウントの作成・契約は <a href="https://app.obigae-go.com/nyuryoku.html" target="_blank" rel="noopener">マイページ</a> から。</p>
   </div>
 
@@ -1217,6 +1219,13 @@
       $("btnEnter").disabled=false;
       if(r.error){ toast("ログイン失敗: "+r.error.message, true); return; }
       afterLogin();
+    });
+  });
+  // Googleログイン(Supabase OAuth)。戻り先はこの画面(obigae-go.com/** は許可済み)。戻った時は起動処理がセッションを拾う
+  $("btnGoogle").addEventListener("click", function(){
+    if(!sb){ toast("ログイン部品の読み込み中です。少し待ってください", true); return; }
+    sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: location.origin+location.pathname } }).then(function(r){
+      if(r&&r.error) toast("Googleログイン失敗: "+r.error.message, true);
     });
   });
   // ログイン後: 会社名・運営判定を取ってから物件一覧へ
