@@ -1,0 +1,445 @@
+{
+ "equipmentTargets": [
+  {
+   "type": "special",
+   "field": null,
+   "value": "",
+   "special": "stove_gas",
+   "examples": [
+    "ガスコンロ"
+   ]
+  },
+  {
+   "type": "special",
+   "field": null,
+   "value": "",
+   "special": "stove_ih",
+   "examples": [
+    "IHコンロ",
+    "IHクッキングヒーター"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "building[delivery_box_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "宅配BOX",
+    "宅配ボックス"
+   ]
+  },
+  {
+   "type": "text",
+   "field": "building[elevator_number]",
+   "value": "1",
+   "special": "",
+   "examples": [
+    "エレベーター"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "building[security_camera_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "防犯カメラ"
+   ]
+  },
+  {
+   "type": "text",
+   "field": "room[air_conditioner_number]",
+   "value": "1",
+   "special": "",
+   "examples": [
+    "エアコン",
+    "冷暖房"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[appliance_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "家電"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[auto_lock_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "オートロック"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[balcony_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "バルコニー"
+   ]
+  },
+  {
+   "type": "choice",
+   "field": "room[bath_module_type]",
+   "value": "1",
+   "special": "",
+   "examples": [
+    "B・T別",
+    "バス・トイレ別"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[bath_reheater_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "追焚",
+    "追い焚き",
+    "追焚機能"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[bathroom_dryer_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "浴室乾燥機"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[bicycle_park_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "駐輪場"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[bike_park_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "バイク置場"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[bs_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "ＢＳ端子"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[catv_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "CATV",
+    "ケーブルテレビ"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[cleaning_toilet_seat_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "温水洗浄便座",
+    "ウォシュレット",
+    "シャワートイレ"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[cs_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "ＣＳ"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[designers_room_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "デザイナーズ",
+    "デザイナーズ物件"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[dimple_key_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "ディンプルキー"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[fast_internet_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "高速インターネット"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[floor_board_heater_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "床暖房"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[floorboard_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "フローリング"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[free_internet_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "インターネット無料",
+    "ネット使用料不要"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[furniture_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "家具"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[garbage_disposal_unit_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "ディスポーザー"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[garden_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "庭",
+    "専用庭"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[grill_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "グリル"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[intercom_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "インターホン"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[internet_connection_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "インターネット対応",
+    "インターネット"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[internet_leased_line_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "ネット専用回線"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[maisonnette_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "メゾネット"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[pair_glass_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "複層ガラス",
+    "ペアガラス"
+   ]
+  },
+  {
+   "type": "text",
+   "field": "room[shoebox_number]",
+   "value": "1",
+   "special": "",
+   "examples": [
+    "シューズボックス"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[system_kitchen_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "システムキッチン"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[terrace_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "テラス"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[toilet_seat_heater_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "暖房便座"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[trunk_room_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "トランクルーム"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[tv_intercom_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "モニタ付インターホン",
+    "TVモニタ付インターホン"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[veranda_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "ベランダ"
+   ]
+  },
+  {
+   "type": "text",
+   "field": "room[walk_in_closet_number]",
+   "value": "1",
+   "special": "",
+   "examples": [
+    "ウォークインクローゼット"
+   ]
+  },
+  {
+   "type": "checkbox",
+   "field": "room[washstand_flag]",
+   "value": "",
+   "special": "",
+   "examples": [
+    "洗面所独立"
+   ]
+  }
+ ],
+ "conditionFields": {
+  "room[condition_pet_type]": [
+   "1",
+   "2",
+   "3"
+  ],
+  "room[condition_small_dog_type]": [
+   "1",
+   "2",
+   "3"
+  ],
+  "room[condition_large_dog_type]": [
+   "1",
+   "2",
+   "3"
+  ],
+  "room[condition_cat_type]": [
+   "1",
+   "2",
+   "3"
+  ],
+  "room[condition_office_type]": [
+   "1",
+   "2"
+  ],
+  "room[condition_musical_instrument_type]": [
+   "1",
+   "2",
+   "3"
+  ],
+  "room[condition_piano_type]": [
+   "1",
+   "3"
+  ],
+  "room[condition_flat_share_type]": [
+   "1",
+   "2"
+  ],
+  "room[condition_pair_type]": [
+   "1",
+   "2"
+  ],
+  "room[condition_child_type]": [
+   "1",
+   "2"
+  ]
+ },
+ "generatedFrom": "default_rules.json 0.2.0"
+}

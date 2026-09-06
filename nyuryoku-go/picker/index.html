@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>ドライブから写真を選ぶ | 入力GO!!</title>
+<style>
+  :root{ --navy:#16325c; --accent:#1f4e8c; --line:#e2e6ee; --ink:#1f2937; --sub:#5b6b85; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN","Hiragino Sans","Meiryo",sans-serif;
+    background:#f5f6f8;color:var(--ink);display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.08);
+    max-width:440px;width:100%;padding:26px 24px;text-align:center}
+  h1{font-size:16px;color:var(--navy);margin-bottom:6px}
+  p{font-size:13px;color:var(--sub);line-height:1.7}
+  .btn{margin-top:16px;border:none;background:var(--accent);color:#fff;border-radius:10px;padding:12px 22px;
+    font-size:14px;font-weight:700;cursor:pointer}
+  .btn:hover{background:#173d70}
+  .btn:disabled{background:#c3ccd3;cursor:default}
+  #status{margin-top:16px;font-size:13px;color:var(--sub);min-height:20px;line-height:1.6}
+  .bar{height:8px;background:#eef2f5;border-radius:20px;overflow:hidden;margin-top:14px;display:none}
+  .bar>i{display:block;height:100%;width:0;background:#2e9e5b;transition:.2s}
+  .err{color:#b3261e}
+  .ok{color:#1d7a3e}
+  .foot{margin-top:18px;font-size:11px;color:#9aa6b8;line-height:1.6}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>入力GO!! — ドライブから写真を選ぶ</h1>
+    <p>Googleドライブから物件写真を選ぶと、透かしを入れてアドマスに登録します。<br>下のボタンからGoogleにログインしてファイルを選んでください。</p>
+    <button class="btn" id="pick">Googleドライブを開く</button>
+    <div class="bar" id="bar"><i id="barFill"></i></div>
+    <div id="status"></div>
+    <div class="foot">選んだファイルだけを読み取ります（drive.file）。この画面は選び終わると自動で閉じます。</div>
+  </div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
+<script>
+  'use strict';
+  // ===== Google発行の値（後で本物に差し替える。ここは印付きの空欄）=====
+  const CLIENT_ID = '__GOOGLE_CLIENT_ID__';   // OAuth 2.0 クライアントID（種類=ウェブアプリ）
+  const API_KEY   = '__GOOGLE_API_KEY__';     // APIキー（Picker用）
+  const APP_ID    = '__GOOGLE_APP_ID__';      // Cloudプロジェクト番号
+  // ==============================================================
+  const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  // 呼び出し元（拡張が動くアドマスの画面）だけに結果を返す。増える場合はここに追加。
+  const ALLOWED_OPENER_ORIGINS = ['https://www.renters.jp'];
+
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $('status'), barEl = $('bar'), fillEl = $('barFill');
+  function setStatus(t, cls){ statusEl.textContent = t || ''; statusEl.className = cls || ''; }
+
+  // 呼び出し元オリジン（?origin=... を検証して採用。想定外なら結果を送らない）
+  const params = new URLSearchParams(location.search);
+  const rawOrigin = params.get('origin') || '';
+  const openerOrigin = ALLOWED_OPENER_ORIGINS.indexOf(rawOrigin) !== -1 ? rawOrigin : null;
+
+  let pickerReady = false, gisReady = false, accessToken = null, tokenClient = null;
+
+  // gapi(picker) 読み込み
+  window.addEventListener('load', () => {
+    const wait = setInterval(() => {
+      if (window.gapi && window.google && window.google.accounts) {
+        clearInterval(wait);
+        gapi.load('picker', () => { pickerReady = true; });
+        initGis();
+      }
+    }, 100);
+  });
+
+  function initGis(){
+    try{
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPE,
+        callback: (resp) => {
+          if (resp && resp.access_token){ accessToken = resp.access_token; showPicker(); }
+          else { setStatus('ログインがキャンセルされました。', 'err'); resetBtn(); }
+        }
+      });
+      gisReady = true;
+    }catch(e){ setStatus('Googleログインの初期化に失敗しました: ' + (e && e.message || e), 'err'); }
+  }
+
+  $('pick').addEventListener('click', () => {
+    if (CLIENT_ID.indexOf('__') === 0){ setStatus('未設定です（Google側の設定が必要）。', 'err'); return; }
+    if (!gisReady || !pickerReady){ setStatus('準備中です。数秒後にもう一度押してください。'); return; }
+    $('pick').disabled = true; setStatus('Googleにログインしています…');
+    // 既存トークンがあればそのまま、無ければ同意を求める
+    tokenClient.requestAccessToken({ prompt: accessToken ? '' : 'consent' });
+  });
+  function resetBtn(){ $('pick').disabled = false; }
+
+  function showPicker(){
+    setStatus('ファイルを選んでください（複数選択できます）。');
+    const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
+      .setIncludeFolders(true)         // フォルダに入って中の写真を選べる
+      .setSelectFolderEnabled(false)
+      .setMimeTypes('image/jpeg,image/png,image/webp,image/heic,image/heif');
+    const picker = new google.picker.PickerBuilder()
+      .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+      .setAppId(APP_ID)
+      .setOAuthToken(accessToken)
+      .setDeveloperKey(API_KEY)
+      .addView(view)
+      .setTitle('物件写真を選ぶ')
+      .setCallback(pickerCallback)
+      .build();
+    picker.setVisible(true);
+  }
+
+  async function pickerCallback(data){
+    const action = data[google.picker.Response.ACTION];
+    if (action === google.picker.Action.CANCEL){
+      send({ type: 'cancel' });
+      setStatus('選択をキャンセルしました。この画面は閉じてかまいません。');
+      resetBtn();
+      return;
+    }
+    if (action !== google.picker.Action.PICKED) return;
+    const docs = data[google.picker.Response.DOCUMENTS] || [];
+    const files = docs.filter((d) => (d.mimeType || '').indexOf('image/') === 0);
+    if (!files.length){ setStatus('画像が選ばれませんでした。', 'err'); resetBtn(); return; }
+
+    barEl.style.display = 'block';
+    send({ type: 'begin', count: files.length });
+    let ok = 0;
+    for (let i = 0; i < files.length; i++){
+      const f = files[i];
+      setStatus('取得中… ' + (i + 1) + '/' + files.length + '枚');
+      try{
+        const b64 = await downloadAsB64(f.id);
+        send({ type: 'file', name: f.name || ('photo' + (i + 1) + '.jpg'), mime: f.mimeType || 'image/jpeg', b64: b64, index: i, count: files.length });
+        ok++;
+      }catch(e){
+        send({ type: 'file-error', name: f.name || '', index: i, message: String(e && e.message || e) });
+      }
+      fillEl.style.width = ((i + 1) / files.length * 100) + '%';
+    }
+    send({ type: 'done', ok: ok, count: files.length });
+    setStatus(ok + '枚をアドマスに送りました。この画面は自動で閉じます。', 'ok');
+    setTimeout(() => { try{ window.close(); }catch(e){} }, 1200);
+  }
+
+  // Drive API でファイル本体を取得 → base64（data:接頭辞なし）
+  async function downloadAsB64(fileId){
+    const url = 'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media&supportsAllDrives=true';
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+    if (!res.ok) throw new Error('ダウンロード失敗 HTTP ' + res.status);
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => { const s = String(r.result); resolve(s.slice(s.indexOf(',') + 1)); };
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  }
+
+  // 呼び出し元（アドマス画面の拡張）へ結果を送る
+  function send(msg){
+    if (!openerOrigin || !window.opener) return;
+    try{ window.opener.postMessage(Object.assign({ source: 'nyuryoku-picker' }, msg), openerOrigin); }catch(e){}
+  }
+</script>
+</body>
+</html>
