@@ -645,6 +645,18 @@
     n=n.replace(/角部屋|メゾネット/g," ");
     n=n.replace(/[\s\u3000]+/g," ").trim();
     var toks=n.split(" "), room="";
+    if(toks.length===1 && p && p.data && p.data.title){
+      // 手直しで「建物名+号室」を空白なしで書いた名前(クレッセント目黒Ⅱ106)は取込時の建物名(title)を手掛かりに分ける
+      //  (渡辺さん検証メモ2026-09-08: 9/7に物出済みなのに「にも物出済み」が出ない)
+      var t=String(p.data.title||""); try{ t=t.normalize("NFKC"); }catch(e){}
+      t=t.toLowerCase().replace(/[（(][^（()）]*[)）]/g,"").replace(/部屋番号[:：]?[\s\S]*$/,"").replace(/[\s\u3000]+/g,"").trim();
+      if(t.length>=2 && n.length>t.length && n.indexOf(t)===0){ var rest=n.slice(t.length).trim(); if(/^[0-9a-z]{1,6}$/i.test(rest)&&/[0-9]/.test(rest)) toks=[t,rest]; }
+    }
+    if(toks.length===1){
+      // titleが無い/一致しない時の保険: 末尾の3〜4桁数字(+英字1文字)を号室として切る(建物名末尾の数字と区別するため3桁以上・直前は数字以外)
+      var m1=toks[0].match(/^(.*[^0-9])([0-9]{3,4}[a-z]?)$/i);
+      if(m1 && m1[1].length>=2) toks=[m1[1],m1[2]];
+    }
     if(toks.length>1){
       var last=toks[toks.length-1];
       if(/^[0-9a-z]{1,6}(号室?)?$/i.test(last) && /[0-9]/.test(last)){ room=last.replace(/号室?$/,""); toks.pop(); }
