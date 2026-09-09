@@ -901,7 +901,7 @@
     var reimpHtml='';
     if(p.reflected_at && p.imported_at && new Date(p.imported_at).getTime() > new Date(p.reflected_at).getTime() + 60000){
       var rd=new Date(p.reflected_at), idt=new Date(p.imported_at);
-      reimpHtml='<span class="reimp-badge" title="アドマスへの反映('+ (rd.getMonth()+1)+'/'+rd.getDate() +')の後に取り直されたデータ('+ (idt.getMonth()+1)+'/'+idt.getDate() +')です。アドマスの登録内容は古い取込のまま。最新の読み取りで入れ直すには「反映する」を付けて一括反映してください">'+ (idt.getMonth()+1)+'/'+idt.getDate() +'に再取込済み</span>';
+      reimpHtml='<span class="reimp-badge" title="アドマスへの反映('+ (rd.getMonth()+1)+'/'+rd.getDate() +')の後に取り直されたデータ('+ (idt.getMonth()+1)+'/'+idt.getDate() +')です。アドマスの登録内容は古い取込のまま。最新の読み取りで入れ直すには「反映する」を付けて一括反映してください">'+ (idt.getMonth()+1)+'/'+idt.getDate() +'に再取込済み・反映し直し要</span>';
     }
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
