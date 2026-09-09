@@ -1378,7 +1378,7 @@
     var last=0; try{ last=Number(localStorage.getItem("nyuryoku_score_auto_at")||0); }catch(e){}
     if(Date.now()-last<SCORE_AUTO_GAP_MS) return;
     setTimeout(function(){
-      if(!extJumpOk || scoreRunning) return;
+      if(!extJumpOk || !extAtLeast("0.17.10") || scoreRunning) return; // 拡張が古い間は時刻も記録しない(更新直後に動けるように)
       var t=scoreTargets(SCORE_DAYS, true, SCORE_AUTO_MAX);
       if(!t.length) return;
       try{ localStorage.setItem("nyuryoku_score_auto_at", String(Date.now())); }catch(e){}
