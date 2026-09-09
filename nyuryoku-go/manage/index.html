@@ -332,6 +332,7 @@
       </select>
       <button class="btn" id="btnManual" title="ドラッグ&ドロップで並べた手動の順番に切り替えます(列見出しをクリックすると通常の並び替えに戻ります)">手動順</button>
       <button class="btn" id="btnRivals" title="未反映の物件について、SUUMOで同条件(賃料+面積一致)の掲載が何件あるかを数えます。競合が少ない順に入力する優先順位付けに使います">競合数を数える</button>
+      <button class="btn" id="btnScore" title="直近7日以内に反映した物件のSUUMO名寄せ点数を、入力GO拡張がアドマスの画像一覧から読み直して最新にします(このChromeでアドマスにログインしている必要があります)">SUUMO点数を更新</button>
       <button class="btn primary" id="btnReload"><span id="reloadIcon">↻</span> 更新</button>
       <span class="updated" id="updated"></span>
     </div>
@@ -487,12 +488,15 @@
   });
   try{ window.postMessage({ __kensaku_go_who__: true }, window.location.origin); }catch(e){}
   setTimeout(function(){ try{ window.postMessage({ __kensaku_go_who__: true }, window.location.origin); }catch(e){} }, 1500);
-  var extJumpOk = false;
+  var extJumpOk = false, extVer = "";
+  // 拡張のバージョン比較("0.17.10" >= "0.17.9" を正しく判定)
+  function extAtLeast(v){ var a=extVer.split(".").map(Number), b=v.split(".").map(Number); for(var i=0;i<3;i++){ var x=a[i]||0, y=b[i]||0; if(x!==y) return x>y; } return true; }
   try {
     if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
       chrome.runtime.sendMessage(EXT_ID, { type: "PING" }, function (r) {
         void chrome.runtime.lastError; // 拡張なし・旧版のときのエラーを握りつぶす(=従来リンクのまま)
         extJumpOk = !!(r && r.ok);
+        extVer = (r && r.ok && r.ver) ? String(r.ver) : "";
       });
     }
   } catch (e) {}
@@ -1176,6 +1180,7 @@
       rows=j.properties||[]; render();
       $("updated").textContent="最終更新 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
       ic.textContent="↻";
+      scoreAutoMaybe(); // SUUMO点数の自動取り直し(初回のみ・2026-09-09)
     }).catch(function(e){
       ic.textContent="↻"; $("loading").style.display="none";
       if(e.unauth){ openGate(); toast("ログインしてください", true); return; }
@@ -1313,6 +1318,73 @@
   });
   // 競合数を数える: 未反映・未計測の物件を4件ずつサーバーに数えさせ、残り0まで繰り返す(2026-07-09)
   var rivalsRunning=false;
+  // ===== SUUMO点数の取り直し(2026-09-09) =====
+  // 点数はアドマス「画像一覧」のページ内JSが後から計算するため、入力GO拡張が裏ウィンドウで画像一覧を順に開いて読み、
+  // 行ID(id)で記録する(名前照合なし)。ボタン=直近7日に反映した全件。ページを開いた時は「点数なし or 33点以下」だけを
+  // 自動で取り直す(10分に1回まで)=渡辺さんが写真や周辺情報を足した後の点数が、次に開いた時には最新になっている。
+  var SCORE_DAYS=7, SCORE_CHUNK=5, SCORE_AUTO_MAX=30, SCORE_AUTO_GAP_MS=10*60*1000;
+  var scoreRunning=false, scoreAutoDone=false;
+  function scoreTargets(days, onlyLow, max){
+    var since=Date.now()-days*86400000, out=[];
+    rows.forEach(function(p){
+      if(!p.reflected_at || new Date(p.reflected_at).getTime()<since) return;
+      var m=String(p.admas_url||"").match(/individual_analysis\/(\d+)/); if(!m) return;
+      if(onlyLow && p.suumo_score!=null && p.suumo_score>33) return;
+      out.push({ id:p.id, code:m[1] });
+    });
+    out.reverse(); // 新しく反映した物件から
+    return max ? out.slice(0, max) : out;
+  }
+  function runScoreUpdate(targets, silent){
+    if(scoreRunning) return;
+    if(!targets.length){ if(!silent) toast("直近"+SCORE_DAYS+"日以内に反映した物件がありません"); return; }
+    if(!extJumpOk){ if(!silent) toast("入力GO拡張が見つかりません。入力GO拡張を入れたChromeで開いてください", true, 6000); return; }
+    if(!extAtLeast("0.17.10")){ if(!silent) toast("入力GO拡張が古いため点数を更新できません(今は"+(extVer||"不明")+")。0.17.10以上に更新してください", true, 8000); return; }
+    scoreRunning=true;
+    var b=$("btnScore"); b.disabled=true;
+    var total=targets.length, done=0, okN=0, i=0, failMsg="";
+    var upd=function(){ b.textContent="点数を更新中… "+done+"/"+total; };
+    var finish=function(err){
+      scoreRunning=false; b.disabled=false; b.textContent="SUUMO点数を更新";
+      if(err){ if(!silent) toast(err, true, 8000); }
+      else if(!silent || okN>0) toast("SUUMO点数を更新しました("+okN+"/"+total+"件"+(failMsg?"・読めなかった物件あり":"")+")", false, 4500);
+      if(okN>0 || !silent) load();
+    };
+    var step=function(){
+      if(i>=total){ finish(); return; }
+      var chunk=targets.slice(i, i+SCORE_CHUNK); i+=chunk.length;
+      var timer=setTimeout(function(){ timer=null; finish("入力GO拡張から返事がありません(途中まで更新しました)"); }, 180000);
+      try{
+        chrome.runtime.sendMessage(EXT_ID, { type:"SUUMO_RESCORE", items: chunk }, function(r){
+          void chrome.runtime.lastError;
+          if(!timer) return; clearTimeout(timer);
+          if(!r){ finish(chunk.length===targets.length && done===0 ? "入力GO拡張に接続できませんでした(拡張が古い可能性。0.17.10以上が必要です)" : "入力GO拡張との通信が途切れました(途中まで更新しました)"); return; }
+          (r.results||[]).forEach(function(x){
+            done++;
+            if(x.ok){ okN++; var p=rows.find(function(q){ return q.id===x.id; }); if(p) p.suumo_score=x.score; }
+            else failMsg=x.error||"";
+          });
+          if(!r.ok){ finish(r.error||"点数の更新に失敗しました"); return; }
+          upd(); step();
+        });
+      }catch(e){ if(timer) clearTimeout(timer); finish("入力GO拡張に接続できませんでした"); }
+    };
+    upd(); step();
+  }
+  $("btnScore").addEventListener("click", function(){ runScoreUpdate(scoreTargets(SCORE_DAYS, false, 0), false); });
+  // ページを開いた時の自動取り直し(点数なし/33点以下・最大30件・10分に1回)。拡張のPING応答を少し待ってから。
+  function scoreAutoMaybe(){
+    if(scoreAutoDone) return; scoreAutoDone=true;
+    var last=0; try{ last=Number(localStorage.getItem("nyuryoku_score_auto_at")||0); }catch(e){}
+    if(Date.now()-last<SCORE_AUTO_GAP_MS) return;
+    setTimeout(function(){
+      if(!extJumpOk || scoreRunning) return;
+      var t=scoreTargets(SCORE_DAYS, true, SCORE_AUTO_MAX);
+      if(!t.length) return;
+      try{ localStorage.setItem("nyuryoku_score_auto_at", String(Date.now())); }catch(e){}
+      runScoreUpdate(t, true);
+    }, 1500);
+  }
   $("btnRivals").addEventListener("click", function(){
     if(rivalsRunning) return;
     rivalsRunning=true;
