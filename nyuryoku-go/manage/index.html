@@ -693,6 +693,42 @@
         };
       });
     });
+    // 名前が違っても同じ物件のことがある(戸建・併用住宅=ATBBは「池台5丁目 賃貸併用住宅」、レインズは住所名 — 渡辺さん検証メモ2026-09-11)。
+    //   住所(丁目-番-号まで)が一致し、賃料が同じ(または間取り+元付業者が同じ)なら「住所一致」として印を付ける。
+    //   同じ建物の別部屋(住所同じ・号室違い)は除く。
+    function normAddr(p){
+      var a=String((p&&p.address)||(p&&p.data&&p.data.fields&&p.data.fields['所在地'])||"");
+      try{ a=a.normalize("NFKC"); }catch(e){}
+      a=a.replace(/^(東京都|北海道|(京都|大阪)府|[^\s]{2,3}県)/,"").replace(/[\s\u3000]/g,"").replace(/地図を見る.*$/,"");
+      a=a.replace(/丁目|番地|番|号/g,"-").replace(/[－ーｰ―‐]/g,"-").replace(/-+/g,"-").replace(/-$/,"");
+      return /\d-\d/.test(a)?a:"";
+    }
+    function normLayout(s){ try{ return String(s||"").normalize("NFKC").toUpperCase().replace(/\s/g,""); }catch(e){ return String(s||""); } }
+    function normAgent(s){ try{ return String(s||"").normalize("NFKC").replace(/株式会社|\(株\)|（株）|有限会社|\(有\)|（有）|[\s\u3000]/g,"").slice(0,6); }catch(e){ return String(s||""); } }
+    var byAddr={};
+    rows.forEach(function(p){ var a=normAddr(p); if(a) (byAddr[a]=byAddr[a]||[]).push(p); });
+    Object.keys(byAddr).forEach(function(a){
+      var g=byAddr[a]; if(g.length<2) return;
+      g.forEach(function(p){
+        if(m[p.id]||!p.imported_at) return;
+        var t=new Date(p.imported_at).getTime(), rp=dupParts(p).room;
+        var near=g.filter(function(q){
+          if(q===p||!q.imported_at) return false;
+          if(Math.abs(new Date(q.imported_at).getTime()-t)>14*24*3600*1000) return false;
+          var rq=dupParts(q).room; if(rp&&rq&&rp!==rq) return false;
+          var rentSame=p.rent&&q.rent&&Number(p.rent)===Number(q.rent);
+          var lay=normLayout(p.layout)&&normLayout(p.layout)===normLayout(q.layout);
+          var ag=normAgent(p.agent_company)&&normAgent(p.agent_company)===normAgent(q.agent_company);
+          return rentSame||(lay&&ag);
+        });
+        if(!near.length) return;
+        near.sort(function(x,y){ return new Date(y.imported_at)-new Date(x.imported_at); });
+        var q=near[0], d=new Date(q.imported_at);
+        var srcName={atbb:"ATBB",reins:"レインズ",itandi:"イタンジBB"}[q.source]||q.source||"";
+        m[p.id]={ label:(d.getMonth()+1)+"/"+d.getDate()+"にも物出済み?(住所一致)",
+          tip:"2週間以内に住所が同じ物出があります(名前は違います): "+(q.name||"")+" "+(d.getMonth()+1)+"/"+d.getDate()+" 取込"+(srcName?"("+srcName+")":"")+"・"+(q.reflected_at?"反映済み":"未反映")+"。賃料/間取り/元付業者で照合" };
+      });
+    });
     return m;
   }
   function fmtDate(iso){
