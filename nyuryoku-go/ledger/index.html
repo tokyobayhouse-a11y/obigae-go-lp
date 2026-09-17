@@ -20,7 +20,7 @@
   .topbar h1{font-size:17px;font-weight:900;color:var(--navy);}
   .topbar .sub{font-size:12px;color:var(--gray-500);font-weight:700;}
   .topbar a{margin-left:auto;font-size:12px;font-weight:800;color:var(--navy);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff;}
-  .wrap{max-width:1080px;margin:16px auto 80px;padding:0 16px;}
+  .wrap{max-width:1360px;margin:16px auto 80px;padding:0 16px;}
   .legend{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:var(--gray-700);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
   .note{background:var(--warn-bg);border:1px solid #f2d9a6;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#7a4a00;font-weight:700;}
   h2{font-size:15px;font-weight:900;color:var(--navy);margin:22px 0 8px;padding-left:10px;border-left:4px solid var(--accent);}
@@ -41,7 +41,12 @@
   td.cat{width:13%;white-space:normal;color:var(--gray-500);font-weight:700;font-size:11.5px;}
   .team-asks{background:#fff;border:2px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:16px;}
   .team-asks h2{margin:0 0 8px;border-left:none;padding-left:0;font-size:14px;}
-  .team-asks td.who{width:11%;white-space:nowrap;font-weight:900;color:var(--navy);}
+  .team-asks td.who{width:8%;white-space:nowrap;font-weight:900;color:var(--navy);}
+  /* お願い欄: 背景(右列)が読める幅に。項目は28%まで・状態/版は折り返し可 */
+  .team-asks td.item{width:28%;}
+  .team-asks td.st{width:auto;white-space:normal;}
+  .team-asks td.ver{width:auto;white-space:normal;}
+  .team-asks td:last-child{min-width:52%;}
   .viewtabs{display:flex;gap:8px;margin:0 0 14px;}
   .vt{border:1px solid var(--line);background:#fff;color:var(--gray-700);font-weight:800;font-size:12.5px;border-radius:8px;padding:7px 14px;cursor:pointer;}
   .vt.on{background:var(--navy);border-color:var(--navy);color:#fff;}
@@ -453,7 +458,8 @@
   // ---- 台帳フィードバック: 各行の「対応済み」チェックと「Claudeへの返事」(渡辺さん要望2026-07-16) ----
   //   保存先=共有DB(admas-intake/ledger_feedback)。合言葉は物出管理画面と同じlocalStorageキーを共用。
   //   行キー=項目テキストのハッシュ(両ビューのクローン行にも同じキーが付く→表示はキー単位で全行更新)。
-  var API='https://qtbtnunmrhtjrotwimbw.supabase.co/functions/v1/admas-intake';
+  // 2026-09-17: 保存先を物出DBのEdge Functionから入力GOサーバー(Storageの1ファイル)へ移した(Edge側の機能消失+PAT失効で直せないため)
+  var API='https://app.obigae-go.com/api/nyuryoku/ledger_fb';
   var TK='admas_intake_token';
   function token(){ try{ return localStorage.getItem(TK)||''; }catch(e){ return ''; } }
   function needToken(){
