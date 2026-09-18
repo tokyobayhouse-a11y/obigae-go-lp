@@ -1005,7 +1005,7 @@
             if(siteKey!=="reins" || /^\d{12}$/.test(no0)){
               toast("開いている"+siteName+"でこの物件を検索しています…(そのタブに切り替わります)", false, 4000);
               try{
-                chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:siteKey, bkkn:no0, name:srcName(p) }, function(r){
+                chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:siteKey, bkkn:no0, name:srcName(p), addr:String(p.address||(p.data&&p.data.fields&&p.data.fields["所在地"])||"") }, function(r){
                   void chrome.runtime.lastError;
                   if(!(r&&r.ok)) toast((r&&r.error)||"入力GO拡張に接続できませんでした", true, 6000);
                 });
@@ -1060,7 +1060,7 @@
         ev.preventDefault();
         toast("開いている"+(p.source==="atbb"?"ATBB":"レインズ")+"でこの物件を検索しています…(そのタブに切り替わります)", false, 4000);
         try{
-          chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:p.source, bkkn:no, name:srcName(p) }, function(r){
+          chrome.runtime.sendMessage(EXT_ID, { type:"JUMP", site:p.source, bkkn:no, name:srcName(p), addr:String(p.address||(p.data&&p.data.fields&&p.data.fields["所在地"])||"") }, function(r){
             void chrome.runtime.lastError;
             if(!(r&&r.ok)) toast((r&&r.error)||"入力GO拡張に接続できませんでした", true, 6000);
           });
