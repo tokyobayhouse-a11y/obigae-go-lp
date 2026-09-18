@@ -39,8 +39,8 @@
   .b.watch{color:var(--watch);background:var(--watch-bg);}
   .muted{color:var(--gray-500);font-size:12px;}
   td.cat{width:13%;white-space:normal;color:var(--gray-500);font-weight:700;font-size:11.5px;}
-  tr.fb-hidden{display:none;}
-  body.show-done tr.fb-hidden{display:table-row;background:#f4f8f4;}
+  body:not(.show-done) tr.fb-hidden{display:none !important;} /* !important: 狭い画面の .team-asks tr{display:block} に負けないように */
+  body.show-done tr.fb-hidden{background:#f4f8f4;}
   body.show-done tr.fb-hidden td{color:#5a6b5a;}
   #fbToggle{margin-left:12px;font-size:12px;padding:4px 10px;border:1px solid #b9c6d2;border-radius:6px;background:#fff;cursor:pointer;}
   .team-asks{background:#fff;border:2px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:16px;}
