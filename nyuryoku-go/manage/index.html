@@ -497,6 +497,13 @@
         void chrome.runtime.lastError; // 拡張なし・旧版のときのエラーを握りつぶす(=従来リンクのまま)
         extJumpOk = !!(r && r.ok);
         extVer = (r && r.ok && r.ver) ? String(r.ver) : "";
+        // 新版の配信お知らせ(渡辺さん要望2026-09-29)
+        if (r && r.ok && r.latest && r.latest !== r.ver && document.body) {
+          var ub = document.createElement("div");
+          ub.style.cssText = "position:sticky;top:0;z-index:60;background:#fff4e5;border-bottom:1px solid #f0b27a;padding:8px 14px;font-size:13px;line-height:1.5;";
+          ub.textContent = "入力GO!! の新しい版 " + r.latest + " が配信されています（今の拡張は " + r.ver + "）。拡張のポップアップを開いて「今すぐ更新」を押すか、chrome://extensions で「更新」を押してください。";
+          document.body.insertBefore(ub, document.body.firstChild);
+        }
       });
     }
   } catch (e) {}
