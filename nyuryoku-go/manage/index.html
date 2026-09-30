@@ -509,7 +509,7 @@
   } catch (e) {}
   function yen(n){
     if(typeof n!=="number"||!isFinite(n)) return '<span style="color:var(--gray-400);font-size:11.5px;">—</span>';
-    if(n>=10000){ var man=(n/10000); var t=(man%1===0)?man.toFixed(0):man.toFixed(1); return t+'<span class="man">万円</span>'; }
+    if(n>=10000){ var man=(n/10000); var t=(man%1===0)?man.toFixed(0):String(Math.round(man*100)/100); return t+'<span class="man">万円</span>'; } // 8.75万を8.8万に丸めない(渡辺さん2026-09-30 ガラ・シティ大森5F)
     return n.toLocaleString()+'<span class="man">円</span>';
   }
   function srcBadge(s){
