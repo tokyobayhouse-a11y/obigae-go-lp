@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>電子署名｜MOGO商品 紹介業務委託契約書</title>
+<style>
+  :root { --ink:#1f2933; --line:#d5dbe1; --accent:#0b5fa5; --bg:#f3f5f7; --warn:#fff4b8; --red:#c8102e; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family: -apple-system, "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif; }
+  header { position:sticky; top:0; z-index:20; background:#fff; border-bottom:1px solid var(--line); padding:10px 16px; display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; }
+  header h1 { font-size:15px; margin:0; font-weight:600; }
+  #status { font-size:13px; color:#52606d; }
+  #confirm { margin-left:auto; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:var(--accent); border:0; border-radius:6px; cursor:pointer; }
+  #confirm:disabled { background:#9aa5b1; cursor:not-allowed; }
+  #guide { max-width:1200px; margin:12px auto 0; padding:0 16px; font-size:13px; line-height:1.7; }
+  #pages { max-width:1200px; margin:12px auto 40px; padding:0 16px; }
+  .page { position:relative; margin:0 0 16px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.15); }
+  .page canvas { display:block; width:100%; height:auto; }
+  .field { position:absolute; border:2px dashed var(--accent); background:rgba(255,244,184,.75); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:clamp(9px,1.1vw,14px); color:var(--accent); font-weight:600; text-align:center; background-size:contain; background-repeat:no-repeat; background-position:left center; }
+  .field.done { border:1px solid transparent; background-color:#fff; color:transparent; }
+  .field.done:hover { border:1px dashed var(--accent); }
+  #modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:50; padding:16px; }
+  #modal .box { background:#fff; border-radius:10px; padding:20px; width:min(460px,100%); }
+  #modal h2 { font-size:16px; margin:0 0 12px; }
+  #modal input { width:100%; padding:10px; font-size:16px; border:1px solid var(--line); border-radius:6px; }
+  #modal .preview { margin:12px 0 0; border:1px solid var(--line); border-radius:6px; min-height:70px; display:flex; align-items:center; padding:6px; }
+  #modal .preview img { max-width:100%; height:auto; }
+  #modal .row { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
+  #modal button { padding:9px 16px; font-size:14px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  #modal button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  #done { display:none; max-width:1200px; margin:12px auto 0; padding:14px 16px; background:#e6f4ea; border:1px solid #9bd0a8; border-radius:8px; font-size:14px; line-height:1.7; }
+  #done a { color:var(--accent); font-weight:600; }
+  #err { display:none; max-width:1200px; margin:12px auto 0; padding:12px 16px; background:#fdecea; border:1px solid #f1aeb5; border-radius:8px; font-size:14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">電子署名</h1>
+  <span id="status"></span>
+  <button id="confirm" disabled>署名を確定してPDFを保存</button>
+</header>
+<div id="guide"></div>
+<div id="err"></div>
+<div id="done"></div>
+<div id="pages"></div>
+
+<div id="modal"><div class="box">
+  <h2 id="m-title"></h2>
+  <input id="m-input" type="text" autocomplete="off">
+  <div class="preview" id="m-preview"></div>
+  <div class="row"><button id="m-cancel">やめる</button><button id="m-ok" class="primary">この内容で入れる</button></div>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  var qs = new URLSearchParams(location.search);
+  var ROLE = qs.get('role') === 'otsu' ? 'otsu' : 'kou';
+  var PDF_URL = qs.get('pdf') || (ROLE === 'otsu' ? 'contract_kou_signed.pdf' : 'contract.pdf');
+
+  // Field positions as fractions of the page (x from left, y from top). Page index is 0-based.
+  var FIELDS = [
+    { id: 'kou_sign',  role: 'kou',  type: 'sign', page: 1, x0: 0.5533, x1: 0.7721, y0: 0.2553, y1: 0.3308, label: '甲の署名欄', def: '寺島 考一郎', party: '甲' },
+    { id: 'otsu_addr', role: 'otsu', type: 'text', page: 1, x0: 0.5533, x1: 0.8979, y0: 0.3874, y1: 0.4251, label: '乙の住所', def: '', party: '乙' },
+    { id: 'otsu_sign', role: 'otsu', type: 'sign', page: 1, x0: 0.5533, x1: 0.7721, y0: 0.4640, y1: 0.5395, label: '乙の署名欄', def: '鈴木 雄祐', party: '乙' }
+  ];
+  var ROLE_NAME = { kou: '甲（東京ベイハウス株式会社）', otsu: '乙（鈴木 雄祐 様）' };
+  var myFields = FIELDS.filter(function (f) { return f.role === ROLE; });
+  var values = {};   // id -> { text, dataUrl, w, h, at }
+  var srcBytes = null, srcHash = '';
+
+  var $ = function (id) { return document.getElementById(id); };
+  $('title').textContent = '電子署名｜MOGO商品 紹介業務委託契約書';
+  $('guide').innerHTML = '<b>' + ROLE_NAME[ROLE] + '</b> の署名ページです。契約書を最後までご確認のうえ、2ページ目の<b>黄色い枠</b>を押して入力してください。すべて入力すると右上の「署名を確定してPDFを保存」が押せます。';
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function nowText() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  function tzText() {
+    var m = -new Date().getTimezoneOffset(), s = m >= 0 ? '+' : '-'; m = Math.abs(m);
+    return 'UTC' + s + pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+  }
+
+  // ---- stamp / text images (drawn on canvas so no font embedding is needed in the PDF) ----
+  function drawStamp(name, at) {
+    var S = 3, W = 420 * S, H = 100 * S, c = document.createElement('canvas'); c.width = W; c.height = H;
+    var g = c.getContext('2d'); g.clearRect(0, 0, W, H);
+    var red = '#c8102e', cx = 50 * S, cy = 50 * S, r = 44 * S;
+    g.strokeStyle = red; g.lineWidth = 3.2 * S; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+    var seal = (name.split(/[\s　]+/)[0] || name).slice(0, 4);
+    g.fillStyle = red; g.textAlign = 'center'; g.textBaseline = 'middle';
+    var serif = '"Hiragino Mincho ProN","Yu Mincho","MS Mincho",serif';
+    if (seal.length <= 2) {
+      var fs = (seal.length === 1 ? 52 : 34) * S; g.font = '700 ' + fs + 'px ' + serif;
+      for (var i = 0; i < seal.length; i++) g.fillText(seal[i], cx, cy + (i - (seal.length - 1) / 2) * fs * 1.02);
+    } else {
+      var fs2 = 26 * S; g.font = '700 ' + fs2 + 'px ' + serif;
+      var cols = [seal.slice(0, 2), seal.slice(2)];
+      cols.forEach(function (col, ci) {
+        var x = cx + (ci === 0 ? 1 : -1) * fs2 * 0.55;
+        for (var j = 0; j < col.length; j++) g.fillText(col[j], x, cy + (j - (col.length - 1) / 2) * fs2 * 1.05);
+      });
+    }
+    var sans = '-apple-system,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif';
+    g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    g.fillStyle = red; g.font = '600 ' + 12 * S + 'px ' + sans; g.fillText('電子署名', 108 * S, 26 * S);
+    g.fillStyle = '#111'; g.font = '600 ' + 24 * S + 'px ' + serif; g.fillText(name, 108 * S, 58 * S);
+    g.fillStyle = '#444'; g.font = 11.5 * S + 'px ' + sans; g.fillText(at + ' (' + tzText() + ')', 108 * S, 82 * S);
+    return { dataUrl: c.toDataURL('image/png'), w: W, h: H };
+  }
+  function drawText(text, opt) {
+    opt = opt || {}; var S = 3, fs = (opt.size || 16) * S, padX = 6 * S;
+    var font = (opt.weight || '400') + ' ' + fs + 'px ' + (opt.font || '"Hiragino Mincho ProN","Yu Mincho","MS Mincho",serif');
+    var m = document.createElement('canvas').getContext('2d'); m.font = font;
+    var W = Math.ceil(m.measureText(text).width + padX * 2), H = Math.ceil(fs * 1.6);
+    var c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d');
+    g.font = font; g.fillStyle = opt.color || '#111'; g.textBaseline = 'middle'; g.fillText(text, padX, H / 2);
+    return { dataUrl: c.toDataURL('image/png'), w: W, h: H };
+  }
+
+  // ---- viewer ----
+  var pageBoxes = [];
+  function renderPdf(bytes) {
+    $('pages').innerHTML = ''; pageBoxes = [];
+    return pdfjsLib.getDocument({ data: bytes.slice(0) }).promise.then(function (pdf) {
+      var chain = Promise.resolve();
+      for (var n = 1; n <= pdf.numPages; n++) (function (n) {
+        chain = chain.then(function () { return pdf.getPage(n); }).then(function (page) {
+          var vp = page.getViewport({ scale: 2 });
+          var wrap = document.createElement('div'); wrap.className = 'page';
+          var cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height;
+          wrap.appendChild(cv); $('pages').appendChild(wrap); pageBoxes.push(wrap);
+          return page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+        });
+      })(n);
+      return chain;
+    });
+  }
+  function placeFields() {
+    myFields.forEach(function (f) {
+      var el = document.createElement('div'); el.className = 'field'; el.id = 'f_' + f.id;
+      el.style.left = (f.x0 * 100) + '%'; el.style.top = (f.y0 * 100) + '%';
+      el.style.width = ((f.x1 - f.x0) * 100) + '%'; el.style.height = ((f.y1 - f.y0) * 100) + '%';
+      el.textContent = f.type === 'sign' ? 'ここを押して署名' : 'ここを押して住所を入力';
+      el.addEventListener('click', function () { openModal(f); });
+      pageBoxes[f.page].appendChild(el);
+    });
+    refresh();
+  }
+  function refresh() {
+    var left = myFields.filter(function (f) { return !values[f.id]; }).length;
+    $('status').textContent = left ? '未入力 ' + left + ' 件' : '入力完了。右のボタンで確定してください';
+    $('confirm').disabled = left > 0;
+    myFields.forEach(function (f) {
+      var el = $('f_' + f.id), v = values[f.id]; if (!el) return;
+      if (v) { el.classList.add('done'); el.style.backgroundImage = 'url(' + v.dataUrl + ')'; }
+    });
+  }
+
+  // ---- modal ----
+  var cur = null, curImg = null;
+  function openModal(f) {
+    cur = f; $('m-title').textContent = f.type === 'sign' ? f.label + '：お名前を入力してください' : f.label + 'を入力してください';
+    $('m-input').value = values[f.id] ? values[f.id].text : f.def;
+    $('m-input').placeholder = f.type === 'sign' ? '例）山田 太郎' : '例）東京都○○区○○1-2-3 ○○マンション101';
+    $('modal').style.display = 'flex'; preview(); setTimeout(function () { $('m-input').focus(); }, 50);
+  }
+  function preview() {
+    var t = $('m-input').value.trim(); $('m-preview').innerHTML = ''; curImg = null; if (!t) return;
+    curImg = cur.type === 'sign' ? drawStamp(t, nowText()) : drawText(t, { size: 16 });
+    var im = new Image(); im.src = curImg.dataUrl; im.style.maxHeight = '90px'; $('m-preview').appendChild(im);
+  }
+  $('m-input').addEventListener('input', preview);
+  $('m-cancel').addEventListener('click', function () { $('modal').style.display = 'none'; });
+  $('m-ok').addEventListener('click', function () {
+    var t = $('m-input').value.trim(); if (!t) { $('m-input').focus(); return; }
+    var at = nowText();
+    var img = cur.type === 'sign' ? drawStamp(t, at) : drawText(t, { size: 16 });
+    values[cur.id] = { text: t, dataUrl: img.dataUrl, w: img.w, h: img.h, at: at };
+    $('modal').style.display = 'none'; refresh();
+  });
+
+  // ---- confirm: stamp images into the PDF ----
+  function dataUrlToBytes(u) { var b = atob(u.split(',')[1]), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+  $('confirm').addEventListener('click', function () {
+    $('confirm').disabled = true; $('status').textContent = 'PDFを作成中…';
+    PDFLib.PDFDocument.load(srcBytes).then(function (doc) {
+      var pages = doc.getPages(), jobs = [];
+      myFields.forEach(function (f) {
+        var v = values[f.id], pg = pages[f.page], PW = pg.getWidth(), PH = pg.getHeight();
+        jobs.push(doc.embedPng(dataUrlToBytes(v.dataUrl)).then(function (png) {
+          var bw = (f.x1 - f.x0) * PW, bh = (f.y1 - f.y0) * PH, m = 3;
+          var sc = Math.min((bw - m * 2) / v.w, (bh - m * 2) / v.h), w = v.w * sc, h = v.h * sc;
+          var x = f.x0 * PW + m, y = PH - f.y1 * PH + (bh - h) / 2;
+          pg.drawImage(png, { x: x, y: y, width: w, height: h });
+        }));
+      });
+      // signature record line in the bottom margin of the last page
+      var signer = myFields.filter(function (f) { return f.type === 'sign'; })[0];
+      var rec = '電子署名記録｜' + signer.party + '：' + values[signer.id].text + '｜署名日時：' + values[signer.id].at + ' (' + tzText() + ')｜署名前文書のSHA-256：' + srcHash;
+      var recImg = drawText(rec, { size: 8, font: '-apple-system,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif', color: '#444' });
+      jobs.push(doc.embedPng(dataUrlToBytes(recImg.dataUrl)).then(function (png) {
+        var pg = pages[pages.length - 1], h = 9, w = recImg.w * (h / recImg.h);
+        var maxW = pg.getWidth() - 100; if (w > maxW) { h = h * maxW / w; w = maxW; }
+        pg.drawImage(png, { x: 50, y: ROLE === 'kou' ? 44 : 30, width: w, height: h });
+      }));
+      return Promise.all(jobs).then(function () { return doc.save(); });
+    }).then(function (out) {
+      var name = ROLE === 'kou' ? 'contract_kou_signed.pdf' : 'MOGO商品_紹介業務委託契約書_締結済.pdf';
+      var url = URL.createObjectURL(new Blob([out], { type: 'application/pdf' }));
+      var a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      window.__signedBytes = out;
+      $('guide').style.display = 'none';
+      $('done').style.display = 'block';
+      $('done').innerHTML = (ROLE === 'kou'
+        ? '<b>甲の署名が完了しました。</b>署名済みPDF（' + name + '）を保存しました。'
+        : '<b>ご署名ありがとうございました。</b>締結済みPDF（' + name + '）を保存しました。お手数ですが、このPDFをメールに添付してご返送ください。')
+        + ' 保存されない場合は <a href="' + url + '" download="' + name + '">こちらから保存</a> してください。';
+      $('status').textContent = '署名済み';
+      return renderPdf(out);
+    }).catch(function (e) { showErr('PDFの作成に失敗しました：' + e.message); $('confirm').disabled = false; });
+  });
+
+  function showErr(m) { $('err').style.display = 'block'; $('err').textContent = m; }
+  function hex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
+
+  fetch(PDF_URL, { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error('契約書を読み込めませんでした（' + r.status + '）'); return r.arrayBuffer();
+  }).then(function (buf) {
+    srcBytes = new Uint8Array(buf);
+    var h = (window.crypto && crypto.subtle) ? crypto.subtle.digest('SHA-256', buf).then(hex) : Promise.resolve('（取得不可）');
+    return h.then(function (x) { srcHash = x; return renderPdf(srcBytes); });
+  }).then(placeFields).catch(function (e) { showErr(e.message); });
+})();
+</script>
+</body>
+</html>
