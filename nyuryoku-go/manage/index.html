@@ -1318,13 +1318,33 @@
     function maybeReload(){
       try{
         if(document.visibilityState && document.visibilityState !== "visible") return;
-        if(Date.now() - lastAuto < 30000) return;
+        if(Date.now() - lastAuto < 60000) return;
         var a = document.activeElement;
         if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== "checkbox") return;
         if(document.querySelector(".modal.show, .modal.open, [data-modal-open='1']")) return;
         lastAuto = Date.now();
-        load();
+        silentRefresh();
       }catch(e){}
+    }
+    // 画面を消さずに裏で一覧を取り直し、中身が変わった時だけ描き直す(渡辺さん2026-10-01「戻ってくるたびにローディングで待たされる」)。
+    //   変わっていなければ何もしない。描き直す時もスクロール位置は保つ。
+    var refreshing = false;
+    function sig(list){
+      try{ return (list||[]).map(function(p){ return [p.id,p.admas_url||"",p.reflect_result||"",p.reflected_at||"",p.reflect_flag?1:0,p.vacancy_check?1:0,p.application?1:0,p.name||"",p.memo||"",p.verify_note||"",p.suumo_score==null?"":p.suumo_score,p.updated_at||""].join("|"); }).join("\n"); }catch(e){ return String(Math.random()); }
+    }
+    function silentRefresh(){
+      if(refreshing) return; refreshing = true;
+      api("list").then(function(j){
+        refreshing = false;
+        var next = j.properties||[];
+        if(sig(next) === sig(rows)) return; // 変化なし=触らない
+        var a = document.activeElement;
+        if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== "checkbox") return; // 取得中に入力を始めていたら見送る
+        var y = window.scrollY || 0;
+        rows = next; render();
+        try{ window.scrollTo(0, y); }catch(e){}
+        $("updated").textContent="最終更新 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+      }).catch(function(){ refreshing = false; });
     }
     document.addEventListener("visibilitychange", maybeReload);
     window.addEventListener("focus", maybeReload);
