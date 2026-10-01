@@ -1310,6 +1310,25 @@
     (sb?sb.auth.signOut():Promise.resolve()).then(function(){ token=""; COMPANY=""; IS_OWNER=false; openGate(); });
   });
   $("btnReload").addEventListener("click", load);
+  // 画面に戻ってきた時に一覧を自動で最新にする(渡辺さん2026-10-01「一括反映後に『開く』がエラー」=反映し直しで
+  //   古い登録が削除され新しいURLに変わったのに、開きっぱなしの画面が古いリンクを表示していた)。
+  //   入力中(メモ欄など)は邪魔しない。連続実行を避けるため前回から30秒以上あいた時だけ。
+  (function(){
+    var lastAuto = Date.now();
+    function maybeReload(){
+      try{
+        if(document.visibilityState && document.visibilityState !== "visible") return;
+        if(Date.now() - lastAuto < 30000) return;
+        var a = document.activeElement;
+        if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== "checkbox") return;
+        if(document.querySelector(".modal.show, .modal.open, [data-modal-open='1']")) return;
+        lastAuto = Date.now();
+        load();
+      }catch(e){}
+    }
+    document.addEventListener("visibilitychange", maybeReload);
+    window.addEventListener("focus", maybeReload);
+  })();
   $("search").addEventListener("input", function(e){ filter=e.target.value; render(); });
   $("fltApply").addEventListener("change", function(e){ fltApply=e.target.value; render(); });
   $("fltVac").addEventListener("change", function(e){ fltVac=e.target.value; render(); });
