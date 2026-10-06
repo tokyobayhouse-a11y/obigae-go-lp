@@ -468,6 +468,27 @@
     });
   }
 
+  // ===== メモ欄の自動保存(2026-10-06) =====
+  var dirtyEls = new Set(); // 未保存の入力がある欄。裏の取り直し(silentRefresh)はこれが空の時だけ描き直す
+  function bindAutoSave(el, p, field, label){
+    if(!el) return;
+    var t=null;
+    function save(){
+      clearTimeout(t); t=null;
+      var val=el.value;
+      if(val===(p[field]||"")){ dirtyEls.delete(el); return; }
+      var patch={}; patch[field]=val;
+      api("update",{ id:p.id, patch:patch }).then(function(){ p[field]=val; dirtyEls.delete(el); toast(label+"を保存"); })
+        .catch(function(e){ el.value=p[field]||""; resizeMemo(el); dirtyEls.delete(el); toast(e.message||"保存に失敗", true); });
+    }
+    el.addEventListener("input", function(){ resizeMemo(el); dirtyEls.add(el); clearTimeout(t); t=setTimeout(save, 1500); });
+    el.addEventListener("blur", save);
+    el._flushSave=save;
+  }
+  function flushDirty(){ dirtyEls.forEach(function(el){ try{ if(el._flushSave) el._flushSave(); }catch(e){} }); }
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="hidden") flushDirty(); });
+  window.addEventListener("pagehide", flushDirty);
+
   // ===== 表示ヘルパー =====
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
   // ⚠️ATBB・レインズを「新しいタブで開いて案内」はしない(2026-07-08実測: ATBB=メニュー直URLが
@@ -917,7 +938,7 @@
     //   押すと物件名をコピーしてサイトを開く(貼り付けて検索する半自動)。検索欄への自動入力は次段階(実画面確認後に拡張側で対応)。
     // 申込／掲載不可の現在値。application_status(新列)優先、未移行の申込ONは「申込」とみなす
     var appStatus = p.application_status || (p.application ? "申込" : "");
-    var imgsN=(p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0;
+    var imgsN=(p.data&&p.data.images_count!=null)?p.data.images_count:((p.data&&p.data.images)?p.data.images.filter(function(im){return im&&im.src;}).length:0);
     var needsFind=(imgsN===0)||(p.suumo_score!=null&&p.suumo_score<=33);
     var findHtml=needsFind?'<div class="find-wrap" title="写真なし・またはSUUMO33点以下の物件です。他の業者サイトに写真があるか確認できます(ATBB=拡張が開いているタブで自動検索/レインズ・イタンジ=物件名をコピーして貼り付け)"><span class="find-cap">写真を探す</span><button type="button" class="find-btn" data-site="atbb">ATBB</button><button type="button" class="find-btn" data-site="reins">レインズ</button><button type="button" class="find-btn" data-site="itandi">イタンジ</button></div>':'';
     // 物件名リンク: イタンジ=物件ページへの直リンク(常に開ける)。
@@ -1117,32 +1138,13 @@
       });
     });
     // メモ更新(フォーカスを外した時だけ送信)
-    var mi=tr.querySelector('textarea[data-f=memo]');
-    mi.addEventListener("input", function(){ resizeMemo(mi); });
-    mi.addEventListener("blur", function(){
-      var val=mi.value;
-      if(val===(p.memo||"")) return;
-      api("update",{ id:p.id, patch:{ memo:val } }).then(function(){ p.memo=val; toast("メモを保存"); })
-        .catch(function(e){ mi.value=p.memo||""; resizeMemo(mi); toast(e.message||"保存に失敗", true); });
-    });
+    // メモ3欄の保存: 入力が止まって1.5秒で自動保存+欄を離れた時にも保存+タブを離れる時に未保存分を送る
+    //   (寺島さん2026-10-06「検証メモを入力して別タブに移動して戻ると反映されていない」=離れた時に保存されず、裏の取り直しで消えた)
+    bindAutoSave(tr.querySelector('textarea[data-f=memo]'), p, "memo", "メモ");
     // メモ(アドマス一覧に表示=room[vacancy_state_comment]・社内メモとは別欄)更新
-    var li=tr.querySelector('textarea[data-f=list_memo]');
-    li.addEventListener("input", function(){ resizeMemo(li); });
-    li.addEventListener("blur", function(){
-      var val=li.value;
-      if(val===(p.list_memo||"")) return;
-      api("update",{ id:p.id, patch:{ list_memo:val } }).then(function(){ p.list_memo=val; toast("メモを保存"); })
-        .catch(function(e){ li.value=p.list_memo||""; resizeMemo(li); toast(e.message||"保存に失敗", true); });
-    });
+    bindAutoSave(tr.querySelector('textarea[data-f=list_memo]'), p, "list_memo", "メモ");
     // 検証メモ更新(アドマスには送らない=Supabaseのverify_noteのみ・社内メモとは別物)
-    var vi=tr.querySelector('textarea[data-f=verify_note]');
-    vi.addEventListener("input", function(){ resizeMemo(vi); });
-    vi.addEventListener("blur", function(){
-      var val=vi.value;
-      if(val===(p.verify_note||"")) return;
-      api("update",{ id:p.id, patch:{ verify_note:val } }).then(function(){ p.verify_note=val; toast("検証メモを保存"); })
-        .catch(function(e){ vi.value=p.verify_note||""; resizeMemo(vi); toast(e.message||"保存に失敗", true); });
-    });
+    bindAutoSave(tr.querySelector('textarea[data-f=verify_note]'), p, "verify_note", "検証メモ");
     // 削除(カスタム確認モーダル)
     // 行の並び替え(ドラッグ&ドロップ・未反映のみ・寺島さん要望2026-07-10)
     // 初回ドラッグで「その時の見た目の順」をsort_orderに確定してから移動を適用=列ソートで作った並びを土台に微調整できる
@@ -1221,7 +1223,7 @@
     $("loading").style.display="block"; $("table").style.display="none"; $("empty").style.display="none";
     var ic=$("reloadIcon"); ic.innerHTML='<span class="spin" style="border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>';
     if(!pubLoaded && IS_OWNER) loadPubCheck(); // 掲載確認シート照合は当社(運営)専用(初回のみ・失敗しても物件表示は止めない)
-    api("list").then(function(j){
+    api("list",{lite:true}).then(function(j){
       rows=j.properties||[]; render();
       $("updated").textContent="最終更新 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
       ic.textContent="↻";
@@ -1320,7 +1322,8 @@
     function maybeReload(){
       try{
         if(document.visibilityState && document.visibilityState !== "visible") return;
-        if(Date.now() - lastAuto < 60000) return;
+        if(Date.now() - lastAuto < 300000) return; // 5分以上あいた時だけ(軽い一覧でも毎回は取らない)
+        if(dirtyEls.size) return;                  // 未保存の入力がある時は触らない
         var a = document.activeElement;
         if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== "checkbox") return;
         if(document.querySelector(".modal.show, .modal.open, [data-modal-open='1']")) return;
@@ -1336,10 +1339,11 @@
     }
     function silentRefresh(){
       if(refreshing) return; refreshing = true;
-      api("list").then(function(j){
+      api("list",{lite:true}).then(function(j){
         refreshing = false;
         var next = j.properties||[];
         if(sig(next) === sig(rows)) return; // 変化なし=触らない
+        if(dirtyEls.size) return;             // 取得中に入力があれば見送る
         var a = document.activeElement;
         if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== "checkbox") return; // 取得中に入力を始めていたら見送る
         var y = window.scrollY || 0;
