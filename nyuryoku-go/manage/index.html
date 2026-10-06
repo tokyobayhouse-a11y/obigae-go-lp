@@ -1219,11 +1219,12 @@
   }
 
   // ===== 読み込み =====
-  function load(){
+  function load(opts){
+    var cached = !!(opts && opts.cached); // 画面を開いた直後だけ短期キャッシュ可(他は常に最新を取る)
     $("loading").style.display="block"; $("table").style.display="none"; $("empty").style.display="none";
     var ic=$("reloadIcon"); ic.innerHTML='<span class="spin" style="border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>';
     if(!pubLoaded && IS_OWNER) loadPubCheck(); // 掲載確認シート照合は当社(運営)専用(初回のみ・失敗しても物件表示は止めない)
-    api("list",{lite:true}).then(function(j){
+    api("list",{lite:true, fresh:!cached}).then(function(j){
       rows=j.properties||[]; render();
       $("updated").textContent="最終更新 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
       ic.textContent="↻";
@@ -1277,7 +1278,7 @@
   // ===== ゲート =====
   function openGate(){ gate.style.display="block"; app.style.display="none"; $("tokenInput").value=""; $("emailInput").focus(); }
   var LOGIN_EMAIL="";
-  function openApp(){ gate.style.display="none"; app.style.display="block"; $("companyLabel").innerHTML='<span class="login-ok">ログイン済み</span> '+esc(LOGIN_EMAIL||"")+(COMPANY?'　会社：<b>'+esc(COMPANY)+'</b>':''); load(); }
+  function openApp(){ gate.style.display="none"; app.style.display="block"; $("companyLabel").innerHTML='<span class="login-ok">ログイン済み</span> '+esc(LOGIN_EMAIL||"")+(COMPANY?'　会社：<b>'+esc(COMPANY)+'</b>':''); load({cached:true}); }
 
   $("btnEnter").addEventListener("click", function(){
     var em=$("emailInput").value.trim(), pw=$("tokenInput").value;
