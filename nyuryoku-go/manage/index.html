@@ -1324,7 +1324,7 @@
     function maybeReload(){
       try{
         if(document.visibilityState && document.visibilityState !== "visible") return;
-        if(Date.now() - lastAuto < 300000) return; // 5分以上あいた時だけ(軽い一覧でも毎回は取らない)
+        if(Date.now() - lastAuto < 20000) return;  // 20秒以上あいていれば取り直す(寺島さん2026-10-10「取込したのに出ない時がある」=5分の間隔と45秒の控えが原因)
         if(dirtyEls.size) return;                  // 未保存の入力がある時は触らない
         var a = document.activeElement;
         if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== "checkbox") return;
@@ -1341,7 +1341,7 @@
     }
     function silentRefresh(){
       if(refreshing) return; refreshing = true;
-      api("list",{lite:true}).then(function(j){
+      api("list",{lite:true, fresh:true}).then(function(j){
         refreshing = false;
         var next = j.properties||[];
         if(sig(next) === sig(rows)) return; // 変化なし=触らない
@@ -1356,6 +1356,8 @@
     }
     document.addEventListener("visibilitychange", maybeReload);
     window.addEventListener("focus", maybeReload);
+    // 表示中も90秒ごとに裏で取り直す(取込直後に管理画面へ戻った時に新しい物件が出るように)。入力中・未保存がある時は maybeReload 側で見送る
+    setInterval(function(){ try{ if(document.visibilityState === "visible" && Date.now() - lastAuto >= 90000) maybeReload(); }catch(e){} }, 15000);
   })();
   $("search").addEventListener("input", function(e){ filter=e.target.value; render(); });
   $("fltApply").addEventListener("change", function(e){ fltApply=e.target.value; render(); });
