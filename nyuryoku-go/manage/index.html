@@ -1220,11 +1220,12 @@
 
   // ===== 読み込み =====
   function load(opts){
-    var cached = !!(opts && opts.cached); // 画面を開いた直後だけ短期キャッシュ可(他は常に最新を取る)
+    // 2026-10-10: 一覧はサーバー側で会社ごとに10分キャッシュ(取込・更新・削除で即座に版が上がる)。「更新」ボタンだけ fresh で取り直す(Supabase転送量対策)
+    var force = !!(opts && opts.force);
     $("loading").style.display="block"; $("table").style.display="none"; $("empty").style.display="none";
     var ic=$("reloadIcon"); ic.innerHTML='<span class="spin" style="border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>';
     if(!pubLoaded && IS_OWNER) loadPubCheck(); // 掲載確認シート照合は当社(運営)専用(初回のみ・失敗しても物件表示は止めない)
-    api("list",{lite:true, fresh:!cached}).then(function(j){
+    api("list",{lite:true, fresh:force}).then(function(j){
       rows=j.properties||[]; render();
       $("updated").textContent="最終更新 "+new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
       ic.textContent="↻";
@@ -1314,7 +1315,7 @@
     if(!confirm("ログアウトしますか？")) return;
     (sb?sb.auth.signOut():Promise.resolve()).then(function(){ token=""; COMPANY=""; IS_OWNER=false; openGate(); });
   });
-  $("btnReload").addEventListener("click", load);
+  $("btnReload").addEventListener("click", function(){ load({force:true}); });
   // 画面に戻ってきた時に一覧を自動で最新にする(渡辺さん2026-10-01「一括反映後に『開く』がエラー」=反映し直しで
   //   古い登録が削除され新しいURLに変わったのに、開きっぱなしの画面が古いリンクを表示していた)。
   //   入力中(メモ欄など)は邪魔しない。連続実行を避けるため前回から30秒以上あいた時だけ。
