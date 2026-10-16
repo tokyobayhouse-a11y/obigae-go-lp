@@ -134,6 +134,7 @@
   .c-name a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
   .c-name .addr{color:#71808f;font-size:11px;font-weight:650;margin-top:3px;line-height:1.35;}
   .dup-badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:9px;background:#fdeaea;color:#b93a3a;border:1px solid #f2b8b8;font-size:11px;font-weight:700;white-space:nowrap;cursor:help;vertical-align:1px;}
+  .prev-listed{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:9px;background:#eaf2ff;color:#1d4fa3;border:1px solid #b9cff5;font-size:11px;font-weight:700;white-space:nowrap;cursor:help;vertical-align:1px;}
   .reimp-badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:9px;background:#fff3df;color:#a8620a;border:1px solid #f0cf9a;font-size:11px;font-weight:700;white-space:nowrap;cursor:help;vertical-align:1px;}
   .src{display:inline-flex;align-items:center;justify-content:center;min-height:23px;font-size:9.5px;font-weight:900;padding:3px 6px;border-radius:5px;letter-spacing:0;line-height:1.2;white-space:nowrap;}
   .src.atbb{background:var(--blue-bg);color:#1558a7;box-shadow:inset 0 0 0 1px rgba(39,110,241,.12);}
@@ -968,6 +969,11 @@
     if(p.reflected_at && p.imported_at && new Date(p.imported_at).getTime() > new Date(p.reflected_at).getTime() + 60000){
       var rd=new Date(p.reflected_at), idt=new Date(p.imported_at);
       reimpHtml='<span class="reimp-badge" title="アドマスへの反映('+ (rd.getMonth()+1)+'/'+rd.getDate() +')の後に取り直されたデータ('+ (idt.getMonth()+1)+'/'+idt.getDate() +')です。アドマスの登録内容は古い取込のまま。最新の読み取りで入れ直すには「反映する」を付けて一括反映してください">'+ (idt.getMonth()+1)+'/'+idt.getDate() +'に再取込済み・反映し直し要</span>';
+    }
+    // 過去の掲載日(取り直しで未反映に戻した物件・寺島さん2026-10-16「何月何日にも掲載しています」)。サーバーが p.prev_listed=['2026-09-07',...] を付ける
+    if(Array.isArray(p.prev_listed) && p.prev_listed.length){
+      var pds=p.prev_listed.slice(-3).map(function(d){ var m=String(d).match(/^\d{4}-(\d{2})-(\d{2})/); return m?(+m[1])+'/'+(+m[2]):''; }).filter(Boolean);
+      if(pds.length) reimpHtml+='<span class="prev-listed" title="この部屋は以前にもアドマスへ掲載(反映)しています。再募集の取り直しです">'+esc(pds.join('・'))+'にも掲載しています</span>';
     }
     var tr=document.createElement("tr");
     applyRowStatus(tr, p);
