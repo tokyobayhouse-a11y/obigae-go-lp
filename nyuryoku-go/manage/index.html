@@ -1362,7 +1362,9 @@
     }
     function silentRefresh(){
       if(refreshing) return; refreshing = true;
-      api("list",{lite:true, fresh:true}).then(function(j){
+      // 2026-10-21: 裏の取り直しは fresh を付けない(サーバーの10分キャッシュを使う。取込・更新で版が上がれば自動で新しくなる)。
+      //   fresh:true で90秒ごとに物出DBから12MBを取り続けたのが転送量超過(Supabase停止)の一因。
+      api("list",{lite:true}).then(function(j){
         refreshing = false;
         var next = j.properties||[];
         if(sig(next) === sig(rows)) return; // 変化なし=触らない
