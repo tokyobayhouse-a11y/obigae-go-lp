@@ -199,7 +199,10 @@
   .pt{width:100%;min-width:0;height:22px;font-size:9.5px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#8d99a6;border-radius:5px;padding:0 4px;cursor:pointer;line-height:1.2;letter-spacing:0;transition:all .12s;white-space:nowrap;}
   .pt:hover{border-color:var(--gray-400);}
   .pt.on{color:#fff;border-color:transparent;}
-  .pt.on.suumo{background:#17a65a;} .pt.on.suumo_direct{background:#0b6b3a;} .pt.on.homes{background:#f16f32;} .pt.on.athome{background:#0d9e92;} .pt.on.reblo{background:var(--navy);} .pt.on.reins{background:#576574;}
+  .pt.on.suumo{background:#17a65a;}
+  /* 「SUUMO直接」は掲載欄の中で1行まるごと使い、点線枠で他の媒体と見分ける(2026-10-20 寺島さん「ない」=2列グリッドで文字が切れて見えなかった) */
+  .pt.sd{grid-column:1/-1;border-style:dashed;border-color:#0b6b3a;color:#0b6b3a;font-size:10px;}
+  .pt.on.sd{background:#0b6b3a;border-style:solid;border-color:transparent;color:#fff;} .pt.on.homes{background:#f16f32;} .pt.on.athome{background:#0d9e92;} .pt.on.reblo{background:var(--navy);} .pt.on.reins{background:#576574;}
   /* 非掲載トグル */
   .hd-wrap{display:flex;justify-content:center;gap:3px;}
   .hd{width:22px;height:24px;font-size:10.5px;font-weight:900;border:1px solid var(--line-strong);background:#fff;color:#8d99a6;border-radius:5px;padding:0;cursor:pointer;transition:all .12s;}
