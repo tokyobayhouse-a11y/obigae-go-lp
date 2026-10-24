@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="業者間流通サイトの募集図面を、1クリックで自社の帯付きPDFへ。帯替えGO‼︎ は不動産営業マン向けのChrome拡張機能。ATBB・REINS・イタンジBB 対応。" />
+  <meta name="description" content="不動産の募集図面（マイソク）の帯替えを、業者間流通サイトから1クリックで。自社の帯付きPDFがすぐ完成。帯替えGO‼︎ は不動産営業マン向けのChrome拡張機能。ATBB・REINS・イタンジBB 対応。" />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://obigae-go.com/" />
-  <title>業者間サイトからワンクリックで帯替え｜帯替えGO‼︎</title>
+  <title>不動産の業者間サイトからワンクリックで帯替え｜帯替えGO‼︎</title>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-374XB1CNBR"></script>
   <script>
@@ -24,8 +24,8 @@
     })(window, document, "clarity", "script", "x6a3jwppyf");
   </script>
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="業者間サイトからワンクリックで帯替え｜帯替えGO‼︎" />
-  <meta property="og:description" content="ATBB・REINS・イタンジBBの物件カードに「📥帯付き」ボタン。1クリックで自社帯付き募集図面PDFを生成。" />
+  <meta property="og:title" content="不動産の業者間サイトからワンクリックで帯替え｜帯替えGO‼︎" />
+  <meta property="og:description" content="不動産の募集図面（マイソク）の帯替えをワンクリックで。ATBB・REINS・イタンジBBの物件カードに「帯付き」ボタン。自社帯付きの募集図面PDFを生成。" />
   <meta property="og:image" content="https://obigae-go.com/icons/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -223,6 +223,9 @@
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
+      font-size: inherit; /* ヒーロー画像を h1 で包んでいる(検索向けの見出し=画像のalt)。見た目は変えない */
+      font-weight: inherit;
+      line-height: 0;
     }
     .hero-image-wrap picture,
     .hero-image-wrap img {
@@ -1490,14 +1493,14 @@
     <!-- ヒーロー (1枚画像版) -->
     <section class="hero">
       <div class="container">
-        <div class="hero-image-wrap">
+        <h1 class="hero-image-wrap">
           <picture>
             <source media="(max-width: 760px)" srcset="/illust/hero-v2-mobile.png?v=5">
             <img src="/illust/hero-v2-pc.png?v=6"
-                 alt="帯替えGO‼︎ - 募集図面の「帯」を、ワンクリックで自社帯へ。初期費用なし・解約縛りなし・14日間無料でお試し"
+                 alt="帯替えGO‼︎ - 不動産の募集図面（マイソク）の「帯」を、ワンクリックで自社帯へ。初期費用なし・解約縛りなし・14日間無料でお試し"
                  loading="eager" fetchpriority="high">
           </picture>
-        </div>
+        </h1>
       </div>
     </section>
 
