@@ -1808,6 +1808,7 @@
           </ul>
         </div>
 
+        <p id="bh-noeigyo-note" style="margin:0 0 16px;padding:10px 14px;background:#f5f5f5;border-left:3px solid #999;color:#333;font-size:13px;line-height:1.7;">当フォームからの営業・勧誘のご連絡はご遠慮ください。</p>
         <form id="contact-form" class="form-card">
           <div class="form-grid">
             <div class="field">
@@ -1923,6 +1924,18 @@
       const status = document.getElementById('contact-status');
       const API = '/api/contact';
 
+    // 営業メール送信ガード(会社HPの営業ガードv3と同じ考え方・2026-10-29): 判定語2語以上の本文は送信せず、その送信者にだけNGを出す
+    var __salesWords = ['ご提案','突然のご連絡','配信停止','無料相談','資料請求','導入実績','代表取締役','代表を務め','協業','営業代行','助成金','ホームページを拝見','集客支援','口コミ','お打ち合わせの時間','ご返信いただけますと幸い','無料でさせていただ','お力になれ','貴社のサービス','サービスのご案内'];
+    function __isSales(t){ var n=0; for (var i=0;i<__salesWords.length;i++) if (t.indexOf(__salesWords[i])!==-1) n++; return n>=2; }
+    function __showSalesNg(form){
+      var ng=document.getElementById('bh-noeigyo-ng');
+      if(!ng){ ng=document.createElement('div'); ng.id='bh-noeigyo-ng';
+        ng.style.cssText='margin:0 0 20px;padding:14px 16px;background:#c0392b;color:#fff;font-size:14px;line-height:1.7;border-radius:6px;';
+        ng.innerHTML='営業・勧誘と判断される内容のため送信できません。当フォームでは営業のご連絡を受け付けておりません。<br>営業目的で送信された場合、対応手数料として1件あたり5,500円(税込)を請求いたします。<br>サービスのご利用に関するご用件でこの表示が出た場合は、お手数ですが各ツール画面の「ご要望・不具合」からお知らせください。';
+        form.parentNode.insertBefore(ng, form); }
+      ng.style.display='block'; ng.scrollIntoView({block:'center'});
+    }
+
       form.addEventListener('submit', async (ev) => {
         ev.preventDefault();
         status.textContent = '';
@@ -1930,6 +1943,7 @@
 
         const email = (form.email.value || '').trim();
         const message = (form.message.value || '').trim();
+        if (__isSales(message)) { __showSalesNg(form); return; }
         if (!email || !email.includes('@')) {
           status.className = 'contact-status error';
           status.textContent = 'メールアドレスをご確認ください。';
