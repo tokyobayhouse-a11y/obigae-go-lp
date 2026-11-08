@@ -331,3 +331,19 @@ b,strong{font-weight:900}
 .form__salesng{background:#c0392b;color:#fff;font-size:13px;line-height:1.7;padding:14px 16px;border-radius:6px;margin-bottom:16px}
 .form__help{font-size:12px;color:var(--mute);margin:0}
 .form__help a{color:var(--navy);font-weight:700}
+
+/* ===== PC: 中央カラムを拡大(zoom)・自社HP(bayhouse.co.jp 新版)と同じ幅に揃える 2026-11-08 ===== */
+@media(min-width:1024px){
+  :root{--zoom:1.25}
+  .shell{grid-template-columns:minmax(0,1fr) calc(var(--col)*var(--zoom)) minmax(0,1fr)}
+  .col{zoom:var(--zoom)}
+  .side__catch{font-size:clamp(24px,2.3vw,32px)}
+}
+@media(min-width:1280px){:root{--zoom:1.5}}
+@media(min-width:1600px){:root{--zoom:1.7}}
+/* 1024〜1279px: 両サイドが狭くなるので余白と文字を詰める */
+@media(min-width:1024px) and (max-width:1279px){
+  .side{padding:32px 18px}
+  .side__catch{font-size:22px;margin-bottom:14px}
+  .side--l .cta{min-height:54px}
+}
